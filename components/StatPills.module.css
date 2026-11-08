@@ -1,0 +1,23 @@
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px 0 10px;
+  border-radius: var(--radius-pill);
+  background: var(--soft);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.num {
+  display: inline-flex;
+  overflow: hidden;
+  min-width: 10px;
+}

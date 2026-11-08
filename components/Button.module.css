@@ -1,0 +1,65 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  user-select: none;
+  transition: background 0.2s, color 0.2s, opacity 0.2s;
+}
+
+.button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.large {
+  height: 58px;
+  padding: 0 28px;
+  font-size: 19px;
+}
+
+.medium {
+  height: 46px;
+  padding: 0 22px;
+  font-size: 16px;
+}
+
+.small {
+  height: 36px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.full {
+  width: 100%;
+}
+
+.primary {
+  background: var(--ink);
+  color: #fff;
+}
+
+.secondary {
+  background: var(--soft);
+  color: var(--ink);
+}
+
+.accent {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(255, 138, 31, 0.35);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--muted);
+}
+
+.light {
+  background: #fff;
+  color: var(--ink);
+}
