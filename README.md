@@ -6,21 +6,37 @@ This is the first working version (an MVP). It runs in the phone's web browser a
 
 ## How to run it on your computer
 
-You need [Node.js](https://nodejs.org) version 20 or newer.
+You need [Node.js](https://nodejs.org) version 20 or newer and [Git](https://git-scm.com).
 
-```bash
-npm install
-npm run dev
-```
+1. Download the code (use your repository's address from the "Clone" button):
 
-Then open <http://localhost:4317> in your browser. To get the phone look on a computer, open your browser's developer tools and switch to a phone view. To try it on a real phone on the same Wi-Fi, open `http://<your-computer's-IP>:4317`.
+   ```bash
+   git clone <your-repository-address> goreal
+   cd goreal
+   ```
+
+2. Install what the app needs (only the first time):
+
+   ```bash
+   npm install
+   ```
+
+3. Start the app:
+
+   ```bash
+   npm run dev
+   ```
+
+4. Open <http://localhost:3000> in your browser.
+
+To get the phone look on a computer, open your browser's developer tools and switch to a phone view. To try it on a real phone on the same Wi-Fi, open `http://<your-computer's-IP>:3000`. To stop the app, press `Ctrl + C` in the terminal.
 
 Other commands:
 
 | Command | What it does |
 | --- | --- |
 | `npm run build` | Makes an optimized version for publishing |
-| `npm start` | Runs that optimized version on port 4317 |
+| `npm start` | Runs that optimized version on port 3000 |
 | `npm run lint` | Checks the code for common mistakes |
 
 In development mode the break-length picker also has a **1 minute** option, so you can try a whole break without waiting. The published version does not have it.
