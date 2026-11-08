@@ -115,3 +115,10 @@
   font-size: 14px;
   white-space: nowrap;
 }
+
+.actionBar button:disabled {
+  opacity: 1;
+  background: #d1d1d6;
+  color: #fff;
+  box-shadow: none;
+}

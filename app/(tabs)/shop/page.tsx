@@ -44,8 +44,8 @@ export default function Shop() {
     else if (selected.kind === "outfit" && wasWearing) flash("Taken off");
   };
 
-  let action = "Pick something";
-  let disabled = !selected;
+  let action = "";
+  let disabled = false;
   if (selected) {
     if (!owned(selected)) {
       if (selected.kind === "title" && selected.unlockAtMinutes !== undefined) {
@@ -121,11 +121,21 @@ export default function Shop() {
         </div>
       </section>
 
-      <div className={styles.actionBar}>
-        <Button full variant={selected && !owned(selected) ? "accent" : "primary"} disabled={disabled} onClick={act}>
-          {action}
-        </Button>
-      </div>
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            className={styles.actionBar}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ type: "spring", stiffness: 420, damping: 32 }}
+          >
+            <Button full variant={!owned(selected) ? "accent" : "primary"} disabled={disabled} onClick={act}>
+              {action}
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {toast && (
