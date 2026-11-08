@@ -1,19 +1,19 @@
 :root {
-  /* Warm paper palette with a single clay accent. No gradients, no glows. */
-  --bg: #faf9f5;
+  /* White and black with a single orange accent. No gradients, no glows. */
+  --bg: #ffffff;
   --card: #ffffff;
-  --ink: #1f1e1d;
-  --ink-2: #3d3929;
-  --muted: #73726c;
-  --faint: #a3a19a;
-  --line: #e8e6dc;
-  --soft: #f0eee6;
-  --soft-2: #e8e6dc;
-  --accent: #d97757;
-  --accent-deep: #be6242;
-  --accent-soft: #f5e4dc;
-  --night: #262624;
-  --night-2: #30302e;
+  --ink: #111111;
+  --ink-2: #333333;
+  --muted: #6e6e6e;
+  --faint: #a8a8a8;
+  --line: #ebebeb;
+  --soft: #f4f4f4;
+  --soft-2: #ebebeb;
+  --accent: #fc4c02;
+  --accent-deep: #e03e00;
+  --accent-soft: #fff0e8;
+  --night: #111111;
+  --night-2: #1e1e1e;
 
   --radius-s: 12px;
   --radius-m: 16px;
@@ -21,7 +21,7 @@
   --radius-pill: 999px;
 
   --font-serif: var(--font-newsreader), "Iowan Old Style", Georgia, serif;
-  --font-text: var(--font-schibsted), -apple-system, system-ui, sans-serif;
+  --font-text: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
 
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -39,7 +39,7 @@
 html,
 body {
   height: 100%;
-  background: #eceae2;
+  background: #f2f2f2;
   color: var(--ink);
   font-family: var(--font-text);
   font-size: 16px;

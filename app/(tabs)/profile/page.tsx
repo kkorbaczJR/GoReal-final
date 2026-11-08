@@ -127,11 +127,11 @@ export default function Profile() {
               <span className={styles.badgeIcon}>
                 {a.unlocked ? (
                   <svg width="26" height="26" viewBox="0 0 24 24">
-                    <path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" fill="#d97757" />
+                    <path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" fill="#fc4c02" />
                   </svg>
                 ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9c6bb" strokeWidth="2.4" strokeLinecap="round">
-                    <rect x="5" y="11" width="14" height="10" rx="3" fill="#c9c6bb" stroke="none" />
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cfcfcf" strokeWidth="2.4" strokeLinecap="round">
+                    <rect x="5" y="11" width="14" height="10" rx="3" fill="#cfcfcf" stroke="none" />
                     <path d="M8 11V8a4 4 0 0 1 8 0v3" />
                   </svg>
                 )}

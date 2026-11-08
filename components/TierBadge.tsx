@@ -2,8 +2,8 @@ import { TIERS } from "@/lib/league";
 
 /** One simple shape per league tier, in black with the warm accent. */
 export default function TierBadge({ tier, size = 56, locked = false, current = false }: { tier: number; size?: number; locked?: boolean; current?: boolean }) {
-  const fill = locked ? "#e8e6dc" : current ? "#d97757" : "#1f1e1d";
-  const inner = locked ? "#c9c6bb" : "#faf9f5";
+  const fill = locked ? "#ebebeb" : current ? "#fc4c02" : "#111111";
+  const inner = locked ? "#cfcfcf" : "#ffffff";
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" role="img" aria-label={`${TIERS[tier].name} league`}>
       <circle cx="32" cy="32" r="29" fill={fill} />

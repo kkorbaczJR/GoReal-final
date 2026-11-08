@@ -39,7 +39,7 @@
   background: var(--night-2);
   font-size: 13px;
   font-weight: 500;
-  color: rgba(250, 249, 245, 0.8);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .center {
@@ -60,7 +60,7 @@
 
 .tip {
   font-size: 16px;
-  color: rgba(250, 249, 245, 0.65);
+  color: rgba(255, 255, 255, 0.65);
   min-height: 22px;
   font-family: var(--font-serif);
   font-style: italic;
@@ -80,7 +80,7 @@
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(250, 249, 245, 0.45);
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .chips {
@@ -100,12 +100,12 @@
   background: var(--night-2);
   font-size: 13px;
   font-weight: 500;
-  color: rgba(250, 249, 245, 0.8);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .warning {
   font-size: 13px;
-  color: rgba(250, 249, 245, 0.4);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .giveUp {
@@ -113,7 +113,7 @@
   width: 100%;
   height: 54px;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(250, 249, 245, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -125,14 +125,14 @@
   left: 0;
   top: 0;
   bottom: 0;
-  background: rgba(217, 119, 87, 0.45);
+  background: rgba(252, 76, 2, 0.45);
 }
 
 .giveUpText {
   position: relative;
   font-size: 15px;
   font-weight: 500;
-  color: rgba(250, 249, 245, 0.75);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .resultTitle {
@@ -189,25 +189,34 @@
 
 .streakNumber {
   font-family: var(--font-serif);
-  font-size: 128px;
+  font-size: 120px;
   line-height: 0.9;
   letter-spacing: -0.04em;
-  color: var(--accent);
+  color: var(--ink);
   font-variant-numeric: lining-nums;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .streakLabel {
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   color: var(--accent);
-  margin-top: -4px;
+  margin-top: -2px;
+}
+
+.weekCard {
+  width: calc(100vw - 44px);
+  max-width: 396px;
+  margin-top: 22px;
+  padding: 18px 16px 16px;
+  border-radius: var(--radius-l);
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .weekRow {
   display: flex;
-  gap: 12px;
-  margin-top: 22px;
+  justify-content: space-between;
 }
 
 .weekDay {
@@ -218,10 +227,10 @@
 }
 
 .weekDot {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--night-2);
+  background: var(--soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -234,11 +243,18 @@
 .weekLabel {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(250, 249, 245, 0.55);
+  color: var(--faint);
+}
+
+.weekLabelToday {
+  color: var(--ink);
 }
 
 .streakLine {
-  font-size: 17px;
-  color: rgba(250, 249, 245, 0.85);
-  margin-top: 18px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
 }

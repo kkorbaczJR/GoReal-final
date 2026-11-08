@@ -16,11 +16,11 @@ type Props = {
   still?: boolean;
 };
 
-const CLAY = "#d97757";
-const INK = "#1f1e1d";
-const BLUSH = "#f0a58a";
-const CREAM = "#faf9f5";
-const SAND = "#e8e6dc";
+const CLAY = "#fc4c02";
+const INK = "#111111";
+const BLUSH = "#ffb08a";
+const CREAM = "#ffffff";
+const SAND = "#ebebeb";
 
 type Px = [x: number, y: number, color: string];
 
@@ -48,7 +48,7 @@ const OUTFITS: Record<Outfit, Px[]> = {
     ...run(-3, 5, 10, CREAM), ...run(-2, 3, 12, CREAM), ...run(-1, 2, 13, CREAM),
     ...run(0, 1, 14, CREAM), ...run(1, 9, 18, SAND), [7, -4, CLAY], [8, -4, CLAY],
   ],
-  shades: [...run(5, 3, 12, INK), ...run(6, 3, 6, INK), ...run(6, 9, 12, INK), [4, 5, "#6b6a65"]],
+  shades: [...run(5, 3, 12, INK), ...run(6, 3, 6, INK), ...run(6, 9, 12, INK), [4, 5, "#555555"]],
   headphones: [
     ...run(-3, 4, 11, INK), [2, -2, INK], [3, -2, INK], [12, -2, INK], [13, -2, INK],
     [1, -1, INK], [14, -1, INK], [0, 0, INK], [15, 0, INK],
@@ -65,12 +65,12 @@ const OUTFITS: Record<Outfit, Px[]> = {
 };
 
 const EYES: Record<Mood, Px[]> = {
-  happy: [...run(5, 4, 5, INK), ...run(6, 4, 5, INK), ...run(5, 10, 11, INK), ...run(6, 10, 11, INK)],
+  happy: [[4, 6, INK], [11, 6, INK]],
   wave: [],
-  tired: [...run(6, 4, 5, INK), ...run(6, 10, 11, INK)],
-  sleeping: [[3, 5, INK], [4, 6, INK], [5, 6, INK], [6, 5, INK], [9, 5, INK], [10, 6, INK], [11, 6, INK], [12, 5, INK]],
-  proud: [[3, 6, INK], [4, 5, INK], [5, 5, INK], [6, 6, INK], [9, 6, INK], [10, 5, INK], [11, 5, INK], [12, 6, INK]],
-  sad: [...run(6, 4, 5, INK), ...run(7, 4, 5, INK), ...run(6, 10, 11, INK), ...run(7, 10, 11, INK)],
+  tired: [[4, 7, INK], [11, 7, INK]],
+  sleeping: [...run(7, 3, 4, INK), ...run(7, 11, 12, INK)],
+  proud: [[4, 5, INK], [11, 5, INK]],
+  sad: [[4, 7, INK], [11, 7, INK]],
 };
 EYES.wave = EYES.happy;
 
@@ -85,7 +85,6 @@ const MOUTHS: Record<Mood, Px[]> = {
 MOUTHS.wave = MOUTHS.happy;
 
 const BLUSH_PX: Px[] = [...run(8, 2, 3, BLUSH), ...run(8, 12, 13, BLUSH)];
-const ARM: Px[] = [...run(2, 18, 19, CLAY), ...run(3, 18, 19, CLAY), ...run(4, 18, 19, CLAY)];
 const Z: [number, number][] = [[0, 0], [1, 0], [2, 0], [3, 0], [2, 1], [1, 2], [0, 3], [1, 3], [2, 3], [3, 3]];
 
 /** Pixels around a shape that get the dark outline. */
@@ -126,7 +125,6 @@ export default function Mascot({ mood = "happy", outfit = null, size = 160, onDa
     return [...outline(pixels), ...pixels];
   }, [outfit]);
 
-  const armPx = useMemo(() => [...outline(ARM), ...ARM], []);
   const eyes = outfit === "shades" ? [] : EYES[mood];
 
   const idle =
@@ -134,7 +132,9 @@ export default function Mascot({ mood = "happy", outfit = null, size = 160, onDa
       ? { y: [0, 0.5, 0], transition: { duration: 2.4, repeat: Infinity, ease: steps(2) } }
       : mood === "proud"
         ? { y: [0, -2, 0], transition: { duration: 0.6, repeat: Infinity, repeatDelay: 0.5, ease: steps(3) } }
-        : mood === "sad" || mood === "tired"
+        : mood === "wave"
+          ? { y: [0, -2, 0, -2, 0], transition: { duration: 0.9, repeat: Infinity, repeatDelay: 1.4, ease: steps(4) } }
+          : mood === "sad" || mood === "tired"
           ? undefined
           : { y: [0, -1, 0], transition: { duration: 1.6, repeat: Infinity, ease: steps(2) } };
 
@@ -154,16 +154,6 @@ export default function Mascot({ mood = "happy", outfit = null, size = 160, onDa
       <rect x={1} y={15} width={14} height={1} fill={onDark ? "#000" : INK} opacity={onDark ? 0.35 : 0.08} />
 
       <motion.g animate={still ? undefined : idle}>
-        {mood === "wave" && (
-          <motion.g
-            style={{ originX: "18px", originY: "5px" }}
-            animate={{ rotate: [0, -20, 0, -20, 0] }}
-            transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 1, ease: steps(4) }}
-          >
-            <Pixels px={armPx} />
-          </motion.g>
-        )}
-
         <Pixels px={base} />
         <Pixels px={BLUSH_PX} />
 

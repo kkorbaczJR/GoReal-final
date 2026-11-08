@@ -17,8 +17,8 @@ export default function TimerRing({
   progress,
   size = 280,
   stroke = 18,
-  track = "#e8e6dc",
-  color = "#d97757",
+  track = "#ebebeb",
+  color = "#fc4c02",
   children,
 }: Props) {
   const r = (size - stroke) / 2;

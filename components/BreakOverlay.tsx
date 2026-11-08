@@ -8,7 +8,7 @@ import { finishBreak, getState, quitBreak, type GoRealState } from "@/lib/store"
 import CountUp from "./CountUp";
 import Button from "./Button";
 import Mascot from "./Mascot";
-import { CoinIcon, FlameIcon } from "./StatPills";
+import { CoinIcon } from "./StatPills";
 import TimerRing from "./TimerRing";
 import styles from "./BreakOverlay.module.css";
 
@@ -114,7 +114,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
 
   return (
     <motion.div
-      className={`${styles.overlay} ${outcome.kind === "running" || outcome.kind === "streak" ? styles.dark : styles.light}`}
+      className={`${styles.overlay} ${outcome.kind === "running" ? styles.dark : styles.light}`}
       initial={{ opacity: 0, scale: 1.04 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0 }}
@@ -133,7 +133,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
                 progress={1 - leftMs / totalMs}
                 size={280}
                 stroke={6}
-                track="rgba(250,249,245,0.1)"
+                track="rgba(255, 255, 255,0.1)"
               >
                 <Mascot mood="sleeping" size={124} onDark outfit={state.outfit} />
                 <div className={styles.clock}>{formatClock(leftMs / 1000)}</div>
@@ -222,8 +222,8 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
           >
             <div />
             <StreakCelebration />
-            <Button full variant="light" onClick={onClose}>
-              Keep it going
+            <Button full onClick={onClose}>
+              Continue
             </Button>
           </motion.div>
         )}
@@ -271,7 +271,7 @@ function RewardPill({ children, delay }: { children: React.ReactNode; delay: num
 const WEEKDAY = ["S", "M", "T", "W", "T", "F", "S"];
 const ENERGETIC = [0.34, 1.56, 0.64, 1] as const;
 
-/** Noom-style "N day streak" moment, shown when a break makes today count. */
+/** Me+-style streak moment, shown when a break makes today count. */
 function StreakCelebration() {
   const fresh = getState();
   const { count } = streakStatus(fresh.days, fresh);
@@ -281,48 +281,79 @@ function StreakCelebration() {
   return (
     <div className={styles.center}>
       <motion.div
-        initial={{ scale: 0.4, rotate: -12, opacity: 0 }}
-        animate={{ scale: 1, rotate: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: ENERGETIC }}
+        initial={{ scale: 0.3, y: 20, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        transition={{ duration: 0.55, ease: ENERGETIC }}
       >
-        <FlameIcon size={64} />
+        <PixelFlame size={112} />
       </motion.div>
       <div className={styles.streakNumber}>
-        <CountUp from={Math.max(0, count - 1)} to={count} duration={600} delay={350} />
+        <CountUp from={Math.max(0, count - 1)} to={count} duration={600} delay={450} />
       </div>
-      <div className={styles.streakLabel}>day streak</div>
-      <div className={styles.weekRow}>
-        {week.map((d, i) => {
-          const done = dayQualifies(fresh.days[dayKey(d)], fresh);
-          const isToday = i === 6;
-          return (
-            <div key={i} className={styles.weekDay}>
-              <motion.span
-                className={`${styles.weekDot} ${done ? styles.weekDone : ""}`}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: isToday ? 1.1 : 0.5 + i * 0.06, duration: isToday ? 0.5 : 0.35, ease: ENERGETIC }}
-              >
-                {done && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#262624" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12.5l4.5 4.5L19 7.5" />
-                  </svg>
-                )}
-              </motion.span>
-              <span className={styles.weekLabel}>{WEEKDAY[d.getDay()]}</span>
-            </div>
-          );
-        })}
-      </div>
-      <motion.p
-        className={styles.streakLine}
-        initial={{ opacity: 0, y: 6 }}
+      <div className={styles.streakLabel}>day streak!</div>
+
+      <motion.div
+        className={styles.weekCard}
+        initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.4 }}
+        transition={{ delay: 0.35, duration: 0.45, ease: ENERGETIC }}
       >
-        Small breaks, real progress.
-      </motion.p>
+        <div className={styles.weekRow}>
+          {week.map((d, i) => {
+            const done = dayQualifies(fresh.days[dayKey(d)], fresh);
+            const isToday = i === 6;
+            return (
+              <div key={i} className={styles.weekDay}>
+                <span className={`${styles.weekLabel} ${isToday ? styles.weekLabelToday : ""}`}>{WEEKDAY[d.getDay()]}</span>
+                <motion.span
+                  className={`${styles.weekDot} ${done ? styles.weekDone : ""}`}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: isToday ? 1.2 : 0.6 + i * 0.06, duration: isToday ? 0.5 : 0.35, ease: ENERGETIC }}
+                >
+                  {done && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12.5l4.5 4.5L19 7.5" />
+                    </svg>
+                  )}
+                </motion.span>
+              </div>
+            );
+          })}
+        </div>
+        <p className={styles.streakLine}>
+          {count === 1 ? "Day one. Every streak starts here." : "You're on a roll. Take a break tomorrow to keep it going."}
+        </p>
+      </motion.div>
     </div>
+  );
+}
+
+const FLAME_ROWS: [number, number, number][] = [
+  [0, 4, 4], [1, 4, 5], [2, 3, 5], [3, 3, 6], [4, 2, 6], [5, 2, 7], [6, 1, 7],
+  [7, 1, 8], [8, 0, 8], [9, 0, 8], [10, 0, 8], [11, 1, 7], [12, 2, 6],
+];
+const FLAME_CORE: [number, number, number][] = [[7, 4, 4], [8, 3, 5], [9, 3, 5], [10, 3, 5], [11, 4, 4]];
+
+function PixelFlame({ size }: { size: number }) {
+  const px = (rows: [number, number, number][], fill: string) =>
+    rows.flatMap(([y, x0, x1]) =>
+      Array.from({ length: x1 - x0 + 1 }, (_, i) => <rect key={`${fill}${x0 + i},${y}`} x={x0 + i} y={y} width={1.02} height={1.02} fill={fill} />),
+    );
+  return (
+    <motion.svg
+      width={size}
+      height={size}
+      viewBox="-2.5 -1 14 15"
+      shapeRendering="crispEdges"
+      aria-hidden
+      animate={{ scaleY: [1, 1.06, 1], scaleX: [1, 0.96, 1] }}
+      transition={{ duration: 0.8, repeat: Infinity, ease: (t: number) => Math.round(t * 2) / 2 }}
+      style={{ originY: 1 }}
+    >
+      {px(FLAME_ROWS, "var(--accent)")}
+      {px(FLAME_CORE, "#ffffff")}
+    </motion.svg>
   );
 }
 

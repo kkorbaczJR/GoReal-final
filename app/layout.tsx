@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Newsreader, Schibsted_Grotesk } from "next/font/google";
+import { Geist_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
 
 const newsreader = Newsreader({
@@ -9,8 +9,8 @@ const newsreader = Newsreader({
   style: ["normal", "italic"],
 });
 
-const schibsted = Schibsted_Grotesk({
-  variable: "--font-schibsted",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
@@ -31,12 +31,12 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#faf9f5",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${schibsted.variable}`}>
+    <html lang="en" className={`${newsreader.variable} ${geistMono.variable}`}>
       <body>
         <div className="app-shell">{children}</div>
       </body>

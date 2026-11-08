@@ -1,7 +1,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(31, 30, 29, 0.32);
+  background: rgba(17, 17, 17, 0.32);
   z-index: 40;
 }
 

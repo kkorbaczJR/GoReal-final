@@ -38,7 +38,7 @@ In development mode the break-length picker also has a **1 minute** option, so y
 - The screen turns black ("break mode"). Rilo sleeps, a countdown runs, and your off-limits apps are listed.
 - **If you leave GoReal for more than 10 seconds, the break ends early** and gives no coins. To give up on purpose, you have to press and hold the button, so it never happens by accident.
 - The app asks the phone to keep the screen on during a break, so the phone does not lock itself.
-- When a finished break makes the day count, a full-screen "day streak" moment shows your streak number and the last 7 days.
+- When a finished break makes the day count, a full-screen "day streak!" moment shows a pixel flame, your streak number and the last 7 days.
 - At the top you always see your streak (flame) and coins.
 - The **Today** card shows your two ways to keep the streak: break minutes so far, and your phone time. Tap the phone-time row to type in today's total from your phone's Screen Time (iPhone) or Digital Wellbeing (Android).
 
@@ -76,7 +76,7 @@ The app is built with [Next.js](https://nextjs.org) and TypeScript. Styles use C
 
 ```
 app/
-  layout.tsx            fonts (Newsreader serif for headings, Schibsted Grotesk for text), warm paper colors, phone layout, home-screen settings
+  layout.tsx            fonts (Newsreader serif for headings, Geist Mono for text), white and black with one orange accent, phone layout, home-screen settings
   page.tsx              decides where to go: onboarding (new user) or the Break screen
   onboarding/           the 4 onboarding steps
   (tabs)/               the four main screens, sharing the bottom tab bar
