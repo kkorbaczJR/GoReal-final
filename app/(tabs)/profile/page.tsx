@@ -76,7 +76,9 @@ export default function Profile() {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: i * 0.04, type: "spring", stiffness: 400, damping: 20 }}
                 >
-                  {done ? <PixelIcon name="flame" size={24} /> : null}
+                  {done ? (
+                    <PixelIcon name="flame" size={34} viewBox="2 0 9 12" stretch className={styles.dayFlame} />
+                  ) : null}
                 </motion.span>
                 <span className={styles.dayLabel}>{d}</span>
               </div>
