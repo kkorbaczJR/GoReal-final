@@ -1,0 +1,168 @@
+.timeLeft {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--soft);
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-l);
+  background: var(--accent-soft);
+  overflow: hidden;
+}
+
+.resultText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.resultText b {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.tiers {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0 6px;
+}
+
+.tier {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 56px;
+}
+
+.tierName {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.explain {
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.4;
+  margin-top: -4px;
+}
+
+.table {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 54px;
+  padding: 0 14px;
+  border-radius: var(--radius-m);
+}
+
+.you {
+  background: var(--ink);
+  color: #fff;
+}
+
+.rank {
+  width: 22px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.podium {
+  color: var(--accent);
+}
+
+.you .rank {
+  color: #fff;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.you .avatar {
+  background: var(--accent);
+  color: #fff;
+}
+
+.name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xp {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+
+.you .xp {
+  color: #fff;
+}
+
+.divider {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  position: relative;
+}
+
+.divider::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1.5px dashed var(--line);
+}
+
+.divider span {
+  position: relative;
+  background: #fff;
+  padding: 0 10px;
+}
+
+.dividerUp {
+  color: var(--accent-deep);
+}
