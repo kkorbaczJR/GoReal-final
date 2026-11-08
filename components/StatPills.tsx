@@ -18,9 +18,9 @@ export function FlameIcon({ lit = true, size = 18 }: { lit?: boolean; size?: num
 export function CoinIcon({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
-      <circle cx="12" cy="12" r="10" fill="#0b0b0c" />
-      <circle cx="12" cy="12" r="6.5" fill="none" stroke="#ff8a1f" strokeWidth="2" />
-      <path d="M12 8.5v7" stroke="#ff8a1f" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="10" fill="#ff8a1f" />
+      <circle cx="12" cy="12" r="6.5" fill="none" stroke="#e86f00" strokeWidth="2" />
+      <path d="M8.5 9.5a4 4 0 0 1 3-2.2" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" fill="none" />
     </svg>
   );
 }

@@ -132,6 +132,11 @@ export function useGoReal(): GoRealState | null {
   return useSyncExternalStore(subscribe, getSnapshot, () => null);
 }
 
+/** Latest state outside of React rendering (e.g. right after an action). */
+export function getState(): GoRealState {
+  return getSnapshot();
+}
+
 export function update(fn: (s: GoRealState) => GoRealState) {
   state = fn(getSnapshot());
   persist(state);
