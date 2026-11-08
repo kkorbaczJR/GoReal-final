@@ -11,12 +11,14 @@ type Props = {
   size?: number;
   /** White Rilo for dark backgrounds (used in locked break mode). */
   inverted?: boolean;
+  /** Turn off the idle bobbing (for small thumbnails). */
+  still?: boolean;
 };
 
 const ACCENT = "#ff8a1f";
 
 /** Rilo: a round, sleepy little blob who lives in GoReal. */
-export default function Mascot({ mood = "happy", outfit = null, size = 160, inverted = false }: Props) {
+export default function Mascot({ mood = "happy", outfit = null, size = 160, inverted = false, still = false }: Props) {
   const body = inverted ? "#ffffff" : "#0b0b0c";
   const face = inverted ? "#0b0b0c" : "#ffffff";
 
@@ -41,7 +43,7 @@ export default function Mascot({ mood = "happy", outfit = null, size = 160, inve
     >
       <ellipse cx="100" cy="186" rx="52" ry="7" fill="#000" opacity={inverted ? 0.35 : 0.08} />
 
-      <motion.g style={{ originX: "100px", originY: "180px" }} animate={bob}>
+      <motion.g style={{ originX: "100px", originY: "180px" }} animate={still ? undefined : bob}>
         {/* feet */}
         <ellipse cx="74" cy="176" rx="15" ry="9" fill={body} />
         <ellipse cx="126" cy="176" rx="15" ry="9" fill={body} />
