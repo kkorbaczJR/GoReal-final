@@ -1,16 +1,17 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Button from "@/components/Button";
 import CountUp from "@/components/CountUp";
 import Mascot from "@/components/Mascot";
 import Sheet from "@/components/Sheet";
-import { FlameIcon } from "@/components/StatPills";
+import { PixelIcon } from "@/components/PixelIcon";
+import RiloStage from "@/components/RiloStage";
+import StreakScreen from "@/components/StreakScreen";
 import { achievements } from "@/lib/achievements";
 import { addDays, dayKey, formatMinutes, weekStart } from "@/lib/date";
-import { TIERS } from "@/lib/league";
 import { BREAK_GOAL_OPTIONS, PHONE_LIMIT_OPTIONS, dayQualifies, longestStreak, streakStatus } from "@/lib/rules";
 import { titleName } from "@/lib/shop";
 import { resetEverything, setGoals, useGoReal } from "@/lib/store";
@@ -23,6 +24,7 @@ export default function Profile() {
   const s = useGoReal()!;
   const router = useRouter();
   const [confirmReset, setConfirmReset] = useState(false);
+  const [showStreak, setShowStreak] = useState(false);
 
   const streak = streakStatus(s.days, s);
   const best = longestStreak(s.days, s);
@@ -37,20 +39,30 @@ export default function Profile() {
     { label: "Streak", value: streak.count, format: days },
     { label: "Longest streak", value: best, format: days },
     { label: "Breaks done", value: s.completedBreaks },
-    { label: "XP total", value: s.xp },
-    { label: "League", value: TIERS[s.league.tier].name },
+    { label: "Longest break", value: s.longestBreak, format: formatMinutes },
+    { label: "Shop items", value: s.owned.length },
   ];
 
   return (
     <main className={shared.page}>
       <section className={styles.hero}>
-        <Mascot mood={streak.todayDone ? "proud" : "happy"} size={116} outfit={s.outfit} />
+        <RiloStage
+          mood={streak.todayDone ? "proud" : "happy"}
+          outfit={s.outfit}
+          face={s.face}
+          background={s.background}
+          size={116}
+          height={170}
+        />
         <h1 className={styles.name}>{s.name}</h1>
         <span className={styles.title}>{titleName(s.title)}</span>
       </section>
 
-      <section className={shared.card}>
-        <h2 className={shared.sectionTitle}>This week</h2>
+      <motion.button whileTap={{ scale: 0.98 }} className={`${shared.card} ${styles.weekCard}`} onClick={() => setShowStreak(true)}>
+        <div className={styles.weekHead}>
+          <h2 className={shared.sectionTitle}>This week</h2>
+          <PixelIcon name="chevronRight" size={12} className={styles.chev} />
+        </div>
         <div className={styles.week}>
           {WEEKDAYS.map((d, i) => {
             const key = dayKey(addDays(monday, i));
@@ -64,14 +76,16 @@ export default function Profile() {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: i * 0.04, type: "spring", stiffness: 400, damping: 20 }}
                 >
-                  {done ? <FlameIcon size={16} /> : null}
+                  {done ? <PixelIcon name="flame" size={24} /> : null}
                 </motion.span>
                 <span className={styles.dayLabel}>{d}</span>
               </div>
             );
           })}
         </div>
-      </section>
+      </motion.button>
+
+      <AnimatePresence>{showStreak && <StreakScreen onClose={() => setShowStreak(false)} />}</AnimatePresence>
 
       <section className={styles.stats}>
         {stats.map((st) => (
@@ -125,16 +139,7 @@ export default function Profile() {
               transition={{ delay: 0.05 * i }}
             >
               <span className={styles.badgeIcon}>
-                {a.unlocked ? (
-                  <svg width="26" height="26" viewBox="0 0 24 24">
-                    <path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" fill="#fc4c02" />
-                  </svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cfcfcf" strokeWidth="2.4" strokeLinecap="round">
-                    <rect x="5" y="11" width="14" height="10" rx="3" fill="#cfcfcf" stroke="none" />
-                    <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-                  </svg>
-                )}
+                {a.unlocked ? <PixelIcon name="star" size={36} /> : <PixelIcon name="lock" size={24} dim />}
               </span>
               <span className={styles.badgeName}>{a.name}</span>
               <span className={styles.badgeHint}>{a.hint}</span>
@@ -151,7 +156,7 @@ export default function Profile() {
         <div className={styles.resetBody}>
           <Mascot mood="sad" size={100} />
           <h2>Start over?</h2>
-          <p className={shared.muted}>This deletes your coins, streak, league and outfits on this phone.</p>
+          <p className={shared.muted}>This deletes your coins, streak and shop items on this phone.</p>
           <Button
             full
             onClick={() => {

@@ -1,10 +1,9 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { dayKey, weekKey } from "./date";
-import { finishWeek, type LeagueResult } from "./league";
+import { dayKey } from "./date";
 import { rewardForBreak, type DayLog } from "./rules";
-import { DEFAULT_TITLE, itemById, isOwned, type Outfit } from "./shop";
+import { DEFAULT_TITLE, itemById, isOwned, type Background, type Face, type Outfit } from "./shop";
 
 /** Everything GoReal remembers. It lives in the phone's browser storage, no account needed. */
 export type GoRealState = {
@@ -16,7 +15,6 @@ export type GoRealState = {
   blockedApps: string[];
 
   coins: number;
-  xp: number;
   totalBreakMinutes: number;
   completedBreaks: number;
   quitBreaks: number;
@@ -24,10 +22,11 @@ export type GoRealState = {
   days: Record<string, DayLog>;
 
   owned: string[];
+  /** What Rilo wears on his head. */
   outfit: Outfit | null;
+  face: Face | null;
+  background: Background | null;
   title: string;
-
-  league: { weekKey: string; tier: number; lastResult: LeagueResult | null; bestTier: number };
 
   /** A break that is running right now. Saved so closing the app mid-break counts as quitting. */
   activeBreak: { startedAt: number; minutes: number } | null;
@@ -46,7 +45,6 @@ export function initialState(): GoRealState {
     breakGoal: 30,
     blockedApps: [],
     coins: 0,
-    xp: 0,
     totalBreakMinutes: 0,
     completedBreaks: 0,
     quitBreaks: 0,
@@ -54,8 +52,9 @@ export function initialState(): GoRealState {
     days: {},
     owned: [],
     outfit: null,
+    face: null,
+    background: null,
     title: DEFAULT_TITLE,
-    league: { weekKey: weekKey(), tier: 0, lastResult: null, bestTier: 0 },
     activeBreak: null,
     notice: null,
   };
@@ -64,25 +63,19 @@ export function initialState(): GoRealState {
 let state: GoRealState | null = null;
 const listeners = new Set<() => void>();
 
-/** Runs once when the app opens: settles a break that was left open and rolls the league week over. */
+/** Runs once when the app opens: a break that was left open counts as quitting. */
 function settleOnOpen(s: GoRealState): GoRealState {
-  let next = s;
-  if (next.activeBreak) {
-    next = { ...next, activeBreak: null, quitBreaks: next.quitBreaks + 1, notice: "left-during-break" };
-  }
-  const current = weekKey();
-  if (next.league.weekKey !== current) {
-    const result = finishWeek(next.days, next.league.weekKey, next.league.tier, next.name);
-    next = {
-      ...next,
-      league: {
-        weekKey: current,
-        tier: result.toTier,
-        lastResult: result,
-        bestTier: Math.max(next.league.bestTier, result.toTier),
-      },
-    };
-  }
+  if (!s.activeBreak) return s;
+  return { ...s, activeBreak: null, quitBreaks: s.quitBreaks + 1, notice: "left-during-break" };
+}
+
+/** Older saves kept the shades as a hat and had league data. */
+function migrate(raw: Record<string, unknown>): Partial<GoRealState> {
+  const copy = { ...raw };
+  delete copy.league;
+  delete copy.xp;
+  const next = copy as Partial<GoRealState>;
+  if ((next.outfit as string) === "shades") return { ...next, outfit: null, face: "shades" };
   return next;
 }
 
@@ -90,7 +83,7 @@ function load(): GoRealState {
   let loaded = initialState();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) loaded = { ...loaded, ...JSON.parse(raw) };
+    if (raw) loaded = { ...loaded, ...migrate(JSON.parse(raw)) };
   } catch {
     // Broken or blocked storage: start fresh.
   }
@@ -146,7 +139,7 @@ export function update(fn: (s: GoRealState) => GoRealState) {
 /* ---------- actions ---------- */
 
 export function completeOnboarding(input: { name: string; phoneLimit: number; blockedApps: string[] }) {
-  update((s) => ({ ...s, ...input, onboarded: true, league: { ...s.league, weekKey: weekKey() } }));
+  update((s) => ({ ...s, ...input, onboarded: true }));
 }
 
 export function startBreak(minutes: number) {
@@ -155,7 +148,7 @@ export function startBreak(minutes: number) {
 
 export function finishBreak() {
   const s = getSnapshot();
-  if (!s.activeBreak) return { coins: 0, xp: 0 };
+  if (!s.activeBreak) return { coins: 0 };
   const { minutes } = s.activeBreak;
   const reward = rewardForBreak(minutes, true);
   const key = dayKey();
@@ -164,7 +157,6 @@ export function finishBreak() {
     ...prev,
     activeBreak: null,
     coins: prev.coins + reward.coins,
-    xp: prev.xp + reward.xp,
     totalBreakMinutes: prev.totalBreakMinutes + minutes,
     completedBreaks: prev.completedBreaks + 1,
     longestBreak: Math.max(prev.longestBreak, minutes),
@@ -189,12 +181,6 @@ export function clearNotice() {
   update((s) => ({ ...s, notice: null }));
 }
 
-export function markLeagueResultSeen() {
-  update((s) =>
-    s.league.lastResult ? { ...s, league: { ...s.league, lastResult: { ...s.league.lastResult, seen: true } } } : s,
-  );
-}
-
 /** Buy an item (if affordable) and put it on. Returns false if not enough coins. */
 export function buyOrEquip(itemId: string): boolean {
   const s = getSnapshot();
@@ -206,10 +192,16 @@ export function buyOrEquip(itemId: string): boolean {
     const next = owned
       ? prev
       : { ...prev, coins: prev.coins - item.price, owned: [...prev.owned, item.id] };
-    if (item.kind === "outfit") {
-      return { ...next, outfit: prev.outfit === item.outfit && owned ? null : item.outfit };
+    switch (item.kind) {
+      case "hat":
+        return { ...next, outfit: prev.outfit === item.look && owned ? null : item.look };
+      case "face":
+        return { ...next, face: prev.face === item.look && owned ? null : item.look };
+      case "background":
+        return { ...next, background: prev.background === item.look && owned ? null : item.look };
+      case "title":
+        return { ...next, title: item.id };
     }
-    return { ...next, title: item.id };
   });
   return true;
 }

@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "GoReal",
-  description: "Take real breaks from your phone, grow your streak, climb the league.",
+  description: "Take real breaks from your phone, grow your streak, dress up Rilo.",
   appleWebApp: {
     capable: true,
     title: "GoReal",

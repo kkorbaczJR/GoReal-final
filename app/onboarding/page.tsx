@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Button from "@/components/Button";
 import Mascot from "@/components/Mascot";
+import { PixelIcon } from "@/components/PixelIcon";
 import Splash from "@/components/Splash";
 import { formatMinutes } from "@/lib/date";
 import { PHONE_LIMIT_OPTIONS } from "@/lib/rules";
@@ -60,9 +61,9 @@ export default function Onboarding() {
           style={{ visibility: step > 0 ? "visible" : "hidden" }}
           aria-label="Back"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 5l-7 7 7 7" />
-          </svg>
+          <span style={{ display: "block", transform: "scaleX(-1)" }}>
+            <PixelIcon name="chevronRight" size={24} />
+          </span>
         </button>
         <div className={styles.progress} aria-label={`Step ${step + 1} of ${STEPS}`}>
           <motion.div
@@ -173,9 +174,9 @@ export default function Onboarding() {
                 </div>
                 <h1 className={styles.title}>Rilo naps when you put the phone down</h1>
                 <ul className={styles.facts}>
-                  <li>1 minute of break earns 1 coin and 1 XP</li>
+                  <li>1 minute of break earns 1 coin</li>
                   <li>Leave the app early and the break ends</li>
-                  <li>Climb the weekly league and dress up Rilo</li>
+                  <li>Spend coins on hats, extras and scenes for Rilo</li>
                 </ul>
               </>
             )}

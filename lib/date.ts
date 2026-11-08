@@ -1,5 +1,3 @@
-const DAY_MS = 24 * 60 * 60 * 1000;
-export const WEEK_MS = 7 * DAY_MS;
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
@@ -27,11 +25,6 @@ export function weekStart(date: Date = new Date()): Date {
   const weekday = (d.getDay() + 6) % 7; // Monday = 0
   d.setDate(d.getDate() - weekday);
   return d;
-}
-
-/** A week is identified by the day key of its Monday. */
-export function weekKey(date: Date = new Date()): string {
-  return dayKey(weekStart(date));
 }
 
 export function formatMinutes(minutes: number): string {

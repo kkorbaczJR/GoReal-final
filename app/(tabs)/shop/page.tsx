@@ -4,28 +4,52 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import Button from "@/components/Button";
 import Mascot from "@/components/Mascot";
-import { CoinIcon } from "@/components/StatPills";
+import { PixelIcon, type PixelIconName } from "@/components/PixelIcon";
+import PixelScene from "@/components/PixelScene";
+import RiloStage from "@/components/RiloStage";
 import { formatMinutes } from "@/lib/date";
-import { SHOP_ITEMS, isOwned, titleName, type ShopItem } from "@/lib/shop";
-import { buyOrEquip, useGoReal } from "@/lib/store";
+import { SHOP_ITEMS, isOwned, titleName, type Category, type ShopItem } from "@/lib/shop";
+import { buyOrEquip, useGoReal, type GoRealState } from "@/lib/store";
 import shared from "../tabs.module.css";
 import styles from "./shop.module.css";
 
+const CATEGORIES: { id: Category; label: string; icon: PixelIconName }[] = [
+  { id: "hat", label: "Hats", icon: "hat" },
+  { id: "face", label: "Extras", icon: "glasses" },
+  { id: "background", label: "Scenes", icon: "picture" },
+  { id: "title", label: "Titles", icon: "badge" },
+];
+
+function isWearing(item: ShopItem, s: GoRealState) {
+  switch (item.kind) {
+    case "hat":
+      return s.outfit === item.look;
+    case "face":
+      return s.face === item.look;
+    case "background":
+      return s.background === item.look;
+    case "title":
+      return s.title === item.id;
+  }
+}
+
 export default function Shop() {
   const s = useGoReal()!;
+  const [category, setCategory] = useState<Category>("hat");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   const selected = SHOP_ITEMS.find((i) => i.id === selectedId) ?? null;
-  const previewOutfit = selected?.kind === "outfit" ? selected.outfit : s.outfit;
-  const previewTitle = selected?.kind === "title" ? selected.id : s.title;
+  const preview = {
+    outfit: selected?.kind === "hat" ? selected.look : s.outfit,
+    face: selected?.kind === "face" ? selected.look : s.face,
+    background: selected?.kind === "background" ? selected.look : s.background,
+    title: selected?.kind === "title" ? selected.id : s.title,
+  };
 
-  const outfits = SHOP_ITEMS.filter((i) => i.kind === "outfit");
-  const titles = SHOP_ITEMS.filter((i) => i.kind === "title");
-
+  const items = SHOP_ITEMS.filter((i) => i.kind === category);
   const owned = (item: ShopItem) => isOwned(item, s.owned, s.totalBreakMinutes);
-  const wearing = (item: ShopItem) =>
-    item.kind === "outfit" ? s.outfit === item.outfit : s.title === item.id;
+  const wearing = (item: ShopItem) => isWearing(item, s);
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -41,7 +65,7 @@ export default function Shop() {
       return;
     }
     if (!wasOwned) flash(`${selected.name} is yours!`);
-    else if (selected.kind === "outfit" && wasWearing) flash("Taken off");
+    else if (selected.kind !== "title" && wasWearing) flash("Taken off");
   };
 
   let action = "";
@@ -55,10 +79,10 @@ export default function Shop() {
         action = `Buy for ${selected.price}`;
       }
     } else if (wearing(selected)) {
-      action = selected.kind === "outfit" ? "Take off" : "Using this title";
+      action = selected.kind === "title" ? "Using this title" : selected.kind === "background" ? "Remove" : "Take off";
       disabled = selected.kind === "title";
     } else {
-      action = selected.kind === "outfit" ? "Wear it" : "Use this title";
+      action = selected.kind === "title" ? "Use this title" : selected.kind === "background" ? "Use it" : "Wear it";
     }
   }
 
@@ -67,59 +91,106 @@ export default function Shop() {
       <div className={shared.top}>
         <h1 className={shared.heading}>Shop</h1>
         <div className={styles.coins}>
-          <CoinIcon size={16} /> {s.coins}
+          <PixelIcon name="coin" size={24} /> {s.coins}
         </div>
       </div>
 
       <section className={styles.preview}>
-        <Mascot mood="happy" size={130} outfit={previewOutfit} />
+        <RiloStage outfit={preview.outfit} face={preview.face} background={preview.background} size={130} height={190} />
         <AnimatePresence mode="wait">
           <motion.span
-            key={previewTitle}
+            key={preview.title}
             className={styles.title}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
           >
-            {titleName(previewTitle)}
+            {titleName(preview.title)}
           </motion.span>
         </AnimatePresence>
       </section>
 
-      <section>
-        <h2 className={shared.sectionTitle}>Outfits</h2>
-        <div className={styles.grid}>
-          {outfits.map((item) => (
-            <motion.button
-              key={item.id}
-              whileTap={{ scale: 0.94 }}
-              className={`${styles.item} ${selectedId === item.id ? styles.itemOn : ""}`}
-              onClick={() => setSelectedId(item.id)}
-            >
-              {item.kind === "outfit" && <Mascot still size={64} outfit={item.outfit} />}
-              <span className={styles.itemName}>{item.name}</span>
-              <PriceTag item={item} owned={owned(item)} wearing={wearing(item)} />
-            </motion.button>
-          ))}
-        </div>
-      </section>
+      <div className={styles.tabs} role="tablist">
+        {CATEGORIES.map((c) => (
+          <button
+            key={c.id}
+            role="tab"
+            aria-selected={category === c.id}
+            className={`${styles.tab} ${category === c.id ? styles.tabOn : ""}`}
+            onClick={() => {
+              setCategory(c.id);
+              setSelectedId(null);
+            }}
+          >
+            {category === c.id && (
+              <motion.span
+                layoutId="shop-tab"
+                className={styles.tabPill}
+                transition={{ type: "spring", stiffness: 500, damping: 38 }}
+              />
+            )}
+            <span className={styles.tabInner}>
+              <PixelIcon name={c.icon} size={24} />
+              {c.label}
+            </span>
+          </button>
+        ))}
+      </div>
 
-      <section>
-        <h2 className={shared.sectionTitle}>Titles</h2>
-        <div className={styles.list}>
-          {titles.map((item) => (
-            <motion.button
-              key={item.id}
-              whileTap={{ scale: 0.98 }}
-              className={`${styles.row} ${selectedId === item.id ? styles.rowOn : ""}`}
-              onClick={() => setSelectedId(item.id)}
-            >
-              <span className={styles.rowName}>{item.name}</span>
-              <PriceTag item={item} owned={owned(item)} wearing={wearing(item)} />
-            </motion.button>
-          ))}
-        </div>
-      </section>
+      <AnimatePresence mode="wait">
+        <motion.section
+          key={category}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2 }}
+        >
+          {category === "title" ? (
+            <div className={styles.list}>
+              {items.map((item) => (
+                <motion.button
+                  key={item.id}
+                  whileTap={{ scale: 0.98 }}
+                  className={`${styles.row} ${selectedId === item.id ? styles.rowOn : ""}`}
+                  onClick={() => setSelectedId(item.id)}
+                >
+                  <span className={styles.rowName}>{item.name}</span>
+                  <PriceTag item={item} owned={owned(item)} wearing={wearing(item)} />
+                </motion.button>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.grid}>
+              {items.map((item, i) => (
+                <motion.button
+                  key={item.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.025, type: "spring", stiffness: 420, damping: 24 }}
+                  whileTap={{ scale: 0.94 }}
+                  className={`${styles.item} ${selectedId === item.id ? styles.itemOn : ""}`}
+                  onClick={() => setSelectedId(item.id)}
+                >
+                  <span className={styles.thumb}>
+                    {item.kind === "background" ? (
+                      <PixelScene scene={item.look} className={styles.thumbScene} />
+                    ) : (
+                      <Mascot
+                        still
+                        size={78}
+                        outfit={item.kind === "hat" ? item.look : null}
+                        face={item.kind === "face" ? item.look : null}
+                      />
+                    )}
+                  </span>
+                  <span className={styles.itemName}>{item.name}</span>
+                  <PriceTag item={item} owned={owned(item)} wearing={wearing(item)} />
+                </motion.button>
+              ))}
+            </div>
+          )}
+        </motion.section>
+      </AnimatePresence>
 
       <AnimatePresence>
         {selected && (
@@ -154,14 +225,21 @@ export default function Shop() {
 }
 
 function PriceTag({ item, owned, wearing }: { item: ShopItem; owned: boolean; wearing: boolean }) {
-  if (wearing) return <span className={`${styles.tag} ${styles.tagOn}`}>{item.kind === "outfit" ? "Wearing" : "In use"}</span>;
+  if (wearing) {
+    const label = item.kind === "title" || item.kind === "background" ? "In use" : "Wearing";
+    return <span className={`${styles.tag} ${styles.tagOn}`}>{label}</span>;
+  }
   if (owned) return <span className={styles.tag}>Owned</span>;
   if (item.kind === "title" && item.unlockAtMinutes !== undefined) {
-    return <span className={styles.tag}>{formatMinutes(item.unlockAtMinutes)}</span>;
+    return (
+      <span className={styles.tag}>
+        <PixelIcon name="lock" size={12} /> {formatMinutes(item.unlockAtMinutes)}
+      </span>
+    );
   }
   return (
     <span className={styles.tag}>
-      <CoinIcon size={12} /> {item.price}
+      <PixelIcon name="coin" size={12} /> {item.price}
     </span>
   );
 }

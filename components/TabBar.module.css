@@ -6,9 +6,9 @@
   width: 100%;
   max-width: 440px;
   height: calc(var(--tabbar-h) + var(--safe-bottom));
-  padding: 4px 8px var(--safe-bottom);
+  padding: 4px 28px var(--safe-bottom);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   background: var(--bg);
   border-top: 1px solid var(--line);
   z-index: 20;
@@ -40,6 +40,7 @@
 
 .icon {
   position: relative;
+  display: block;
 }
 
 .label {
