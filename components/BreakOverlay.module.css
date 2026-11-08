@@ -186,3 +186,59 @@
   color: var(--accent-deep);
   margin-top: 4px;
 }
+
+.streakNumber {
+  font-family: var(--font-serif);
+  font-size: 128px;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--accent);
+  font-variant-numeric: lining-nums;
+  margin-top: 8px;
+}
+
+.streakLabel {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-top: -4px;
+}
+
+.weekRow {
+  display: flex;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.weekDay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.weekDot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--night-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.weekDone {
+  background: var(--accent);
+}
+
+.weekLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(250, 249, 245, 0.55);
+}
+
+.streakLine {
+  font-size: 17px;
+  color: rgba(250, 249, 245, 0.85);
+  margin-top: 18px;
+}

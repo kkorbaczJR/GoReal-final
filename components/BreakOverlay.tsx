@@ -2,9 +2,10 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { formatClock } from "@/lib/date";
-import { LEAVE_GRACE_SECONDS } from "@/lib/rules";
-import { finishBreak, quitBreak, type GoRealState } from "@/lib/store";
+import { addDays, dayKey, formatClock } from "@/lib/date";
+import { LEAVE_GRACE_SECONDS, dayQualifies, streakStatus } from "@/lib/rules";
+import { finishBreak, getState, quitBreak, type GoRealState } from "@/lib/store";
+import CountUp from "./CountUp";
 import Button from "./Button";
 import Mascot from "./Mascot";
 import { CoinIcon, FlameIcon } from "./StatPills";
@@ -23,7 +24,8 @@ const TIPS = [
 type Outcome =
   | { kind: "running" }
   | { kind: "done"; coins: number; xp: number; minutes: number }
-  | { kind: "quit"; reason: "gave-up" | "left" };
+  | { kind: "quit"; reason: "gave-up" | "left" }
+  | { kind: "streak" };
 
 type Props = {
   state: GoRealState;
@@ -112,7 +114,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
 
   return (
     <motion.div
-      className={`${styles.overlay} ${outcome.kind === "running" ? styles.dark : styles.light}`}
+      className={`${styles.overlay} ${outcome.kind === "running" || outcome.kind === "streak" ? styles.dark : styles.light}`}
       initial={{ opacity: 0, scale: 1.04 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0 }}
@@ -203,19 +205,25 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
                   <span className={styles.xp}>XP</span> +<CountUp to={outcome.xp} />
                 </RewardPill>
               </div>
-              {dayJustCounted && (
-                <motion.div
-                  className={styles.streakNote}
-                  initial={{ scale: 0.6, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.7, type: "spring" }}
-                >
-                  <FlameIcon size={18} /> Today counts for your streak
-                </motion.div>
-              )}
             </div>
-            <Button full onClick={onClose}>
+            <Button full onClick={() => (dayJustCounted ? setOutcome({ kind: "streak" }) : onClose())}>
               Nice!
+            </Button>
+          </motion.div>
+        )}
+
+        {outcome.kind === "streak" && (
+          <motion.div
+            key="streak"
+            className={styles.content}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div />
+            <StreakCelebration />
+            <Button full variant="light" onClick={onClose}>
+              Keep it going
             </Button>
           </motion.div>
         )}
@@ -260,20 +268,62 @@ function RewardPill({ children, delay }: { children: React.ReactNode; delay: num
   );
 }
 
-function CountUp({ to }: { to: number }) {
-  const [v, setV] = useState(0);
-  useEffect(() => {
-    const start = performance.now();
-    let raf = 0;
-    const step = (t: number) => {
-      const p = Math.min(1, (t - start) / 900);
-      setV(Math.round(to * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [to]);
-  return <>{v}</>;
+const WEEKDAY = ["S", "M", "T", "W", "T", "F", "S"];
+const ENERGETIC = [0.34, 1.56, 0.64, 1] as const;
+
+/** Noom-style "N day streak" moment, shown when a break makes today count. */
+function StreakCelebration() {
+  const fresh = getState();
+  const { count } = streakStatus(fresh.days, fresh);
+  const today = new Date();
+  const week = Array.from({ length: 7 }, (_, i) => addDays(today, i - 6));
+
+  return (
+    <div className={styles.center}>
+      <motion.div
+        initial={{ scale: 0.4, rotate: -12, opacity: 0 }}
+        animate={{ scale: 1, rotate: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: ENERGETIC }}
+      >
+        <FlameIcon size={64} />
+      </motion.div>
+      <div className={styles.streakNumber}>
+        <CountUp from={Math.max(0, count - 1)} to={count} duration={600} delay={350} />
+      </div>
+      <div className={styles.streakLabel}>day streak</div>
+      <div className={styles.weekRow}>
+        {week.map((d, i) => {
+          const done = dayQualifies(fresh.days[dayKey(d)], fresh);
+          const isToday = i === 6;
+          return (
+            <div key={i} className={styles.weekDay}>
+              <motion.span
+                className={`${styles.weekDot} ${done ? styles.weekDone : ""}`}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: isToday ? 1.1 : 0.5 + i * 0.06, duration: isToday ? 0.5 : 0.35, ease: ENERGETIC }}
+              >
+                {done && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#262624" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12.5l4.5 4.5L19 7.5" />
+                  </svg>
+                )}
+              </motion.span>
+              <span className={styles.weekLabel}>{WEEKDAY[d.getDay()]}</span>
+            </div>
+          );
+        })}
+      </div>
+      <motion.p
+        className={styles.streakLine}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.4 }}
+      >
+        Small breaks, real progress.
+      </motion.p>
+    </div>
+  );
 }
 
 function LockIcon({ small = false }: { small?: boolean }) {

@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Fragment, useEffect, useState } from "react";
 import Button from "@/components/Button";
+import CountUp from "@/components/CountUp";
 import Mascot from "@/components/Mascot";
 import TierBadge from "@/components/TierBadge";
 import {
@@ -107,11 +108,19 @@ export default function League() {
             <Fragment key={p.id}>
               {rank === MOVE_COUNT + 1 && canGoUp && <Divider label="Promotion zone" up />}
               {rank === LEAGUE_SIZE - MOVE_COUNT + 1 && canGoDown && <Divider label="Demotion zone" />}
-              <motion.li layout className={`${styles.row} ${p.isYou ? styles.you : ""}`}>
+              <motion.li
+                layout
+                className={`${styles.row} ${p.isYou ? styles.you : ""}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.04 * i, duration: 0.32, ease: [0.2, 0, 0, 1] }}
+              >
                 <span className={`${styles.rank} ${rank <= 3 ? styles.podium : ""}`}>{rank}</span>
                 <span className={styles.avatar}>{p.name[0].toUpperCase()}</span>
                 <span className={styles.name}>{p.isYou ? `${p.name} (you)` : p.name}</span>
-                <span className={styles.xp}>{p.xp} XP</span>
+                <span className={styles.xp}>
+                  <CountUp to={p.xp} duration={1000} delay={0.04 * i * 1000} /> XP
+                </span>
               </motion.li>
             </Fragment>
           );

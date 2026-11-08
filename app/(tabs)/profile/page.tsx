@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Button from "@/components/Button";
+import CountUp from "@/components/CountUp";
 import Mascot from "@/components/Mascot";
 import Sheet from "@/components/Sheet";
 import { FlameIcon } from "@/components/StatPills";
@@ -30,12 +31,13 @@ export default function Profile() {
   const monday = weekStart();
   const today = dayKey();
 
-  const stats = [
-    { label: "Off-screen", value: formatMinutes(s.totalBreakMinutes) },
-    { label: "Streak", value: `${streak.count} ${streak.count === 1 ? "day" : "days"}` },
-    { label: "Longest streak", value: `${best} ${best === 1 ? "day" : "days"}` },
-    { label: "Breaks done", value: String(s.completedBreaks) },
-    { label: "XP total", value: String(s.xp) },
+  const days = (n: number) => `${n} ${n === 1 ? "day" : "days"}`;
+  const stats: { label: string; value: number | string; format?: (n: number) => string }[] = [
+    { label: "Off-screen", value: s.totalBreakMinutes, format: formatMinutes },
+    { label: "Streak", value: streak.count, format: days },
+    { label: "Longest streak", value: best, format: days },
+    { label: "Breaks done", value: s.completedBreaks },
+    { label: "XP total", value: s.xp },
     { label: "League", value: TIERS[s.league.tier].name },
   ];
 
@@ -74,7 +76,9 @@ export default function Profile() {
       <section className={styles.stats}>
         {stats.map((st) => (
           <div key={st.label} className={styles.stat}>
-            <span className={styles.statValue}>{st.value}</span>
+            <span className={styles.statValue}>
+              {typeof st.value === "number" ? <CountUp to={st.value} format={st.format} /> : st.value}
+            </span>
             <span className={styles.statLabel}>{st.label}</span>
           </div>
         ))}

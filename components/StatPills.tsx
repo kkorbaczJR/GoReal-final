@@ -42,17 +42,23 @@ function AnimatedNumber({ value }: { value: number }) {
   );
 }
 
+const bump = {
+  initial: { scale: 1 },
+  animate: { scale: [1, 1.18, 1] },
+  transition: { duration: 0.4, ease: [0.34, 1.56, 0.64, 1] as const },
+};
+
 export default function StatPills({ streak, streakLit, coins }: { streak: number; streakLit: boolean; coins: number }) {
   return (
     <div className={styles.row}>
-      <div className={styles.pill} aria-label={`${streak} day streak`}>
+      <motion.div key={`s${streak}`} {...bump} className={styles.pill} aria-label={`${streak} day streak`}>
         <FlameIcon lit={streakLit} />
         <AnimatedNumber value={streak} />
-      </div>
-      <div className={styles.pill} aria-label={`${coins} coins`}>
+      </motion.div>
+      <motion.div key={`c${coins}`} {...bump} className={styles.pill} aria-label={`${coins} coins`}>
         <CoinIcon />
         <AnimatedNumber value={coins} />
-      </div>
+      </motion.div>
     </div>
   );
 }

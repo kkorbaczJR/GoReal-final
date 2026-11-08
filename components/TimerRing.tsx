@@ -37,9 +37,9 @@ export default function TimerRing({
           strokeLinecap="round"
           fill="none"
           strokeDasharray={c}
-          initial={false}
+          initial={{ strokeDashoffset: c }}
           animate={{ strokeDashoffset: c * (1 - p) }}
-          transition={{ type: "spring", stiffness: 90, damping: 20 }}
+          transition={{ type: "spring", stiffness: 70, damping: 18 }}
         />
       </svg>
       <div

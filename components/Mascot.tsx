@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useMemo } from "react";
 import type { Outfit } from "@/lib/shop";
 
 export type Mood = "happy" | "wave" | "tired" | "sleeping" | "proud" | "sad";
@@ -19,191 +20,192 @@ const CLAY = "#d97757";
 const INK = "#1f1e1d";
 const BLUSH = "#f0a58a";
 const CREAM = "#faf9f5";
+const SAND = "#e8e6dc";
 
-/** Rilo: a small clay-colored mochi who lives in your phone. */
+type Px = [x: number, y: number, color: string];
+
+/** Fill a horizontal run of pixels. */
+function run(y: number, x0: number, x1: number, color: string): Px[] {
+  const out: Px[] = [];
+  for (let x = x0; x <= x1; x++) out.push([x, y, color]);
+  return out;
+}
+
+const BODY_ROWS: [number, number][] = [
+  [4, 11], [2, 13], [1, 14], [0, 15], [0, 15], [0, 15], [0, 15],
+  [0, 15], [0, 15], [0, 15], [0, 15], [1, 14], [2, 13],
+];
+
+const BODY: Px[] = BODY_ROWS.flatMap(([x0, x1], y) => run(y, x0, x1, CLAY));
+
+const OUTFITS: Record<Outfit, Px[]> = {
+  beanie: [
+    ...run(-5, 7, 8, CREAM),
+    ...run(-4, 5, 10, CREAM), ...run(-3, 3, 12, CREAM), ...run(-2, 2, 13, CREAM), ...run(-1, 1, 14, CREAM),
+    ...run(0, 0, 15, SAND), ...run(1, 0, 15, SAND),
+  ],
+  cap: [
+    ...run(-3, 5, 10, CREAM), ...run(-2, 3, 12, CREAM), ...run(-1, 2, 13, CREAM),
+    ...run(0, 1, 14, CREAM), ...run(1, 9, 18, SAND), [7, -4, CLAY], [8, -4, CLAY],
+  ],
+  shades: [...run(5, 3, 12, INK), ...run(6, 3, 6, INK), ...run(6, 9, 12, INK), [4, 5, "#6b6a65"]],
+  headphones: [
+    ...run(-3, 4, 11, INK), [2, -2, INK], [3, -2, INK], [12, -2, INK], [13, -2, INK],
+    [1, -1, INK], [14, -1, INK], [0, 0, INK], [15, 0, INK],
+    ...[3, 4, 5, 6, 7].flatMap((y) => [[-2, y, INK], [-1, y, INK], [16, y, INK], [17, y, INK]] as Px[]),
+  ],
+  flower: [
+    [13, -4, CREAM], [12, -3, CREAM], [14, -3, CREAM], [13, -2, CREAM],
+    [12, -4, CREAM], [14, -4, CREAM], [12, -2, CREAM], [14, -2, CREAM], [13, -3, CLAY],
+  ],
+  crown: [
+    [4, -4, CREAM], [7, -4, CREAM], [8, -4, CREAM], [11, -4, CREAM],
+    ...run(-3, 4, 11, CREAM), ...run(-2, 4, 11, CREAM), ...run(-1, 4, 11, CREAM), [7, -2, CLAY], [8, -2, CLAY],
+  ],
+};
+
+const EYES: Record<Mood, Px[]> = {
+  happy: [...run(5, 4, 5, INK), ...run(6, 4, 5, INK), ...run(5, 10, 11, INK), ...run(6, 10, 11, INK)],
+  wave: [],
+  tired: [...run(6, 4, 5, INK), ...run(6, 10, 11, INK)],
+  sleeping: [[3, 5, INK], [4, 6, INK], [5, 6, INK], [6, 5, INK], [9, 5, INK], [10, 6, INK], [11, 6, INK], [12, 5, INK]],
+  proud: [[3, 6, INK], [4, 5, INK], [5, 5, INK], [6, 6, INK], [9, 6, INK], [10, 5, INK], [11, 5, INK], [12, 6, INK]],
+  sad: [...run(6, 4, 5, INK), ...run(7, 4, 5, INK), ...run(6, 10, 11, INK), ...run(7, 10, 11, INK)],
+};
+EYES.wave = EYES.happy;
+
+const MOUTHS: Record<Mood, Px[]> = {
+  happy: [[6, 8, INK], [9, 8, INK], [7, 9, INK], [8, 9, INK]],
+  wave: [],
+  tired: run(9, 6, 9, INK),
+  sleeping: [[7, 9, INK], [8, 9, INK]],
+  proud: [...run(8, 6, 9, INK), ...run(9, 7, 8, INK)],
+  sad: [[7, 9, INK], [8, 9, INK], [6, 10, INK], [9, 10, INK]],
+};
+MOUTHS.wave = MOUTHS.happy;
+
+const BLUSH_PX: Px[] = [...run(8, 2, 3, BLUSH), ...run(8, 12, 13, BLUSH)];
+const ARM: Px[] = [...run(2, 18, 19, CLAY), ...run(3, 18, 19, CLAY), ...run(4, 18, 19, CLAY)];
+const Z: [number, number][] = [[0, 0], [1, 0], [2, 0], [3, 0], [2, 1], [1, 2], [0, 3], [1, 3], [2, 3], [3, 3]];
+
+/** Pixels around a shape that get the dark outline. */
+function outline(pixels: Px[]): Px[] {
+  const filled = new Set(pixels.map(([x, y]) => `${x},${y}`));
+  const edge = new Set<string>();
+  for (const [x, y] of pixels) {
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const k = `${x + dx},${y + dy}`;
+      if (!filled.has(k)) edge.add(k);
+    }
+  }
+  return [...edge].map((k) => {
+    const [x, y] = k.split(",").map(Number);
+    return [x, y, INK] as Px;
+  });
+}
+
+function Pixels({ px }: { px: Px[] }) {
+  return (
+    <>
+      {px.map(([x, y, c]) => (
+        <rect key={`${x},${y}`} x={x} y={y} width={1.02} height={1.02} fill={c} />
+      ))}
+    </>
+  );
+}
+
+const steps = (n: number) => (t: number) => Math.round(t * n) / n;
+
+/** Rilo: a small pixel mochi who lives in your phone. */
 export default function Mascot({ mood = "happy", outfit = null, size = 160, onDark = false, still = false }: Props) {
+  const base = useMemo(() => {
+    const layer = outfit ? [...BODY, ...OUTFITS[outfit]] : BODY;
+    const dedup = new Map<string, Px>();
+    for (const p of layer) dedup.set(`${p[0]},${p[1]}`, p);
+    const pixels = [...dedup.values()];
+    return [...outline(pixels), ...pixels];
+  }, [outfit]);
+
+  const armPx = useMemo(() => [...outline(ARM), ...ARM], []);
+  const eyes = outfit === "shades" ? [] : EYES[mood];
+
   const idle =
     mood === "sleeping"
-      ? { scaleY: [1, 1.04, 1], scaleX: [1, 0.98, 1], transition: { duration: 3.6, repeat: Infinity, ease: "easeInOut" as const } }
-      : mood === "sad" || mood === "tired"
-        ? { scaleY: [1, 0.98, 1], transition: { duration: 3, repeat: Infinity, ease: "easeInOut" as const } }
-        : mood === "proud"
-          ? { y: [0, -10, 0], transition: { duration: 0.7, repeat: Infinity, repeatDelay: 0.6, ease: "easeOut" as const } }
-          : { y: [0, -4, 0], transition: { duration: 2.6, repeat: Infinity, ease: "easeInOut" as const } };
+      ? { y: [0, 0.5, 0], transition: { duration: 2.4, repeat: Infinity, ease: steps(2) } }
+      : mood === "proud"
+        ? { y: [0, -2, 0], transition: { duration: 0.6, repeat: Infinity, repeatDelay: 0.5, ease: steps(3) } }
+        : mood === "sad" || mood === "tired"
+          ? undefined
+          : { y: [0, -1, 0], transition: { duration: 1.6, repeat: Infinity, ease: steps(2) } };
 
   return (
     <motion.svg
       width={size}
       height={size}
-      viewBox="0 0 200 200"
+      viewBox="-4 -7 26 26"
+      shapeRendering="crispEdges"
       role="img"
       aria-label={`Rilo, ${mood}`}
       initial={{ scale: 0.85, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 260, damping: 20 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
       style={{ overflow: "visible" }}
     >
-      <ellipse cx="100" cy="176" rx="48" ry="6" fill={onDark ? "#000" : INK} opacity={onDark ? 0.3 : 0.06} />
+      <rect x={1} y={15} width={14} height={1} fill={onDark ? "#000" : INK} opacity={onDark ? 0.35 : 0.08} />
 
-      <motion.g style={{ originX: "100px", originY: "172px" }} animate={still ? undefined : idle}>
+      <motion.g animate={still ? undefined : idle}>
         {mood === "wave" && (
-          <motion.ellipse
-            cx="168"
-            cy="124"
-            rx="11"
-            ry="15"
-            fill={CLAY}
-            style={{ originX: "158px", originY: "138px" }}
-            animate={{ rotate: [0, -30, 0, -30, 0] }}
-            transition={{ duration: 1.3, repeat: Infinity, repeatDelay: 1 }}
-          />
+          <motion.g
+            style={{ originX: "18px", originY: "5px" }}
+            animate={{ rotate: [0, -20, 0, -20, 0] }}
+            transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 1, ease: steps(4) }}
+          >
+            <Pixels px={armPx} />
+          </motion.g>
         )}
 
-        <path
-          d="M100 50 C148 50 172 88 172 126 C172 158 144 172 100 172 C56 172 28 158 28 126 C28 88 52 50 100 50 Z"
-          fill={CLAY}
-        />
+        <Pixels px={base} />
+        <Pixels px={BLUSH_PX} />
 
-        <Face mood={mood} hidden={outfit === "shades"} />
-
-        <ellipse cx="62" cy="134" rx="10" ry="6" fill={BLUSH} opacity={mood === "sad" || mood === "tired" ? 0.5 : 1} />
-        <ellipse cx="138" cy="134" rx="10" ry="6" fill={BLUSH} opacity={mood === "sad" || mood === "tired" ? 0.5 : 1} />
-
-        {outfit && <OutfitLayer outfit={outfit} />}
+        {mood === "happy" || mood === "wave" ? (
+          <motion.g
+            style={{ originY: "6px" }}
+            animate={still ? undefined : { scaleY: [1, 1, 0.5, 1, 1] }}
+            transition={{ duration: 4, repeat: Infinity, times: [0, 0.92, 0.94, 0.96, 1], ease: steps(1) }}
+          >
+            <Pixels px={eyes} />
+          </motion.g>
+        ) : (
+          <Pixels px={eyes} />
+        )}
+        <Pixels px={MOUTHS[mood]} />
       </motion.g>
 
-      {mood === "sleeping" && <Zzz color={onDark ? CREAM : INK} />}
+      {mood === "sleeping" &&
+        [0, 1].map((i) => (
+          <motion.g
+            key={i}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 1, 0], x: [0, 1, 2, 3], y: [0, -2, -4, -6] }}
+            transition={{ duration: 2.4, repeat: Infinity, delay: i * 1.2, ease: steps(4) }}
+          >
+            <Pixels px={Z.map(([x, y]) => [15 + x + i * 3, -4 + y - i * 4, onDark ? CREAM : INK] as Px)} />
+          </motion.g>
+        ))}
+
+      {mood === "proud" &&
+        [
+          [-3, 0],
+          [17, -2],
+        ].map(([x, y], i) => (
+          <motion.g
+            key={i}
+            animate={{ opacity: [0, 1, 0] }}
+            transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.6, ease: steps(2) }}
+          >
+            <Pixels px={[[x, y - 1, CLAY], [x - 1, y, CLAY], [x, y, CLAY], [x + 1, y, CLAY], [x, y + 1, CLAY]]} />
+          </motion.g>
+        ))}
     </motion.svg>
-  );
-}
-
-function Face({ mood, hidden }: { mood: Mood; hidden: boolean }) {
-  const line = { stroke: INK, strokeWidth: 5, strokeLinecap: "round" as const, fill: "none" };
-  return (
-    <g>
-      {!hidden && (mood === "happy" || mood === "wave") && (
-        <motion.g
-          style={{ originY: "118px" }}
-          animate={{ scaleY: [1, 1, 0.1, 1, 1] }}
-          transition={{ duration: 4.5, repeat: Infinity, times: [0, 0.9, 0.94, 0.98, 1] }}
-        >
-          <circle cx="78" cy="118" r="6.5" fill={INK} />
-          <circle cx="122" cy="118" r="6.5" fill={INK} />
-        </motion.g>
-      )}
-      {!hidden && mood === "tired" && (
-        <>
-          <path d="M71 118 a7 7 0 0 0 14 0 Z" fill={INK} />
-          <path d="M115 118 a7 7 0 0 0 14 0 Z" fill={INK} />
-        </>
-      )}
-      {!hidden && mood === "sleeping" && (
-        <>
-          <path d="M70 118 q8 7 16 0" {...line} />
-          <path d="M114 118 q8 7 16 0" {...line} />
-        </>
-      )}
-      {!hidden && mood === "proud" && (
-        <>
-          <path d="M70 120 q8 -10 16 0" {...line} />
-          <path d="M114 120 q8 -10 16 0" {...line} />
-        </>
-      )}
-      {!hidden && mood === "sad" && (
-        <>
-          <circle cx="78" cy="122" r="6" fill={INK} />
-          <circle cx="122" cy="122" r="6" fill={INK} />
-        </>
-      )}
-
-      {(mood === "happy" || mood === "wave") && <path d="M94 131 q6 6 12 0" {...line} strokeWidth={4} />}
-      {mood === "tired" && <path d="M94 134 h12" {...line} strokeWidth={4} />}
-      {mood === "sleeping" && <ellipse cx="100" cy="134" rx="3.5" ry="4.5" fill={INK} />}
-      {mood === "proud" && <path d="M92 129 q8 11 16 0 Z" fill={INK} />}
-      {mood === "sad" && <path d="M94 137 q6 -5 12 0" {...line} strokeWidth={4} />}
-    </g>
-  );
-}
-
-function OutfitLayer({ outfit }: { outfit: Outfit }) {
-  switch (outfit) {
-    case "beanie":
-      return (
-        <g>
-          <path d="M50 88 C52 60 74 46 100 46 C126 46 148 60 150 88 Z" fill={CREAM} />
-          {[72, 86, 100, 114, 128].map((x) => (
-            <path key={x} d={`M${x} 58 V84`} stroke="#e8e6dc" strokeWidth="3" strokeLinecap="round" />
-          ))}
-          <rect x="46" y="82" width="108" height="14" rx="7" fill="#e8e6dc" />
-          <circle cx="100" cy="42" r="9" fill={CREAM} stroke="#e8e6dc" strokeWidth="3" />
-        </g>
-      );
-    case "shades":
-      return (
-        <g>
-          <rect x="62" y="106" width="34" height="22" rx="9" fill={INK} />
-          <rect x="104" y="106" width="34" height="22" rx="9" fill={INK} />
-          <rect x="94" y="111" width="12" height="4" rx="2" fill={INK} />
-          <path d="M69 112 h8" stroke={CREAM} strokeWidth="3" strokeLinecap="round" opacity="0.8" />
-        </g>
-      );
-    case "headphones":
-      return (
-        <g>
-          <path d="M36 118 C36 70 62 46 100 46 C138 46 164 70 164 118" stroke={INK} strokeWidth="8" fill="none" strokeLinecap="round" />
-          <rect x="22" y="104" width="22" height="36" rx="11" fill={INK} />
-          <rect x="156" y="104" width="22" height="36" rx="11" fill={INK} />
-        </g>
-      );
-    case "flower":
-      return (
-        <g transform="translate(136 62)">
-          {[0, 72, 144, 216, 288].map((r) => (
-            <ellipse key={r} cx="0" cy="-10" rx="6.5" ry="9" fill={CREAM} stroke={INK} strokeWidth="2.5" transform={`rotate(${r})`} />
-          ))}
-          <circle r="5.5" fill={INK} />
-        </g>
-      );
-    case "cap":
-      return (
-        <g>
-          <path d="M54 84 C56 58 76 46 100 46 C124 46 144 58 146 84 Z" fill={CREAM} />
-          <path d="M100 84 C126 80 160 80 176 88 C162 96 128 94 100 90 Z" fill="#e8e6dc" />
-          <circle cx="100" cy="48" r="4" fill={CLAY} />
-        </g>
-      );
-    case "crown":
-      return (
-        <g>
-          <path
-            d="M68 66 L70 36 L86 52 L100 28 L114 52 L130 36 L132 66 Z"
-            fill={CREAM}
-            stroke={INK}
-            strokeWidth="4"
-            strokeLinejoin="round"
-          />
-          <circle cx="100" cy="54" r="4" fill={CLAY} stroke={INK} strokeWidth="2" />
-        </g>
-      );
-  }
-}
-
-function Zzz({ color }: { color: string }) {
-  return (
-    <g fontFamily="var(--font-serif)" fontStyle="italic" fill={color}>
-      {[0, 1, 2].map((i) => (
-        <motion.text
-          key={i}
-          x={148 + i * 12}
-          y={60 - i * 14}
-          fontSize={14 + i * 5}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: [0, 0.9, 0], y: [8, -6, -16] }}
-          transition={{ duration: 3.2, repeat: Infinity, delay: i * 0.9 }}
-        >
-          z
-        </motion.text>
-      ))}
-    </g>
   );
 }
