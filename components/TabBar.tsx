@@ -7,7 +7,6 @@ import styles from "./TabBar.module.css";
 
 const TABS = [
   { href: "/home", label: "Today", icon: TimerIcon },
-  { href: "/league", label: "League", icon: TrophyIcon },
   { href: "/shop", label: "Shop", icon: BagIcon },
   { href: "/profile", label: "You", icon: FaceIcon },
 ];
@@ -54,16 +53,6 @@ function TimerIcon() {
       <circle cx="12" cy="13" r="8" />
       <path d="M12 9v4l2.5 2" />
       <path d="M10 2h4" />
-    </svg>
-  );
-}
-
-function TrophyIcon() {
-  return (
-    <svg {...iconProps}>
-      <path d="M8 4h8v5a4 4 0 0 1-8 0V4Z" />
-      <path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4" />
-      <path d="M12 13v4M8.5 20h7M9.5 17h5" />
     </svg>
   );
 }

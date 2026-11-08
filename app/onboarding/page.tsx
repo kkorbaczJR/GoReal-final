@@ -175,7 +175,7 @@ export default function Onboarding() {
                 <ul className={styles.facts}>
                   <li>1 minute of break earns 1 coin and 1 XP</li>
                   <li>Leave the app early and the break ends</li>
-                  <li>Climb the weekly league and dress up Rilo</li>
+                  <li>Spend your coins to dress up Rilo</li>
                 </ul>
               </>
             )}

@@ -10,7 +10,6 @@ import Sheet from "@/components/Sheet";
 import { FlameIcon } from "@/components/StatPills";
 import { achievements } from "@/lib/achievements";
 import { addDays, dayKey, formatMinutes, weekStart } from "@/lib/date";
-import { TIERS } from "@/lib/league";
 import { BREAK_GOAL_OPTIONS, PHONE_LIMIT_OPTIONS, dayQualifies, longestStreak, streakStatus } from "@/lib/rules";
 import { titleName } from "@/lib/shop";
 import { resetEverything, setGoals, useGoReal } from "@/lib/store";
@@ -38,7 +37,6 @@ export default function Profile() {
     { label: "Longest streak", value: best, format: days },
     { label: "Breaks done", value: s.completedBreaks },
     { label: "XP total", value: s.xp },
-    { label: "League", value: TIERS[s.league.tier].name },
   ];
 
   return (
@@ -151,7 +149,7 @@ export default function Profile() {
         <div className={styles.resetBody}>
           <Mascot mood="sad" size={100} />
           <h2>Start over?</h2>
-          <p className={shared.muted}>This deletes your coins, streak, league and outfits on this phone.</p>
+          <p className={shared.muted}>This deletes your coins, streak and outfits on this phone.</p>
           <Button
             full
             onClick={() => {

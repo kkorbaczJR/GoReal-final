@@ -24,7 +24,6 @@ export function achievements(s: GoRealState): Achievement[] {
   add("streak7", "Week strong", "Reach a 7 day streak", best >= 7);
   add("min100", "100 minutes", "100 min off your phone", s.totalBreakMinutes >= 100);
   add("min500", "500 minutes", "500 min off your phone", s.totalBreakMinutes >= 500);
-  add("leaf", "Moving up", "Reach the Leaf league", s.league.bestTier >= 1);
   add("shopper", "Fresh look", "Get something in the shop", s.owned.length >= 1);
 
   return list.map((a, i) => ({ ...a, unlocked: checks[i] }));

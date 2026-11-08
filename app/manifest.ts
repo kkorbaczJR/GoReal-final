@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "GoReal",
     short_name: "GoReal",
-    description: "Take real breaks from your phone, grow your streak, climb the league.",
+    description: "Take real breaks from your phone and grow your streak.",
     start_url: "/",
     display: "standalone",
     orientation: "portrait",

@@ -1,8 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { dayKey, weekKey } from "./date";
-import { finishWeek, type LeagueResult } from "./league";
+import { dayKey } from "./date";
 import { rewardForBreak, type DayLog } from "./rules";
 import { DEFAULT_TITLE, itemById, isOwned, type Outfit } from "./shop";
 
@@ -26,8 +25,6 @@ export type GoRealState = {
   owned: string[];
   outfit: Outfit | null;
   title: string;
-
-  league: { weekKey: string; tier: number; lastResult: LeagueResult | null; bestTier: number };
 
   /** A break that is running right now. Saved so closing the app mid-break counts as quitting. */
   activeBreak: { startedAt: number; minutes: number } | null;
@@ -55,7 +52,6 @@ export function initialState(): GoRealState {
     owned: [],
     outfit: null,
     title: DEFAULT_TITLE,
-    league: { weekKey: weekKey(), tier: 0, lastResult: null, bestTier: 0 },
     activeBreak: null,
     notice: null,
   };
@@ -64,38 +60,30 @@ export function initialState(): GoRealState {
 let state: GoRealState | null = null;
 const listeners = new Set<() => void>();
 
-/** Runs once when the app opens: settles a break that was left open and rolls the league week over. */
+/** Runs once when the app opens: a break left open counts as quitting. */
 function settleOnOpen(s: GoRealState): GoRealState {
-  let next = s;
-  if (next.activeBreak) {
-    next = { ...next, activeBreak: null, quitBreaks: next.quitBreaks + 1, notice: "left-during-break" };
-  }
-  const current = weekKey();
-  if (next.league.weekKey !== current) {
-    const result = finishWeek(next.days, next.league.weekKey, next.league.tier, next.name);
-    next = {
-      ...next,
-      league: {
-        weekKey: current,
-        tier: result.toTier,
-        lastResult: result,
-        bestTier: Math.max(next.league.bestTier, result.toTier),
-      },
-    };
-  }
-  return next;
+  if (!s.activeBreak) return s;
+  return { ...s, activeBreak: null, quitBreaks: s.quitBreaks + 1, notice: "left-during-break" };
 }
 
 function load(): GoRealState {
   let loaded = initialState();
+  let strippedLeague = false;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) loaded = { ...loaded, ...JSON.parse(raw) };
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<GoRealState> & { league?: unknown };
+      if ("league" in parsed) {
+        delete parsed.league;
+        strippedLeague = true;
+      }
+      loaded = { ...loaded, ...parsed };
+    }
   } catch {
     // Broken or blocked storage: start fresh.
   }
   const settled = settleOnOpen(loaded);
-  if (settled !== loaded) persist(settled);
+  if (settled !== loaded || strippedLeague) persist(settled);
   return settled;
 }
 
@@ -146,7 +134,7 @@ export function update(fn: (s: GoRealState) => GoRealState) {
 /* ---------- actions ---------- */
 
 export function completeOnboarding(input: { name: string; phoneLimit: number; blockedApps: string[] }) {
-  update((s) => ({ ...s, ...input, onboarded: true, league: { ...s.league, weekKey: weekKey() } }));
+  update((s) => ({ ...s, ...input, onboarded: true }));
 }
 
 export function startBreak(minutes: number) {
@@ -187,12 +175,6 @@ export function logPhoneTime(minutes: number) {
 
 export function clearNotice() {
   update((s) => ({ ...s, notice: null }));
-}
-
-export function markLeagueResultSeen() {
-  update((s) =>
-    s.league.lastResult ? { ...s, league: { ...s.league, lastResult: { ...s.league.lastResult, seen: true } } } : s,
-  );
 }
 
 /** Buy an item (if affordable) and put it on. Returns false if not enough coins. */
