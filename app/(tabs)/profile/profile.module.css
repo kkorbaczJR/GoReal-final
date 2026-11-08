@@ -2,21 +2,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding-top: 8px;
+  gap: 2px;
+  padding-top: 12px;
 }
 
 .name {
-  font-size: 28px;
+  font-size: 30px;
 }
 
 .title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
-  background: var(--accent);
-  padding: 5px 12px;
-  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
 }
 
 .week {
@@ -32,10 +29,10 @@
 }
 
 .dayDot {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: #e5e5ea;
+  background: var(--soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -46,61 +43,70 @@
 }
 
 .dayToday {
-  box-shadow: 0 0 0 2px var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
 }
 
 .dayLabel {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--muted);
 }
 
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  background: var(--card);
+  border-radius: var(--radius-l);
+  box-shadow: inset 0 0 0 1px var(--line);
+  overflow: hidden;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 14px 12px;
-  border-radius: var(--radius-m);
-  background: var(--soft);
+  padding: 14px 14px;
+  border-left: 1px solid var(--line);
+  border-top: 1px solid var(--line);
+}
+
+.stat:nth-child(3n + 1) {
+  border-left: none;
+}
+
+.stat:nth-child(-n + 3) {
+  border-top: none;
 }
 
 .statValue {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 18px;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 19px;
   white-space: nowrap;
 }
 
 .statLabel {
   font-size: 12px;
   color: var(--muted);
-  font-weight: 500;
 }
 
 .goalHint {
   font-size: 14px;
-  color: var(--ink-2);
-  line-height: 1.4;
-  margin-bottom: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 16px;
 }
 
 .seg {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .segLabel {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .segTrack {
@@ -108,24 +114,25 @@
   grid-template-columns: repeat(3, 1fr);
   padding: 3px;
   border-radius: var(--radius-pill);
-  background: #e5e5ea;
+  background: var(--soft);
 }
 
 .segBtn {
   position: relative;
-  height: 38px;
+  height: 34px;
   border-radius: var(--radius-pill);
-  font-weight: 600;
+  font-weight: 500;
   font-size: 14px;
-  color: var(--ink-2);
+  color: var(--muted);
+  transition: color 0.2s;
 }
 
 .segPill {
   position: absolute;
   inset: 0;
   border-radius: var(--radius-pill);
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: var(--card);
+  box-shadow: 0 1px 2px rgba(31, 30, 29, 0.08), inset 0 0 0 1px var(--line);
 }
 
 .segText {
@@ -150,10 +157,10 @@
 
 .chip {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   padding: 6px 12px;
   border-radius: var(--radius-pill);
-  background: #fff;
+  background: var(--soft);
 }
 
 .badges {
@@ -170,26 +177,28 @@
   gap: 4px;
   padding: 14px 6px;
   border-radius: var(--radius-m);
-  background: var(--soft);
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .badgeIcon {
-  width: 46px;
-  height: 46px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  background: #e5e5ea;
+  background: var(--soft);
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 2px;
 }
 
 .badgeOn .badgeIcon {
-  background: var(--ink);
+  background: var(--accent-soft);
 }
 
 .badgeName {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .badge:not(.badgeOn) .badgeName {
@@ -199,7 +208,7 @@
 .badgeHint {
   font-size: 11px;
   color: var(--muted);
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .resetBody {

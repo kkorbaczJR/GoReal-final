@@ -1,15 +1,8 @@
-.name {
-  font-size: 28px;
-  line-height: 1.1;
-}
-
 .lost {
-  background: var(--accent-soft);
-  color: var(--accent-deep);
-  border-radius: var(--radius-m);
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  margin-top: -8px;
   overflow: hidden;
 }
 
@@ -17,135 +10,128 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
 }
 
 .minutes {
   display: flex;
   align-items: baseline;
   gap: 4px;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 40px;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 42px;
+  letter-spacing: -0.02em;
   line-height: 1;
-  margin-top: 2px;
+  margin-top: 4px;
   font-variant-numeric: tabular-nums;
 }
 
 .minutes small {
-  font-size: 16px;
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
   color: var(--muted);
 }
 
 .lengths {
   display: flex;
-  gap: 6px;
   width: 100%;
-  justify-content: space-between;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--soft);
 }
 
 .length {
+  position: relative;
   flex: 1;
-  height: 42px;
+  height: 36px;
   border-radius: var(--radius-pill);
-  background: var(--soft);
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 16px;
-  transition: background 0.2s, color 0.2s;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.2s;
 }
 
 .lengthOn {
-  background: var(--ink);
-  color: #fff;
+  color: var(--ink);
+}
+
+.lengthPill {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  box-shadow: 0 1px 2px rgba(31, 30, 29, 0.08), inset 0 0 0 1px var(--line);
+}
+
+.lengthText {
+  position: relative;
 }
 
 .earn {
   font-size: 13px;
   color: var(--muted);
-  margin-top: -6px;
+  margin-top: -8px;
 }
 
 .todayHead {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .badge {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 5px 10px;
-  border-radius: var(--radius-pill);
-  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--muted);
-  white-space: nowrap;
 }
 
 .badgeOn {
-  background: var(--accent);
-  color: #fff;
+  color: var(--accent-deep);
 }
 
 .goalRow {
-  display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: stretch;
+  gap: 10px;
 }
 
 .goalText {
+  flex: 1;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 8px;
   font-size: 15px;
-  width: 100%;
+  font-weight: 500;
 }
 
-.goalText span {
+.value {
   color: var(--muted);
-  font-size: 14px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
 }
 
 .bar {
-  height: 10px;
-  border-radius: 5px;
-  background: #e3e3e8;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--soft);
   overflow: hidden;
 }
 
 .barFill {
   height: 100%;
-  border-radius: 5px;
+  border-radius: 3px;
   background: var(--accent);
 }
 
-.or {
-  text-align: center;
-  font-size: 12px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin: 10px 0;
-}
-
-.phoneRow {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #fff;
-  border-radius: var(--radius-s);
-  padding: 14px;
-  text-align: left;
-}
-
 .chev {
-  font-size: 22px;
-  color: var(--muted);
-  line-height: 1;
+  flex: none;
+  color: var(--faint);
 }
 
 .noticeBody {
@@ -162,7 +148,7 @@
 
 .noticeBody p {
   font-size: 15px;
-  line-height: 1.4;
+  line-height: 1.5;
   max-width: 310px;
 }
 
@@ -175,12 +161,12 @@
 }
 
 .stepper button {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: var(--soft);
-  font-size: 28px;
-  font-weight: 500;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: 24px;
 }
 
 .stepValue {
@@ -191,14 +177,14 @@
 }
 
 .stepValue span {
-  font-family: var(--font-display);
+  font-family: var(--font-serif);
   font-size: 34px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .stepValue small {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .under {

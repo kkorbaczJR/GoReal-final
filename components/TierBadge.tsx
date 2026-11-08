@@ -1,12 +1,12 @@
 import { TIERS } from "@/lib/league";
 
 /** One simple shape per league tier, in black with the warm accent. */
-export default function TierBadge({ tier, size = 56, locked = false }: { tier: number; size?: number; locked?: boolean }) {
-  const fill = locked ? "#e5e5ea" : tier >= 2 ? "#ff8a1f" : "#0b0b0c";
-  const inner = locked ? "#c7c7cc" : "#ffffff";
+export default function TierBadge({ tier, size = 56, locked = false, current = false }: { tier: number; size?: number; locked?: boolean; current?: boolean }) {
+  const fill = locked ? "#e8e6dc" : current ? "#d97757" : "#1f1e1d";
+  const inner = locked ? "#c9c6bb" : "#faf9f5";
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" role="img" aria-label={`${TIERS[tier].name} league`}>
-      <path d="M32 3 L57 17 V47 L32 61 L7 47 V17 Z" fill={fill} />
+      <circle cx="32" cy="32" r="29" fill={fill} />
       <g fill={inner} stroke={inner}>
         {tier === 0 && <ellipse cx="32" cy="35" rx="13" ry="9" />}
         {tier === 1 && <path d="M20 42 C20 26 32 20 44 20 C44 34 36 44 20 42 Z M22 40 L36 28" strokeWidth="2" />}

@@ -62,7 +62,7 @@ export default function League() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95, height: 0, padding: 0, margin: 0 }}
           >
-            <Mascot mood={moved > 0 ? "proud" : moved < 0 ? "sad" : "happy"} size={90} outfit={s.outfit} />
+            <Mascot mood={moved > 0 ? "proud" : moved < 0 ? "sad" : "happy"} size={76} outfit={s.outfit} still />
             <div className={styles.resultText}>
               <b>Last week you finished #{lastResult.rank}</b>
               <span>
@@ -72,7 +72,7 @@ export default function League() {
                     ? `You dropped to ${TIERS[lastResult.toTier].name}. You can climb back!`
                     : `You stay in ${TIERS[lastResult.toTier].name}.`}
               </span>
-              <Button size="small" onClick={markLeagueResultSeen}>
+              <Button size="small" variant="secondary" onClick={markLeagueResultSeen}>
                 Got it
               </Button>
             </div>
@@ -80,28 +80,25 @@ export default function League() {
         )}
       </AnimatePresence>
 
-      <section className={styles.tiers}>
-        {TIERS.map((t, i) => (
-          <motion.div
-            key={t.name}
-            className={styles.tier}
-            animate={{ scale: i === tier ? 1 : 0.78, opacity: i === tier ? 1 : 0.9 }}
-          >
-            <TierBadge tier={i} size={i === tier ? 64 : 44} locked={i > tier} />
-            {i === tier && <span className={styles.tierName}>{t.name}</span>}
-          </motion.div>
-        ))}
+      <section className={styles.tierCard}>
+        <div className={styles.tiers}>
+          {TIERS.map((t, i) => (
+            <motion.div key={t.name} animate={{ scale: i === tier ? 1 : 0.9 }}>
+              <TierBadge tier={i} size={i === tier ? 52 : 30} locked={i > tier} current={i === tier} />
+            </motion.div>
+          ))}
+        </div>
+        <h2 className={styles.tierName}>{TIERS[tier].name} league</h2>
+        <p className={styles.explain}>
+          {myZone === "up"
+            ? `You're in the top ${MOVE_COUNT}. Hold on to move up to ${TIERS[tier + 1].name}.`
+            : myZone === "down"
+              ? `The bottom ${MOVE_COUNT} move down on Monday. A break or two will lift you.`
+              : canGoUp
+                ? `Top ${MOVE_COUNT} move up to ${TIERS[tier + 1].name} on Monday. One break minute is one XP.`
+                : "This is the top league. Stay in it."}
+        </p>
       </section>
-
-      <p className={styles.explain}>
-        {myZone === "up"
-          ? `You're in the top ${MOVE_COUNT}. Keep it up to move to ${TIERS[tier + 1].name}!`
-          : myZone === "down"
-            ? `Bottom ${MOVE_COUNT} drop down. Take a break to climb!`
-            : canGoUp
-              ? `Top ${MOVE_COUNT} move up to ${TIERS[tier + 1].name} on Monday. 1 break minute = 1 XP.`
-              : "You're in the top league. Stay in it!"}
-      </p>
 
       <ol className={styles.table}>
         {table.map((p, i) => {
@@ -127,7 +124,10 @@ export default function League() {
 function Divider({ label, up = false }: { label: string; up?: boolean }) {
   return (
     <li className={`${styles.divider} ${up ? styles.dividerUp : ""}`} aria-hidden>
-      <span>{up ? "▲" : "▼"} {label}</span>
+      <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden style={{ transform: up ? undefined : "rotate(180deg)" }}>
+        <path d="M5 2 L9 8 H1 Z" fill="currentColor" />
+      </svg>
+      <span>{label}</span>
     </li>
   );
 }

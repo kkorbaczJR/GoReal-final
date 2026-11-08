@@ -129,11 +129,11 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
             <div className={styles.center}>
               <TimerRing
                 progress={1 - leftMs / totalMs}
-                size={290}
-                stroke={14}
-                track="rgba(255,255,255,0.12)"
+                size={280}
+                stroke={6}
+                track="rgba(250,249,245,0.1)"
               >
-                <Mascot mood="sleeping" size={130} inverted outfit={state.outfit} />
+                <Mascot mood="sleeping" size={124} onDark outfit={state.outfit} />
                 <div className={styles.clock}>{formatClock(leftMs / 1000)}</div>
               </TimerRing>
 
@@ -192,12 +192,12 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
           >
             <div />
             <div className={styles.center}>
-              <Mascot mood="proud" size={200} outfit={state.outfit} />
+              <Mascot mood="proud" size={170} outfit={state.outfit} />
               <h1 className={styles.resultTitle}>You did it!</h1>
               <p className={styles.resultSub}>{outcome.minutes === 1 ? "1 minute" : `${outcome.minutes} minutes`} in the real world.</p>
               <div className={styles.rewards}>
                 <RewardPill delay={0.2}>
-                  <CoinIcon size={22} /> +<CountUp to={outcome.coins} />
+                  <CoinIcon size={20} /> +<CountUp to={outcome.coins} />
                 </RewardPill>
                 <RewardPill delay={0.4}>
                   <span className={styles.xp}>XP</span> +<CountUp to={outcome.xp} />
@@ -210,7 +210,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.7, type: "spring" }}
                 >
-                  <FlameIcon size={22} /> Today counts for your streak!
+                  <FlameIcon size={18} /> Today counts for your streak
                 </motion.div>
               )}
             </div>
@@ -229,7 +229,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
           >
             <div />
             <div className={styles.center}>
-              <Mascot mood="sad" size={190} outfit={state.outfit} />
+              <Mascot mood="sad" size={160} outfit={state.outfit} />
               <h1 className={styles.resultTitle}>Break ended early</h1>
               <p className={styles.resultSub}>
                 {outcome.reason === "left"

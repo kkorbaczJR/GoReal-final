@@ -13,16 +13,16 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0b0b0c",
+          background: "#faf9f5",
         }}
       >
         <svg width="180" height="180" viewBox="0 0 512 512">
-          <ellipse cx="256" cy="290" rx="170" ry="150" fill="#ffffff" />
-          <path d="M186 276 q24 22 48 0" stroke="#0b0b0c" strokeWidth="18" fill="none" strokeLinecap="round" />
-          <path d="M278 276 q24 22 48 0" stroke="#0b0b0c" strokeWidth="18" fill="none" strokeLinecap="round" />
-          <circle cx="168" cy="322" r="18" fill="#ff8a1f" />
-          <circle cx="344" cy="322" r="18" fill="#ff8a1f" />
-          <path d="M238 330 q18 16 36 0" stroke="#0b0b0c" strokeWidth="14" fill="none" strokeLinecap="round" />
+          <path d="M256 128 C378 128 440 226 440 322 C440 404 368 440 256 440 C144 440 72 404 72 322 C72 226 134 128 256 128 Z" fill="#d97757" />
+          <circle cx="200" cy="302" r="17" fill="#1f1e1d" />
+          <circle cx="312" cy="302" r="17" fill="#1f1e1d" />
+          <path d="M240 336 q16 16 32 0" stroke="#1f1e1d" strokeWidth="11" fill="none" strokeLinecap="round" />
+          <ellipse cx="158" cy="344" rx="26" ry="16" fill="#f0a58a" />
+          <ellipse cx="354" cy="344" rx="26" ry="16" fill="#f0a58a" />
         </svg>
       </div>
     ),

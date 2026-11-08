@@ -1,26 +1,32 @@
 :root {
-  --bg: #ffffff;
-  --ink: #0b0b0c;
-  --ink-2: #3a3a3c;
-  --muted: #8e8e93;
-  --line: #ebebee;
-  --soft: #f4f4f6;
-  --accent: #ff8a1f;
-  --accent-deep: #e86f00;
-  --accent-soft: #fff2e3;
-  --danger: #ff453a;
+  /* Warm paper palette with a single clay accent. No gradients, no glows. */
+  --bg: #faf9f5;
+  --card: #ffffff;
+  --ink: #1f1e1d;
+  --ink-2: #3d3929;
+  --muted: #73726c;
+  --faint: #a3a19a;
+  --line: #e8e6dc;
+  --soft: #f0eee6;
+  --soft-2: #e8e6dc;
+  --accent: #d97757;
+  --accent-deep: #be6242;
+  --accent-soft: #f5e4dc;
+  --night: #262624;
+  --night-2: #30302e;
 
-  --radius-s: 14px;
-  --radius-m: 20px;
-  --radius-l: 28px;
+  --radius-s: 12px;
+  --radius-m: 16px;
+  --radius-l: 22px;
   --radius-pill: 999px;
 
-  --font-display: var(--font-fredoka), ui-rounded, system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), "Iowan Old Style", Georgia, serif;
   --font-text: var(--font-inter), -apple-system, system-ui, sans-serif;
 
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --tabbar-h: 64px;
+  --tabbar-h: 60px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 * {
@@ -33,9 +39,10 @@
 html,
 body {
   height: 100%;
-  background: #e9e9ec;
+  background: #eceae2;
   color: var(--ink);
   font-family: var(--font-text);
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
@@ -68,9 +75,13 @@ a {
 h1,
 h2,
 h3 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+::selection {
+  background: var(--accent-soft);
 }
 
 /* The app is phone-only: on larger screens it sits in a phone-width column. */
@@ -85,6 +96,7 @@ h3 {
 
 @media (min-width: 480px) {
   .app-shell {
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 30px 80px rgba(0, 0, 0, 0.12);
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
   }
 }

@@ -49,29 +49,32 @@ export default function Home() {
   return (
     <main className={shared.page}>
       <div className={shared.top}>
-        <div>
-          <p className={shared.hello}>{greeting()},</p>
-          <h1 className={styles.name}>{s.name}</h1>
-        </div>
+        <span className={shared.date}>
+          {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+        </span>
         <StatPills streak={streak.count} streakLit={streak.todayDone} coins={s.coins} />
       </div>
 
+      <h1 className={shared.heading}>
+        {greeting()}, {s.name}
+      </h1>
+
       <AnimatePresence>
         {streak.lostStreak > 0 && (
-          <motion.div
+          <motion.p
             className={styles.lost}
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
           >
-            Your {streak.lostStreak} day streak ended. Start a new one today!
-          </motion.div>
+            Your {streak.lostStreak}-day streak ended. One break today starts a new one.
+          </motion.p>
         )}
       </AnimatePresence>
 
       <section className={styles.timer}>
-        <TimerRing progress={minutes / 60} size={272} stroke={16}>
-          <Mascot mood={mood} size={124} outfit={s.outfit} />
+        <TimerRing progress={minutes / 60} size={260} stroke={8}>
+          <Mascot mood={mood} size={116} outfit={s.outfit} />
           <div className={styles.minutes}>
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.span
@@ -90,16 +93,22 @@ export default function Home() {
 
         <div className={styles.lengths} role="radiogroup" aria-label="Break length">
           {LENGTHS.map((m) => (
-            <motion.button
+            <button
               key={m}
               role="radio"
               aria-checked={m === minutes}
-              whileTap={{ scale: 0.9 }}
               className={`${styles.length} ${m === minutes ? styles.lengthOn : ""}`}
               onClick={() => setMinutes(m)}
             >
-              {m}
-            </motion.button>
+              {m === minutes && (
+                <motion.span
+                  layoutId="length-pill"
+                  className={styles.lengthPill}
+                  transition={{ type: "spring", stiffness: 500, damping: 38 }}
+                />
+              )}
+              <span className={styles.lengthText}>{m}</span>
+            </button>
           ))}
         </div>
 
@@ -111,44 +120,44 @@ export default function Home() {
         </p>
       </section>
 
-      <section className={shared.card}>
+      <section>
         <div className={styles.todayHead}>
           <h2 className={shared.sectionTitle} style={{ marginBottom: 0 }}>Today</h2>
           <span className={`${styles.badge} ${streak.todayDone ? styles.badgeOn : ""}`}>
-            {streak.todayDone ? "Streak saved" : "Do one to keep your streak"}
+            {streak.todayDone ? "Day counted" : "One of these counts"}
           </span>
         </div>
 
-        <div className={styles.goalRow}>
-          <div className={styles.goalText}>
-            <b>Breaks</b>
-            <span>
-              {today.breakMinutes} / {formatMinutes(s.breakGoal)}
-            </span>
+        <div className={shared.group}>
+          <div className={`${shared.groupRow} ${styles.goalRow}`}>
+            <div className={styles.goalText}>
+              <span>Break time</span>
+              <span className={styles.value}>
+                {today.breakMinutes} of {formatMinutes(s.breakGoal)}
+              </span>
+            </div>
+            <div className={styles.bar}>
+              <motion.div
+                className={styles.barFill}
+                initial={false}
+                animate={{ width: `${breakProgress * 100}%` }}
+                transition={{ type: "spring", stiffness: 120, damping: 20 }}
+              />
+            </div>
           </div>
-          <div className={styles.bar}>
-            <motion.div
-              className={styles.barFill}
-              initial={false}
-              animate={{ width: `${breakProgress * 100}%` }}
-              transition={{ type: "spring", stiffness: 120, damping: 20 }}
-            />
-          </div>
+
+          <button className={shared.groupRow} onClick={() => setPhoneSheet(true)}>
+            <div className={styles.goalText}>
+              <span>Phone time under {formatMinutes(s.phoneLimit)}</span>
+              <span className={styles.value}>
+                {today.phoneMinutes === undefined ? "Log" : formatMinutes(today.phoneMinutes)}
+              </span>
+            </div>
+            <svg className={styles.chev} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
         </div>
-
-        <div className={styles.or}>or</div>
-
-        <button className={styles.phoneRow} onClick={() => setPhoneSheet(true)}>
-          <div className={styles.goalText}>
-            <b>Phone time under {formatMinutes(s.phoneLimit)}</b>
-            <span>
-              {today.phoneMinutes === undefined
-                ? "Tap to log it"
-                : `${formatMinutes(today.phoneMinutes)} logged`}
-            </span>
-          </div>
-          <span className={styles.chev}>›</span>
-        </button>
       </section>
 
       <PhoneTimeSheet
@@ -160,7 +169,7 @@ export default function Home() {
 
       <Sheet open={s.notice === "left-during-break"} onClose={clearNotice}>
         <div className={styles.noticeBody}>
-          <Mascot mood="sad" size={120} />
+          <Mascot mood="sad" size={110} />
           <h2>Your last break ended</h2>
           <p className={shared.muted}>GoReal was closed during a break, so it did not count. Try a shorter one?</p>
           <Button full onClick={clearNotice}>

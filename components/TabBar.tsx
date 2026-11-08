@@ -6,10 +6,10 @@ import { motion } from "framer-motion";
 import styles from "./TabBar.module.css";
 
 const TABS = [
-  { href: "/home", label: "Break", icon: TimerIcon },
+  { href: "/home", label: "Today", icon: TimerIcon },
   { href: "/league", label: "League", icon: TrophyIcon },
   { href: "/shop", label: "Shop", icon: BagIcon },
-  { href: "/profile", label: "Me", icon: FaceIcon },
+  { href: "/profile", label: "You", icon: FaceIcon },
 ];
 
 export default function TabBar() {
@@ -22,8 +22,8 @@ export default function TabBar() {
           <Link key={href} href={href} className={`${styles.tab} ${active ? styles.active : ""}`}>
             {active && (
               <motion.span
-                layoutId="tab-pill"
-                className={styles.pill}
+                layoutId="tab-dot"
+                className={styles.dot}
                 transition={{ type: "spring", stiffness: 500, damping: 35 }}
               />
             )}
@@ -42,7 +42,7 @@ const iconProps = {
   viewBox: "0 0 24 24",
   fill: "none",
   stroke: "currentColor",
-  strokeWidth: 2,
+  strokeWidth: 1.8,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
   className: styles.icon,

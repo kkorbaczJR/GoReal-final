@@ -75,7 +75,7 @@ The app is built with [Next.js](https://nextjs.org) and TypeScript. Styles use C
 
 ```
 app/
-  layout.tsx            fonts (Fredoka for headings, Inter for text), phone layout, home-screen settings
+  layout.tsx            fonts (Source Serif 4 for headings, Inter for text), warm paper colors, phone layout, home-screen settings
   page.tsx              decides where to go: onboarding (new user) or the Break screen
   onboarding/           the 4 onboarding steps
   (tabs)/               the four main screens, sharing the bottom tab bar
@@ -85,7 +85,7 @@ app/
     profile/            stats, goals, achievements
   manifest.ts, icon.svg, apple-icon.tsx   settings for "Add to Home Screen"
 components/
-  Mascot.tsx            Rilo, drawn in code, with moods (happy, wave, sleeping, proud, sad) and outfits
+  Mascot.tsx            Rilo, a small clay-colored mochi drawn in code, with moods (happy, wave, tired, sleeping, proud, sad) and outfits
   BreakOverlay.tsx      the black break mode, plus the "You did it!" and "Break ended early" screens
   TimerRing.tsx         the animated circular ring
   TabBar.tsx, Button.tsx, Sheet.tsx (bottom pop-up), StatPills.tsx (streak and coins), TierBadge.tsx

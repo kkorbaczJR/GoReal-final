@@ -4,33 +4,33 @@
   justify-content: center;
   gap: 8px;
   border-radius: var(--radius-pill);
-  font-family: var(--font-display);
+  font-family: var(--font-text);
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.005em;
   user-select: none;
-  transition: background 0.2s, color 0.2s, opacity 0.2s;
+  transition: background 0.2s var(--ease), color 0.2s, opacity 0.2s;
 }
 
 .button:disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: default;
 }
 
 .large {
-  height: 58px;
-  padding: 0 28px;
-  font-size: 19px;
-}
-
-.medium {
-  height: 46px;
-  padding: 0 22px;
+  height: 54px;
+  padding: 0 26px;
   font-size: 16px;
 }
 
+.medium {
+  height: 44px;
+  padding: 0 20px;
+  font-size: 15px;
+}
+
 .small {
-  height: 36px;
-  padding: 0 16px;
+  height: 34px;
+  padding: 0 14px;
   font-size: 14px;
 }
 
@@ -40,18 +40,26 @@
 
 .primary {
   background: var(--ink);
-  color: #fff;
+  color: var(--bg);
+}
+
+.primary:active {
+  background: #000;
 }
 
 .secondary {
-  background: var(--soft);
+  background: var(--card);
   color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .accent {
   background: var(--accent);
   color: #fff;
-  box-shadow: 0 8px 24px rgba(255, 138, 31, 0.35);
+}
+
+.accent:active {
+  background: var(--accent-deep);
 }
 
 .ghost {
@@ -60,6 +68,6 @@
 }
 
 .light {
-  background: #fff;
+  background: var(--bg);
   color: var(--ink);
 }

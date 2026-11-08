@@ -8,12 +8,12 @@
 }
 
 .dark {
-  background: #000;
-  color: #fff;
+  background: var(--night);
+  color: var(--bg);
 }
 
 .light {
-  background: #fff;
+  background: var(--bg);
   color: var(--ink);
 }
 
@@ -36,9 +36,10 @@
   height: 34px;
   padding: 0 14px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.1);
-  font-size: 14px;
-  font-weight: 600;
+  background: var(--night-2);
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(250, 249, 245, 0.8);
 }
 
 .center {
@@ -49,17 +50,21 @@
 }
 
 .clock {
-  font-family: var(--font-display);
-  font-size: 44px;
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-size: 46px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   margin-top: -4px;
 }
 
 .tip {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(250, 249, 245, 0.65);
   min-height: 22px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 17px;
 }
 
 .blocked {
@@ -72,10 +77,10 @@
 
 .blockedTitle {
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(250, 249, 245, 0.45);
 }
 
 .chips {
@@ -92,15 +97,15 @@
   height: 30px;
   padding: 0 12px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--night-2);
   font-size: 13px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  color: rgba(250, 249, 245, 0.8);
 }
 
 .warning {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(250, 249, 245, 0.4);
 }
 
 .giveUp {
@@ -108,7 +113,7 @@
   width: 100%;
   height: 54px;
   border-radius: var(--radius-pill);
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(250, 249, 245, 0.18);
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -120,19 +125,19 @@
   left: 0;
   top: 0;
   bottom: 0;
-  background: rgba(255, 69, 58, 0.55);
+  background: rgba(217, 119, 87, 0.45);
 }
 
 .giveUpText {
   position: relative;
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.75);
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(250, 249, 245, 0.75);
 }
 
 .resultTitle {
   font-size: 34px;
+  font-weight: 500;
 }
 
 .resultSub {
@@ -152,22 +157,23 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 52px;
-  padding: 0 20px;
+  height: 48px;
+  padding: 0 18px;
   border-radius: var(--radius-pill);
-  background: var(--accent-soft);
-  font-family: var(--font-display);
-  font-size: 24px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: 20px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
 
 .xp {
-  font-size: 14px;
-  font-weight: 700;
-  background: var(--ink);
-  color: #fff;
-  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  border-radius: 6px;
   padding: 3px 6px;
 }
 
@@ -175,7 +181,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 15px;
   color: var(--accent-deep);
   margin-top: 4px;

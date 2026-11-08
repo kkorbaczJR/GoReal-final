@@ -67,12 +67,12 @@ export default function Shop() {
       <div className={shared.top}>
         <h1 className={shared.heading}>Shop</h1>
         <div className={styles.coins}>
-          <CoinIcon size={20} /> {s.coins}
+          <CoinIcon size={16} /> {s.coins}
         </div>
       </div>
 
       <section className={styles.preview}>
-        <Mascot mood="proud" size={150} outfit={previewOutfit} />
+        <Mascot mood="happy" size={130} outfit={previewOutfit} />
         <AnimatePresence mode="wait">
           <motion.span
             key={previewTitle}
@@ -81,13 +81,13 @@ export default function Shop() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
           >
-            {s.name} · {titleName(previewTitle)}
+            {titleName(previewTitle)}
           </motion.span>
         </AnimatePresence>
       </section>
 
       <section>
-        <h2 className={shared.sectionTitle}>Outfits for Rilo</h2>
+        <h2 className={shared.sectionTitle}>Outfits</h2>
         <div className={styles.grid}>
           {outfits.map((item) => (
             <motion.button
@@ -111,7 +111,7 @@ export default function Shop() {
             <motion.button
               key={item.id}
               whileTap={{ scale: 0.98 }}
-              className={`${styles.row} ${selectedId === item.id ? styles.itemOn : ""}`}
+              className={`${styles.row} ${selectedId === item.id ? styles.rowOn : ""}`}
               onClick={() => setSelectedId(item.id)}
             >
               <span className={styles.rowName}>{item.name}</span>
@@ -154,14 +154,14 @@ export default function Shop() {
 }
 
 function PriceTag({ item, owned, wearing }: { item: ShopItem; owned: boolean; wearing: boolean }) {
-  if (wearing) return <span className={`${styles.tag} ${styles.tagOn}`}>On</span>;
+  if (wearing) return <span className={`${styles.tag} ${styles.tagOn}`}>{item.kind === "outfit" ? "Wearing" : "In use"}</span>;
   if (owned) return <span className={styles.tag}>Owned</span>;
   if (item.kind === "title" && item.unlockAtMinutes !== undefined) {
     return <span className={styles.tag}>{formatMinutes(item.unlockAtMinutes)}</span>;
   }
   return (
     <span className={styles.tag}>
-      <CoinIcon size={13} /> {item.price}
+      <CoinIcon size={12} /> {item.price}
     </span>
   );
 }
