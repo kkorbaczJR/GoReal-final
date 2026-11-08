@@ -12,7 +12,8 @@ export type Outfit =
   | "wizard"
   | "halo"
   | "bandana"
-  | "viking";
+  | "viking"
+  | "einstein";
 
 export type Face = "shades" | "glasses" | "mustache" | "bandaid" | "scarf" | "bowtie";
 
@@ -38,6 +39,7 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: "hat-bandana", kind: "hat", look: "bandana", name: "Pirate bandana", price: 140 },
   { id: "hat-chef", kind: "hat", look: "chef", name: "Chef hat", price: 160 },
   { id: "outfit-headphones", kind: "hat", look: "headphones", name: "Headphones", price: 180 },
+  { id: "hat-einstein", kind: "hat", look: "einstein", name: "Einstein", price: 200 },
   { id: "hat-viking", kind: "hat", look: "viking", name: "Viking helmet", price: 220 },
   { id: "hat-wizard", kind: "hat", look: "wizard", name: "Wizard hat", price: 260 },
   { id: "hat-halo", kind: "hat", look: "halo", name: "Tiny halo", price: 320 },
