@@ -60,7 +60,7 @@ In development mode the break-length picker also has a **1 minute** option, so y
 
 ### 3. Shop
 Everything is pixel art, in four groups:
-- **Hats** (14): beanie, bow, cat ears, flower, party hat, bunny ears, cap, pirate bandana, chef hat, headphones, viking helmet, wizard hat, halo, crown. 40 to 400 coins.
+- **Hats** (15): beanie, bow, cat ears, flower, party hat, bunny ears, cap, pirate bandana, chef hat, headphones, Einstein, viking helmet, wizard hat, halo, crown. 40 to 400 coins.
 - **Extras** (6): band-aid, mustache, shades, round glasses, bow tie, scarf. 30 to 120 coins.
 - **Scenes** (8): pixel backgrounds behind Rilo, from graph paper and a picnic blanket to a sunset, a starry night and "orange pop". 40 to 300 coins.
 - **Titles** (15): a name shown under Rilo. Ten cost 40 to 300 coins. Rookie is free, and four more unlock for free at 1 hour, 5 hours, about 16 hours and about 41 hours of total breaks.
