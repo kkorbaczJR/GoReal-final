@@ -2,18 +2,17 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { requestOpenStreak } from "@/lib/intents";
 import { permission, registerServiceWorker, showSystem } from "@/lib/notifications/delivery";
-import { detectEvents, isQuiet, planNotifications } from "@/lib/notifications/planner";
+import { breakEndNotif, detectEvents, isQuiet, usageTriggers } from "@/lib/notifications/triggers";
 import type { Notif, NotifAction } from "@/lib/notifications/types";
-import { markShown, pushNotif, useGoReal } from "@/lib/store";
+import { markShown, pushNotif, useGoReal, type GoRealState } from "@/lib/store";
+import { manualUsage } from "@/lib/usage";
 import NotificationCard from "./NotificationCard";
 import styles from "./NotificationHost.module.css";
 
 const TICK_MS = 15_000;
-/** A notification this late was missed (the app was closed): do not pop it up now. */
-const GRACE_MS = 60_000;
 const STALE_BANNER_MS = 60 * 60_000;
 const BANNER_MS = 5_000;
 
@@ -24,9 +23,11 @@ function subscribeVisibility(listener: () => void) {
 const isVisible = () => document.visibilityState === "visible";
 
 /**
- * Delivers notifications while GoReal is open or in the background: works out what is due,
- * puts it in the inbox, pops up a banner when you are looking at the app and sends a system
- * notification when you are not. Closed-app delivery needs the phone app (see README).
+ * Delivers notifications while GoReal is open or in the background. Nothing is scheduled: on every change
+ * it asks the trigger engine what just happened (streak news, a new thing you can afford, phone time you
+ * logged going near or over the limit) and the only timer is the end of a running break. It puts each one
+ * in the inbox, pops up a banner when you are looking at the app and sends a system notification when you
+ * are not. Live phone use (long sessions, off-limits apps) needs the Android tracker (see README).
  */
 export default function NotificationHost() {
   const s = useGoReal()!;
@@ -69,12 +70,18 @@ export default function NotificationHost() {
     return () => navigator.serviceWorker.removeEventListener("message", onMessage);
   }, [open]);
 
+  const prev = useRef<GoRealState | undefined>(undefined);
+
   useEffect(() => {
     const nowMs = Date.now();
+    const at = new Date(nowMs);
+    const end = breakEndNotif(s, at);
     const due: Notif[] = [
-      ...detectEvents(s, new Date(nowMs)),
-      ...planNotifications(s, new Date(nowMs - GRACE_MS)).filter((n) => n.at <= nowMs),
+      ...detectEvents(s, at, prev.current),
+      ...usageTriggers(s, manualUsage(s.days, nowMs), at),
+      ...(end && end.at <= nowMs ? [end] : []),
     ];
+    prev.current = s;
     for (const n of due) {
       // Quiet hours only silence the lock screen. A finished break always gets through.
       const quiet = n.kind !== "breakEnd" && isQuiet(s.notif.prefs.quiet, nowMs);

@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { dayKey } from "./date";
 import { MAX_FREEZES, applyFreezes, rewardForBreak, stampGoals, type DayLog } from "./rules";
-import { allowed, eventNotif } from "./notifications/planner";
+import { allowed, eventNotif } from "./notifications/triggers";
 import {
   defaultNotifState,
   mergeNotifState,

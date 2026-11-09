@@ -15,10 +15,12 @@
  *                           content: { title: n.title, body: n.body, data: { id: n.id, action: n.action } },
  *                           identifier: n.id,
  *                           trigger: null })                           (null = right now)
- * and, because a phone can deliver while the app is closed, the Expo adapter adds
- *   syncSchedule(plan)  = cancelAllScheduledNotificationsAsync(), then for every item in
- *                         planNotifications(state, now): scheduleNotificationAsync({ ..., trigger: { date: n.at } })
- * On the web nothing can fire while the app is closed (no push server yet), so the web adapter has no schedule.
+ * Nothing is scheduled for a time of day. On the phone, the Android tracker (a foreground service reading
+ * UsageStatsManager) calls usageTriggers(state, usageSnapshot(intervals, now), now) whenever it has fresh usage
+ * and shows whatever comes back with showSystem. The one exception is the end of a running break:
+ *   breakEndNotif(state, now) = scheduleNotificationAsync({ ..., trigger: { date: n.at } }) when a break starts,
+ *                               cancelScheduledNotificationAsync(n.id) when it is quit.
+ * On the web the host runs the same functions while GoReal is open or in the background.
  * Taps map to Notifications.addNotificationResponseReceivedListener, reading `data.action`.
  */
 import type { Notif } from "./types";

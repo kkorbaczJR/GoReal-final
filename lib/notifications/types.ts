@@ -1,54 +1,55 @@
 export type NotifKind =
-  | "nudge"
+  | "longSession"
+  | "limit80"
+  | "limit100"
   | "streakRisk"
-  | "lastCall"
-  | "comeback"
+  | "blockedApp"
   | "breakEnd"
   | "shopTip"
   | "freezeTip"
   | "freezeUsed"
   | "streakLost"
-  | "milestone"
-  | "limit80"
-  | "limit100"
-  | "blockedApp";
+  | "milestone";
 
 /** What the user can switch on or off. Every kind belongs to one category. */
-export type NotifCategory = "reminders" | "streak" | "breaks" | "shop" | "limit";
+export type NotifCategory = "usage" | "limit" | "streak" | "breaks" | "shop";
 
-/** "scheduled" ones are planned ahead for a time of day. "event" ones happen because something just changed. */
+/**
+ * Nothing is sent at a fixed time of day. Every notification is a reaction:
+ * "usage" ones to how you are using your phone right now, "event" ones to something that just changed in GoReal.
+ */
 export type KindInfo = {
   category: NotifCategory;
-  type: "scheduled" | "event";
-  /** Higher wins when the daily cap forces a choice. */
+  type: "usage" | "event";
+  /** Counts toward the daily cap and the gap between nudges. */
+  capped: boolean;
+  /** Higher wins when two want to go out at the same moment. */
   priority: number;
 };
 
 export const KINDS: Record<NotifKind, KindInfo> = {
-  lastCall: { category: "streak", type: "scheduled", priority: 6 },
-  streakRisk: { category: "streak", type: "scheduled", priority: 5 },
-  comeback: { category: "reminders", type: "scheduled", priority: 4 },
-  nudge: { category: "reminders", type: "scheduled", priority: 4 },
-  freezeTip: { category: "shop", type: "scheduled", priority: 2 },
-  shopTip: { category: "shop", type: "scheduled", priority: 1 },
-  breakEnd: { category: "breaks", type: "scheduled", priority: 9 },
-  freezeUsed: { category: "streak", type: "event", priority: 8 },
-  streakLost: { category: "streak", type: "event", priority: 7 },
-  milestone: { category: "streak", type: "event", priority: 7 },
-  limit80: { category: "limit", type: "event", priority: 6 },
-  limit100: { category: "limit", type: "event", priority: 6 },
-  blockedApp: { category: "limit", type: "event", priority: 9 },
+  blockedApp: { category: "breaks", type: "usage", capped: false, priority: 9 },
+  streakRisk: { category: "streak", type: "usage", capped: true, priority: 6 },
+  limit100: { category: "limit", type: "usage", capped: true, priority: 5 },
+  longSession: { category: "usage", type: "usage", capped: true, priority: 4 },
+  limit80: { category: "limit", type: "usage", capped: true, priority: 3 },
+  breakEnd: { category: "breaks", type: "event", capped: false, priority: 9 },
+  freezeUsed: { category: "streak", type: "event", capped: false, priority: 8 },
+  streakLost: { category: "streak", type: "event", capped: false, priority: 7 },
+  milestone: { category: "streak", type: "event", capped: false, priority: 7 },
+  freezeTip: { category: "shop", type: "event", capped: false, priority: 2 },
+  shopTip: { category: "shop", type: "event", capped: false, priority: 1 },
 };
 
 export const CATEGORY_INFO: Record<NotifCategory, { label: string; hint: string }> = {
-  reminders: { label: "Daily reminder", hint: "One nudge a day, and a gentle hello if you have been away." },
-  streak: { label: "Streak alerts", hint: "When your streak is at risk, and when it grows or is saved." },
-  breaks: { label: "Break finished", hint: "Tells you when your break is over." },
-  shop: { label: "Shop tips", hint: "Now and then, when you can afford something. At most once every 4 days." },
-  limit: { label: "Phone limit", hint: "Heads up near your limit, and when an off-limits app opens." },
+  usage: { label: "Long sessions", hint: "When you have been on your phone for a long time without a pause." },
+  limit: { label: "Phone limit", hint: "When you are close to your daily limit, and when you go over it." },
+  streak: { label: "Streak alerts", hint: "When you are on your phone late and today does not count yet, and when your streak grows or is saved." },
+  breaks: { label: "Breaks", hint: "When a break is over, and if you open an off-limits app during one." },
+  shop: { label: "Shop tips", hint: "Right after a break, when you can afford something new. At most once every 4 days." },
 };
 
-export const CATEGORY_ORDER: NotifCategory[] = ["reminders", "streak", "breaks", "shop", "limit"];
+export const CATEGORY_ORDER: NotifCategory[] = ["usage", "limit", "streak", "breaks", "shop"];
 
 /** Where tapping a notification takes you. */
 export type NotifAction = "home" | "shop" | "streak";
@@ -73,11 +74,11 @@ export type InboxItem = Notif & {
 export type QuietHours = { start: number; end: number };
 
 export type NotifPrefs = {
-  /** Master switch. Off means nothing is planned, shown or sent. */
+  /** Master switch. Off means nothing is shown or sent. */
   enabled: boolean;
   categories: Record<NotifCategory, boolean>;
-  /** Hour of the day (0 to 23) for the daily reminder. */
-  reminderHour: number;
+  /** A session this long (minutes without a pause) gets a nudge, and again at twice and three times as long. */
+  sessionMinutes: number;
   /** No notifications between these hours. null = no quiet hours. */
   quiet: QuietHours | null;
 };
@@ -87,9 +88,11 @@ export type NotifState = {
   inbox: InboxItem[];
   /** Ids already delivered, so nothing repeats. Oldest are dropped. */
   sent: string[];
+  /** When the last nudges went out (ms), for the daily cap and the gap. Clearing the inbox does not reset it. */
+  recent: number[];
 };
 
-export const REMINDER_HOURS = [15, 16, 17, 18, 19];
+export const SESSION_OPTIONS = [30, 45, 60];
 export const QUIET_OPTIONS: (QuietHours | null)[] = [
   { start: 21, end: 9 },
   { start: 22, end: 8 },
@@ -97,23 +100,25 @@ export const QUIET_OPTIONS: (QuietHours | null)[] = [
   null,
 ];
 
-/** At most this many scheduled notifications a day (a finished break always gets through). */
-export const DAILY_CAP = 3;
-/** Scheduled notifications are at least this far apart. */
-export const MIN_GAP_MINUTES = 90;
+/** At most this many nudges a day. Breaks, streak news and an off-limits app always get through. */
+export const DAILY_CAP = 4;
+/** Nudges are at least this far apart, so a long evening on the phone is not a stream of pings. */
+export const MIN_GAP_MINUTES = 30;
 export const MAX_INBOX = 30;
 export const MAX_SENT = 120;
+export const MAX_RECENT = 20;
 
 export function defaultNotifState(): NotifState {
   return {
     prefs: {
       enabled: true,
-      categories: { reminders: true, streak: true, breaks: true, shop: true, limit: true },
-      reminderHour: 17,
+      categories: { usage: true, limit: true, streak: true, breaks: true, shop: true },
+      sessionMinutes: 45,
       quiet: { start: 22, end: 8 },
     },
     inbox: [],
     sent: [],
+    recent: [],
   };
 }
 
@@ -136,17 +141,22 @@ export function mergeNotifState(raw: unknown): NotifState {
   if (!raw || typeof raw !== "object") return base;
   const saved = raw as Partial<NotifState>;
   const prefs: Partial<NotifPrefs> = saved.prefs && typeof saved.prefs === "object" ? saved.prefs : {};
-  const hour = typeof prefs.reminderHour === "number" ? Math.min(23, Math.max(0, Math.floor(prefs.reminderHour))) : base.prefs.reminderHour;
+  const session = SESSION_OPTIONS.includes(prefs.sessionMinutes as number) ? (prefs.sessionMinutes as number) : base.prefs.sessionMinutes;
+  const cats = (typeof prefs.categories === "object" ? prefs.categories : {}) as Record<string, boolean>;
+  const categories = { ...base.prefs.categories };
+  for (const c of CATEGORY_ORDER) if (typeof cats[c] === "boolean") categories[c] = cats[c];
+  if (typeof cats.reminders === "boolean" && cats.usage === undefined) categories.usage = cats.reminders;
   const quiet = prefs.quiet === null ? null : validQuiet(prefs.quiet) ?? base.prefs.quiet;
   return {
     prefs: {
       enabled: typeof prefs.enabled === "boolean" ? prefs.enabled : base.prefs.enabled,
-      categories: { ...base.prefs.categories, ...(typeof prefs.categories === "object" ? prefs.categories : {}) },
-      reminderHour: hour,
+      categories,
+      sessionMinutes: session,
       quiet,
     },
-    inbox: Array.isArray(saved.inbox) ? saved.inbox.slice(0, MAX_INBOX) : [],
+    inbox: Array.isArray(saved.inbox) ? saved.inbox.filter((i) => i && i.kind in KINDS).slice(0, MAX_INBOX) : [],
     sent: Array.isArray(saved.sent) ? saved.sent.filter((s) => typeof s === "string").slice(-MAX_SENT) : [],
+    recent: Array.isArray(saved.recent) ? saved.recent.filter((t) => typeof t === "number").slice(-MAX_RECENT) : [],
   };
 }
 
@@ -164,6 +174,7 @@ export function withDelivered(notif: NotifState, n: Notif, shown: boolean): Noti
     ...notif,
     inbox: [{ ...n, read: false, shown }, ...notif.inbox].slice(0, MAX_INBOX),
     sent: [...notif.sent, n.id].slice(-MAX_SENT),
+    recent: KINDS[n.kind].capped ? [...notif.recent, n.at].slice(-MAX_RECENT) : notif.recent,
   };
 }
 

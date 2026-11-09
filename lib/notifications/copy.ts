@@ -17,8 +17,12 @@ export type CopyCtx = {
   minutes: number;
   freezes: number;
   coins: number;
-  /** Comeback: days since last activity. */
-  days?: number;
+  /** Minutes of phone use without a pause, right now. */
+  session?: number;
+  /** 1 the first time a session gets long, 2 at twice the length, and so on. */
+  step?: number;
+  /** Today already counts for the streak. */
+  done?: boolean;
   /** Streak milestone that was just reached. */
   milestone?: number;
   best?: number;
@@ -30,80 +34,90 @@ export type CopyCtx = {
   price?: number;
   reward?: number;
   breakMinutes?: number;
-  used?: number;
-  limit?: number;
-  left?: number;
+  /** Phone time so far today, the limit and what is left, already written out ("48 min", "1 h"). */
+  used?: string;
+  limit?: string;
+  left?: string;
   app?: string;
 };
 
 type Variant = { title: string; body: string; when?: (c: CopyCtx) => boolean };
 
 const COPY: Record<NotifKind, Variant[]> = {
-  nudge: [
-    { title: "Rilo is getting sleepy", body: "{goal} minutes off your phone puts him to bed and counts for today." },
-    { title: "Time for a break, {name}?", body: "Start a short one. Even 10 minutes earns coins." },
-    { title: "Rilo misses you", body: "Put the phone down for a bit. He will nap while you do." },
-    { title: "Quick break?", body: "Your phone will still be here in {goal} minutes." },
-    { title: "Keep your {streak}-day streak", body: "One break today and it keeps going.", when: (c) => c.streak > 0 },
+  longSession: [
     {
-      title: "{remaining} min to go",
-      body: "You already did {minutes}. A bit more and today counts.",
-      when: (c) => c.minutes > 0 && c.remaining > 0,
+      title: "{session} minutes straight",
+      body: "That is a long one. Put the phone down for a bit, Rilo will keep watch.",
+      when: (c) => c.step === 1,
+    },
+    {
+      title: "Rilo is yawning",
+      body: "You have been on your phone for {session} minutes. Time to rest your eyes?",
+      when: (c) => c.step === 1,
+    },
+    {
+      title: "{session} minutes on your phone",
+      body: "A {remaining} minute break now keeps your {streak}-day streak safe.",
+      when: (c) => c.step === 1 && !c.done && c.streak > 0 && c.remaining > 0,
+    },
+    {
+      title: "{session} minutes, {name}",
+      body: "A {remaining} minute break now and today counts for your streak.",
+      when: (c) => c.step === 1 && !c.done && c.streak === 0 && c.remaining > 0,
+    },
+    {
+      title: "Today already counts",
+      body: "Nice. But {session} minutes in a row is a lot. A short break?",
+      when: (c) => c.step === 1 && c.done === true,
+    },
+    { title: "Still going?", body: "{session} minutes now. Even a 5 minute break helps.", when: (c) => (c.step ?? 0) >= 2 },
+    {
+      title: "Rilo fell asleep waiting",
+      body: "{session} minutes without a pause. Your phone will still be here later.",
+      when: (c) => (c.step ?? 0) >= 2,
+    },
+  ],
+
+  limit80: [
+    { title: "Almost at your limit", body: "You have used {used} of {limit} today." },
+    { title: "Heads up", body: "{left} left before your phone limit." },
+    {
+      title: "{left} left today",
+      body: "Stay under {limit} and your {streak}-day streak is safe.",
+      when: (c) => !c.done && c.streak > 0,
+    },
+  ],
+
+  limit100: [
+    { title: "You hit your limit", body: "No worries. A {remaining} minute break still counts for today.", when: (c) => !c.done && c.remaining > 0 },
+    {
+      title: "Over your {limit} limit",
+      body: "Your {streak}-day streak can still be saved: take a {remaining} minute break.",
+      when: (c) => !c.done && c.streak > 0 && c.remaining > 0,
+    },
+    {
+      title: "That is your {limit} for today",
+      body: "Today already counts, so your streak is safe. Maybe call it a day?",
+      when: (c) => c.done === true,
     },
   ],
 
   streakRisk: [
     {
-      title: "Your {streak}-day streak is at risk",
-      body: "One break today keeps it alive. {remaining} min to go.",
+      title: "Still up, {name}?",
+      body: "Your {streak}-day streak is not safe yet. A {remaining} minute break saves it.",
       when: (c) => c.freezes === 0,
     },
-    { title: "{streak} days on the line", body: "A {remaining} minute break saves it.", when: (c) => c.freezes === 0 },
     {
-      title: "Do not let {streak} days slip",
-      body: "Take a short break before bed.",
+      title: "{streak} days on the line",
+      body: "You are on your phone and today does not count yet. {remaining} min of break fixes that.",
       when: (c) => c.freezes === 0,
     },
     {
       title: "Your streak needs you",
-      body: "You have a freeze for tonight, but a break keeps it for later.",
+      body: "A freeze would cover tonight, but a {remaining} minute break keeps it for later.",
       when: (c) => c.freezes > 0,
     },
-    {
-      title: "{streak} days, and a freeze as backup",
-      body: "Take a break and keep the freeze for another day.",
-      when: (c) => c.freezes > 0,
-    },
-  ],
-
-  lastCall: [
-    {
-      title: "Last call for your streak",
-      body: "It ends at midnight. {remaining} minutes is all it takes.",
-      when: (c) => c.freezes === 0,
-    },
-    {
-      title: "Your {streak}-day streak ends tonight",
-      body: "A break of {remaining} minutes still counts. Go now.",
-      when: (c) => c.freezes === 0,
-    },
-    {
-      title: "Last call",
-      body: "A freeze will cover tonight. A break would keep it for later.",
-      when: (c) => c.freezes > 0,
-    },
-    {
-      title: "Almost midnight",
-      body: "You are covered by a freeze, but a break is free.",
-      when: (c) => c.freezes > 0,
-    },
-  ],
-
-  comeback: [
-    { title: "Rilo is a bit lonely", body: "It has been {days} days. One short break and you are back.", when: (c) => c.days === 2 },
-    { title: "Come back when you are ready", body: "No pressure. Even 5 minutes starts a new streak.", when: (c) => c.days === 4 },
-    { title: "A week already?", body: "You have {coins} coins waiting in the shop.", when: (c) => c.days === 7 },
-    { title: "Rilo is still here", body: "Whenever you want to start again, he will be napping.", when: (c) => c.days === 14 },
   ],
 
   breakEnd: [
@@ -141,16 +155,6 @@ const COPY: Record<NotifKind, Variant[]> = {
     { title: "100 days", body: "Triple digits. Unreal.", when: (c) => c.milestone === 100 },
   ],
 
-  limit80: [
-    { title: "Almost at your limit", body: "You have used {used} of {limit} today." },
-    { title: "Heads up", body: "{left} left before your phone limit." },
-  ],
-
-  limit100: [
-    { title: "You hit your limit", body: "No worries. A break today still keeps your streak alive." },
-    { title: "Over your limit today", body: "Tomorrow is a fresh start. A break still counts for today." },
-  ],
-
   blockedApp: [
     { title: "{app} is off limits right now", body: "You are in a break. Go back to GoReal to finish it." },
     { title: "Rilo is awake", body: "Opening {app} ends your break. Come back within 10 seconds." },
@@ -159,8 +163,6 @@ const COPY: Record<NotifKind, Variant[]> = {
 
 export const MILESTONES = [3, 7, 14, 30, 50, 100];
 
-/** The days since last activity that trigger a comeback message. After the last one we stay quiet. */
-export const COMEBACK_STEPS = [2, 4, 7, 14];
 
 function fill(text: string, ctx: CopyCtx): string {
   return text.replace(/\{(\w+)\}/g, (_, key: string) => {

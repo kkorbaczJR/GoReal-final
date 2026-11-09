@@ -81,35 +81,41 @@ Rilo can wear one hat, one extra and one scene at the same time. Tap an item to 
 - **Start over** deletes everything on this phone and goes back to the onboarding.
 
 ### 5. Notifications
-Rilo sends short, friendly messages. Never guilt, never more than 3 a day. They show up as a banner at the top of the app, in the **bell** next to the greeting on Today (an orange dot means something is unread), and as a system notification when GoReal is in the background and you allowed it.
+Nothing is sent at a set time of day. Rilo only speaks up when something happens: you have been on your phone for a long time without a pause, you are close to your limit or over it, you are scrolling late and today does not count yet, or something changed in GoReal (a break ended, a freeze saved your streak, you can afford something new). Notifications show up as a banner at the top of the app, in the **bell** next to the greeting on Today (an orange dot means something is unread), and as a system notification when GoReal is in the background and you allowed it.
 
-The **Reminders** screen (You, then Reminders) has: a preview of how a notification looks, the master switch and the permission, the **next 48 hours** as two 24 hour bars (orange dots are planned notifications, the grey band is quiet hours) with a list underneath, one switch per category with an example of its text, the daily reminder time, quiet hours and a **Send a test notification** button.
+The **Reminders** screen (You, then Reminders) has:
+- a preview of how a notification looks, the master switch and the permission
+- **A day with Rilo**: an example day of phone use (black bars) played through the real rules, with numbered pins where each notification would go out and the notifications themselves underneath
+- **Try it**: sliders for phone time today and how long you have been on your phone right now, plus an evening switch. It shows the notification Rilo would send at that moment, or why it stays quiet
+- one switch per category with an example of its text, the **long session** length (30, 45 or 60 minutes) and quiet hours
+- a **Send a test notification** button
 
-| Kind | Category | When | Example |
+| Kind | Category | When it goes out | Example |
 | --- | --- | --- | --- |
-| Nudge | Daily reminder | At your reminder time (15:00 to 19:00, default 17:00) if today does not count yet | "Rilo is getting sleepy" |
-| Comeback | Daily reminder | Replaces the nudge after 2, 4, 7 and 14 days without a break, then stays quiet | "Come back when you are ready" |
-| Streak at risk | Streak alerts | 20:00, streak of 1 or more, today not done and phone time not already under the limit | "Your 4-day streak is at risk" |
-| Last call | Streak alerts | 21:45, streak of 2 or more, same conditions | "Last call for your streak" |
-| Freeze used | Streak alerts | Right when a freeze saves your streak (quiet, goes to the bell only) | "A freeze saved your streak" |
-| Streak ended | Streak alerts | The day after a streak was lost | "Your 4-day streak ended" |
+| Long session | Long sessions | After 45 minutes (your choice: 30, 45 or 60) on your phone without a pause longer than 3 minutes, then at twice and three times as long | "45 minutes straight" |
+| Near the limit | Phone limit | When today's phone time reaches 80% of your limit | "Almost at your limit" |
+| Over the limit | Phone limit | When it reaches your limit. The text says whether a break can still save today | "You hit your limit" |
+| Streak at risk | Streak alerts | After 20:00, when you have been on your phone for 15 minutes, have a streak and today does not count yet | "Still up, Ada?" |
+| Off-limits app | Breaks | Right away when you open an off-limits app during a break. Ignores quiet hours and the daily cap | "TikTok is off limits right now" |
+| Break finished | Breaks | When a running break ends. The only one with a time, because you started the timer | "Break done" |
+| Freeze used | Streak alerts | When a freeze saves your streak. It goes straight to the bell, because Today already shows the freeze | "A freeze saved your streak" |
+| Streak ended | Streak alerts | The first time you open the app after a streak was lost | "Your 4-day streak ended" |
 | Milestone | Streak alerts | Streak of 3, 7, 14, 30, 50 or 100 and today counts | "A full week" |
-| Break finished | Break finished | When a running break ends | "Break done" |
-| Freeze tip | Shop tips | 18:30, no freezes, streak of 5 or more and 250 coins | "Protect your streak" |
-| Shop tip | Shop tips | 18:30, when you can afford something (it names the priciest thing you can afford) | "You can afford something new" |
-| Limit 80% / 100%, blocked app | Phone limit | Need Android phone tracking. The text and settings are ready, nothing sends them yet | "Almost at your limit" |
+| Shop tip | Shop tips | Right after you earn coins, when something new became affordable (or a freeze, if you have a streak of 5 or more and none in stock). At most once every 4 days | "You can afford something new" |
 
-**How the text is written** (`lib/notifications/copy.ts`): every kind has several variants and one is picked by the day number, so the same message does not repeat day after day. Some variants only apply in some situations (for example, when you own a freeze the streak warning says the freeze is your backup, and the comeback text depends on how long you were away). Fill-ins like `{name}`, `{streak}` or `{remaining}` come from your data. Rules: friendly and short, titles up to about 40 characters, no emoji, no guilt.
+Phone use only counts the apps you picked in onboarding.
 
-**Rules the planner follows** (`lib/notifications/planner.ts`):
-- At most **3 scheduled notifications a day**, at least **90 minutes apart**. If there are too many, the most important win: last call, streak at risk, daily reminder, then tips. A finished break always gets through.
-- **Quiet hours** (default 22:00 to 8:00, or off): streak warnings are dropped (a late warning is useless), the other ones wait until the quiet time is over.
-- **Never twice**: each notification has an id like `nudge:2026-11-09`. Delivered ids are remembered, so reopening the app or changing a setting never repeats one.
-- A shop or freeze tip is sent **at most once every 4 days**.
-- Tomorrow is planned as if today ends the way it is now: the streak only carries over if today already counts, and the daily reminder is always planned.
-- Switching off the master switch or a category removes those notifications from the plan.
+**How the text is written** (`lib/notifications/copy.ts`): every kind has several variants and one is picked by the day number, so the same message does not repeat day after day. Some variants only apply in some situations (the long session text changes the second time, the limit text knows whether today already counts, and the streak warning says so when a freeze is your backup). Fill-ins like `{name}`, `{streak}` or `{session}` come from your data. Rules: friendly and short, titles up to about 40 characters, no emoji, no guilt.
 
-**What works today and what does not.** In the web app a notification can only be delivered while GoReal is open or in the background (a page timer checks every 15 seconds; ones missed by more than a minute because the app was closed are skipped, not sent late). Real delivery while the app is fully closed needs a push server or a native app, so it arrives with the Expo phone app. The planner is plain TypeScript with no browser code, so the phone app can run the same `planNotifications` and schedule every item with `expo-notifications`. `lib/notifications/delivery.ts` documents how each function maps.
+**Rules the trigger engine follows** (`lib/notifications/triggers.ts`):
+- At most **4 nudges a day**, at least **30 minutes apart**, and only one at a time (the most important wins: streak at risk, over the limit, long session, near the limit). Breaks, streak news and an off-limits app always get through.
+- **Quiet hours** (default 22:00 to 8:00, or off): no nudges at all, except an off-limits app during a break.
+- **Never twice**: each notification has an id, like `limit80:2026-11-09` or `longSession:<session start>:1`. Delivered ids are remembered, so reopening the app or changing a setting never repeats one. The cap counts delivery times, so clearing the inbox does not reset it.
+- Switching off the master switch or a category stops those notifications.
+
+**Where the phone use comes from.** `lib/usage.ts` turns stretches of app use into today's total and the session going on right now (a pause of up to 3 minutes does not end a session). The Android app will feed it real data from Android's usage access and call `usageTriggers` every time it has fresh numbers, even with GoReal closed. A website cannot see other apps, so for now the web app only knows the phone time you log by hand: logging 48 of 60 minutes gives you the "almost at your limit" heads up. Long sessions and off-limits apps need the Android app.
+
+**What works today and what does not.** In the web app notifications can only appear while GoReal is open or in the background. The trigger engine is plain TypeScript with no browser code, so the phone app runs the same functions and shows the results with `expo-notifications`. `lib/notifications/delivery.ts` documents how each function maps.
 
 ## The rules
 
@@ -137,7 +143,7 @@ app/
     reminders/          notification settings, preview and the 48 hour plan
   manifest.ts, icon.svg, apple-icon.tsx   settings for "Add to Home Screen"
 public/sw.js            service worker: shows notifications and opens the app when you tap one
-scripts/notifications/  scenario tests for the planner (`npm run test:notifications`)
+scripts/notifications/  scenario tests for the trigger engine and usage (`npm run test:notifications`)
 components/
   Mascot.tsx            Rilo, a pixel-art mochi drawn in code, with moods (happy, wave, tired, sleeping, proud, sad), pixel hats and extras
   BreakOverlay.tsx      the black break mode, plus the "You did it!" and "Break ended early" screens
@@ -148,17 +154,18 @@ components/
   TimerRing.tsx         the animated circular ring
   CountUp.tsx           numbers that tick up when a screen opens
   NotificationCard.tsx  a notification drawn like a phone notification (banner, inbox and previews)
-  NotificationHost.tsx  checks what is due, fills the inbox, shows banners and system notifications
+  NotificationHost.tsx  asks the trigger engine what just happened, fills the inbox, shows banners and system notifications
   NotificationBell.tsx  the bell with the unread dot and the inbox pop-up
   Switch.tsx            on/off switch
   TabBar.tsx, Button.tsx, Sheet.tsx (bottom pop-up), StatPills.tsx (streak and coins)
 lib/
   store.ts              everything the app remembers, and the actions that change it
   notifications/
-    types.ts            kinds, categories, settings, limits (3 a day, 90 minutes apart) and small helpers
+    types.ts            kinds, categories, settings, limits (4 nudges a day, 30 minutes apart) and small helpers
     copy.ts             all the notification text and how a variant is picked
-    planner.ts          decides what to send and when (pure, no browser code)
+    triggers.ts         decides when to speak up, from phone use and from what just changed (pure, no browser code)
     delivery.ts         the only browser-specific part: permission and system notifications
+  usage.ts              today's phone time and the current session from stretches of app use (pure)
   intents.ts            one-shot requests between screens (open the streak screen from a notification)
   rules.ts              coin and streak rules
   shop.ts               the list of shop items
@@ -174,7 +181,7 @@ There is no account and no server yet. Everything is saved in the phone's browse
 - **It cannot really block other apps.** A web app is not allowed to do that on iPhone or Android. Only a native app can, using Apple's Screen Time tools or Android's accessibility and usage-access permissions, and Apple has to approve it. For now, break mode only lists the off-limits apps, and leaving GoReal ends the break.
 - **Locking the phone also counts as leaving.** A website cannot tell the difference between locking the phone and opening another app. That is why GoReal keeps the screen on during a break. Lay the phone face down and leave GoReal open.
 - **Phone time is typed in by hand.** A website cannot read Screen Time, so you enter your total yourself. You can log it at any time of day, and the last number you enter counts.
-- **Notifications only arrive while GoReal is open or in the background** (see Notifications above). Closed-app reminders come with the phone app. No accounts or syncing between devices yet.
+- **Notifications only arrive while GoReal is open or in the background**, and they can only react to the phone time you log (see Notifications above). Long sessions, off-limits apps and closed-app delivery come with the Android app. No accounts or syncing between devices yet.
 
 ## Ideas for later
 Real app blocking through a native app (Expo / React Native), friends and challenges, breaks together with a friend, and a weekly "real life" quest (go outside, read 10 pages).

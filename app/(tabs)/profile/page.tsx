@@ -13,7 +13,6 @@ import StreakScreen from "@/components/StreakScreen";
 import { achievements } from "@/lib/achievements";
 import { addDays, dayKey, formatMinutes, weekStart } from "@/lib/date";
 import { BREAK_GOAL_OPTIONS, PHONE_LIMIT_OPTIONS, dayState, longestStreak, streakStatus } from "@/lib/rules";
-import { formatHour } from "@/lib/notifications/types";
 import { titleName } from "@/lib/shop";
 import { resetEverything, setGoals, useGoReal } from "@/lib/store";
 import shared from "../tabs.module.css";
@@ -109,7 +108,7 @@ export default function Profile() {
           <PixelIcon name="bell" size={24} />
           <span className={styles.rowLabel}>Reminders</span>
           <span className={styles.rowValue}>
-            {s.notif.prefs.enabled ? `Daily at ${formatHour(s.notif.prefs.reminderHour)}` : "Off"}
+            {s.notif.prefs.enabled ? "On" : "Off"}
           </span>
           <PixelIcon name="chevronRight" size={12} className={styles.rowChev} />
         </button>

@@ -6,19 +6,17 @@ import styles from "./NotificationCard.module.css";
 import type { NotifKind } from "@/lib/notifications/types";
 
 const MOODS: Record<NotifKind, Mood> = {
-  nudge: "tired",
-  comeback: "sad",
+  longSession: "tired",
+  limit80: "tired",
+  limit100: "sad",
   streakRisk: "sad",
-  lastCall: "sad",
+  blockedApp: "wave",
   breakEnd: "proud",
   shopTip: "happy",
   freezeTip: "happy",
   freezeUsed: "proud",
   streakLost: "sad",
   milestone: "proud",
-  limit80: "tired",
-  limit100: "sad",
-  blockedApp: "wave",
 };
 
 /** A notification drawn like the ones on a phone: app icon, name, time, title and text. */
