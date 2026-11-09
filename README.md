@@ -4,7 +4,7 @@ GoReal is a small, friendly focus app for people aged 12 to 20. It helps you spe
 
 This is the first working version (an MVP). It runs in the phone's web browser and can be added to the home screen so it feels like a normal app. It is made for phones only. On a computer it shows up as a phone-sized column in the middle of the screen.
 
-you can try it on: https://kkorbaczjr.github.io/GoReal-final/
+**Try it:** <https://kkorbaczjr.github.io/GoReal-final/> (open it on a phone, or on a computer for a phone-sized view).
 
 ## How to run it on your computer
 
@@ -45,6 +45,12 @@ Other commands:
 | `npm run android:apk` | The same, then builds an installable Android file (APK). Needs the Android SDK, see below |
 
 In development mode the break-length picker also has a **1 minute** option, so you can try a whole break without waiting. The published version does not have it.
+
+## The website
+
+The link at the top is the real app, published automatically with GitHub Pages. Every time something is merged into `main`, `.github/workflows/pages.yml` builds the app as plain files and publishes them, so the site is always the newest version. Nothing is saved on a server: each visitor's progress stays in their own browser, so everyone starts fresh. On a phone, "Add to Home Screen" turns it into an app icon.
+
+The site lives under `/GoReal-final/` instead of the root of a domain, so its build uses `GOREAL_TARGET=pages` and `NEXT_PUBLIC_BASE_PATH=/GoReal-final` (see `next.config.ts` and `lib/base.ts`). To try that build yourself, run `npx next build` with those two set and serve the `out` folder under that path. GitHub Pages must be set to **GitHub Actions** under Settings, Pages (it already is).
 
 ## The Android app
 
@@ -167,7 +173,7 @@ app/
 android/                the Android app project (Capacitor). Icons are in android/app/src/main/res
 capacitor.config.ts     the Android app's name, id and where the web files are
 scripts/android/        builds the web files for the app and the APK (`npm run android:apk`)
-.github/workflows/      builds the APK on GitHub for every push
+.github/workflows/      builds the APK for every push, and publishes the website when `main` changes
 public/sw.js            service worker: shows notifications and opens the app when you tap one
 scripts/notifications/  scenario tests for the trigger engine and usage (`npm run test:notifications`)
 components/

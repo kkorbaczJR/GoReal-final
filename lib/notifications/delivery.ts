@@ -23,6 +23,7 @@
  * On the web the host runs the same functions while GoReal is open or in the background.
  * Taps map to Notifications.addNotificationResponseReceivedListener, reading `data.action`.
  */
+import { BASE_PATH } from "../base";
 import type { Notif } from "./types";
 
 export type NotifPermission = "granted" | "denied" | "default" | "unsupported";
@@ -45,7 +46,7 @@ export async function requestPermission(): Promise<NotifPermission> {
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return null;
   try {
-    await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.register(`${BASE_PATH}/sw.js`);
     return await navigator.serviceWorker.ready;
   } catch {
     return null;
@@ -58,8 +59,8 @@ export async function showSystem(n: Notif): Promise<boolean> {
   const options: NotificationOptions = {
     body: n.body,
     tag: n.id,
-    icon: "/apple-icon",
-    badge: "/apple-icon",
+    icon: `${BASE_PATH}/apple-icon`,
+    badge: `${BASE_PATH}/apple-icon`,
     data: { id: n.id, action: n.action },
   };
   try {

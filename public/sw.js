@@ -4,6 +4,8 @@ self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
 const ROUTES = { home: "/home", shop: "/shop", streak: "/home" };
+/** The site can live under a sub-address (GitHub Pages), so build paths from where this worker was registered. */
+const BASE = new URL(self.registration.scope).pathname.replace(/\/$/, "");
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
@@ -17,7 +19,7 @@ self.addEventListener("notificationclick", (event) => {
         open.postMessage({ type: "goreal:notification-click", action });
         return open.focus();
       }
-      return self.clients.openWindow(path);
+      return self.clients.openWindow(BASE + path);
     }),
   );
 });
