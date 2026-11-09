@@ -46,14 +46,51 @@ export type Background =
   | "city"
   | "space";
 
-export type Category = "hat" | "face" | "background" | "title" | "streak";
+export type Accent = "red" | "orange" | "yellow" | "green" | "blue" | "indigo" | "violet";
+
+export type Category = "hat" | "face" | "background" | "title" | "color" | "streak";
 
 export type ShopItem =
   | { id: string; kind: "hat"; look: Outfit; name: string; price: number }
   | { id: string; kind: "face"; look: Face; name: string; price: number }
   | { id: string; kind: "background"; look: Background; name: string; price: number }
   | { id: string; kind: "title"; name: string; price: number; unlockAtMinutes?: number }
+  | { id: string; kind: "color"; look: Accent; name: string; price: number }
   | { id: string; kind: "freeze"; name: string; price: number };
+
+export const DEFAULT_ACCENT: Accent = "orange";
+export const ACCENT_PRICE = 100;
+
+export type AccentColors = {
+  /** Buttons, switches, progress and highlights. */
+  accent: string;
+  /** Pressed buttons and small accent text on white. */
+  deep: string;
+  /** Pale backgrounds behind accent text. */
+  soft: string;
+  /** Text and icons drawn on top of `accent`. */
+  onAccent: string;
+  /** Big accent-coloured text on white. The accent itself, except yellow, which needs a darker one. */
+  text: string;
+};
+
+/**
+ * The orange of the app and six more, in rainbow order. Only the accent changes: Rilo, the white and black
+ * and the app icon stay as they are. Yellow is the one with dark text on top, white on yellow is unreadable.
+ */
+export const ACCENT_COLORS: Record<Accent, AccentColors> = {
+  red: { accent: "#dc2626", deep: "#b91c1c", soft: "#fdecec", onAccent: "#ffffff", text: "#dc2626" },
+  orange: { accent: "#fc4c02", deep: "#e03e00", soft: "#fff0e8", onAccent: "#ffffff", text: "#fc4c02" },
+  yellow: { accent: "#facc15", deep: "#a16207", soft: "#fef9c3", onAccent: "#111111", text: "#a16207" },
+  green: { accent: "#16a34a", deep: "#15803d", soft: "#e3f6e9", onAccent: "#ffffff", text: "#16a34a" },
+  blue: { accent: "#2563eb", deep: "#1d4ed8", soft: "#e3ecfd", onAccent: "#ffffff", text: "#2563eb" },
+  indigo: { accent: "#4f46e5", deep: "#4338ca", soft: "#e8e8fd", onAccent: "#ffffff", text: "#4f46e5" },
+  violet: { accent: "#9333ea", deep: "#7e22ce", soft: "#f2e8fd", onAccent: "#ffffff", text: "#9333ea" },
+};
+
+export function isAccent(value: unknown): value is Accent {
+  return typeof value === "string" && Object.prototype.hasOwnProperty.call(ACCENT_COLORS, value);
+}
 
 /** A freeze saves a streak when you miss a day. You can hold two. */
 export const FREEZE_PRICE = 250;
@@ -131,6 +168,14 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: "title-main", kind: "title", name: "Main Character", price: 2000 },
   { id: "title-friend", kind: "title", name: "Rilo's Best Friend", price: 3000 },
 
+  { id: "color-red", kind: "color", look: "red", name: "Red", price: ACCENT_PRICE },
+  { id: "color-orange", kind: "color", look: "orange", name: "Orange", price: 0 },
+  { id: "color-yellow", kind: "color", look: "yellow", name: "Yellow", price: ACCENT_PRICE },
+  { id: "color-green", kind: "color", look: "green", name: "Green", price: ACCENT_PRICE },
+  { id: "color-blue", kind: "color", look: "blue", name: "Blue", price: ACCENT_PRICE },
+  { id: "color-indigo", kind: "color", look: "indigo", name: "Indigo", price: ACCENT_PRICE },
+  { id: "color-violet", kind: "color", look: "violet", name: "Violet", price: ACCENT_PRICE },
+
   { id: "streak-freeze", kind: "freeze", name: "Streak freeze", price: FREEZE_PRICE },
 ];
 
@@ -148,6 +193,7 @@ export function titleName(id: string): string {
 export function isOwned(item: ShopItem, owned: string[], totalBreakMinutes: number): boolean {
   if (item.kind === "freeze") return false;
   if (owned.includes(item.id)) return true;
+  if (item.kind === "color") return item.price === 0;
   if (item.kind === "title") {
     if (item.unlockAtMinutes !== undefined) return totalBreakMinutes >= item.unlockAtMinutes;
     return item.price === 0;
