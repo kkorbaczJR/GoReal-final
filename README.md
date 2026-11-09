@@ -103,7 +103,7 @@ Rilo can wear one hat, one extra and one scene at the same time. Tap an item to 
 - Your Rilo in front of his scene, with your name and title.
 - **This week**: seven circles, one per day. A flame means that day counted for your streak, a snowflake means a freeze covered it. Tap the card to open the streak screen.
 - Stats: total time off-screen, current streak, longest streak, breaks finished, longest break, and how many shop items you own.
-- **My goal**: change your phone limit and your daily break goal at any time. New goals start tomorrow: today and every past day keep the goals they started with.
+- **My goal**: change your phone limit and your daily break goal at any time. Past days always keep their goals. Today follows a change right away while it has no progress yet (no break, no phone time logged), and a stricter goal (a longer break goal, a lower phone limit) also applies while today does not count yet. An easier goal after you already made progress waits until tomorrow, and the screen says so.
 - **Achievements**: 12 badges, for example "First break", "Month strong" (30 day streak), "Cool save" (a freeze saved your streak) and "Collector" (own 5 shop items).
 - **Reminders**: a row that opens the notification settings (see below).
 - **Start over** deletes everything on this phone and goes back to the onboarding.
@@ -152,7 +152,7 @@ Phone use only counts the apps you picked in onboarding.
 | Coins | Each minute of a **finished** break gives 1 coin, plus a 20% finish bonus (a 25 minute break pays 30). Short and long breaks pay the same per minute. |
 | Quitting | A break that ends early gives nothing. |
 | Streak | A day counts if you **stayed under your phone limit** (the time you logged) **or** reached your **daily break goal** (30 minutes unless you change it). Phone time counts once the day is over (it only goes up during a day), the break goal counts the moment you reach it. Today shows "On track" while you are under the limit. |
-| Goals | Every day keeps the goals it started with. Changing your goals only affects tomorrow and later. |
+| Goals | Every day keeps the goals it started with. A change reaches today only while today is untouched, or when it is stricter and today does not count yet. Otherwise it starts tomorrow. |
 | Streak freeze | Miss a whole day and a freeze covers it, so the streak survives (the frozen day keeps the streak but does not add to the count). You can buy freezes in the shop and hold at most 2. A freeze is used on its own when you open the app, but only if you have enough for every missed day and you had a real streak. Otherwise nothing is spent and the streak goes back to 0. |
 
 ## How the code is organized

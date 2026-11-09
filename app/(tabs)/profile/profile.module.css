@@ -127,6 +127,13 @@
   color: var(--muted);
 }
 
+.goalWait {
+  font-size: 13px;
+  color: var(--accent-deep);
+  line-height: 1.5;
+  margin: 4px 0 16px;
+}
+
 .goalHint {
   font-size: 14px;
   color: var(--muted);

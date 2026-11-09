@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { dayKey } from "./date";
-import { MAX_FREEZES, applyFreezes, rewardForBreak, stampGoals, type DayLog } from "./rules";
+import { MAX_FREEZES, applyFreezes, changeGoals, rewardForBreak, stampGoals, type DayLog } from "./rules";
 import { allowed, eventNotif } from "./notifications/triggers";
 import {
   defaultNotifState,
@@ -294,9 +294,9 @@ export function buyOrEquip(itemId: string): boolean {
   return true;
 }
 
-/** New goals count from tomorrow: today and every past day keep the goals they started with. */
+/** Past days keep their goals. Today follows the change when that cannot be gamed (see `changeGoals`). */
 export function setGoals(goals: { phoneLimit?: number; breakGoal?: number }) {
-  update((s) => ({ ...s, days: stampGoals(s.days, s, new Date()), ...goals }));
+  update((s) => ({ ...s, days: changeGoals(s.days, s, goals, new Date()), ...goals }));
 }
 
 /* ---------- notifications ---------- */
