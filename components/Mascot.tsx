@@ -17,7 +17,8 @@ type Props = {
   still?: boolean;
 };
 
-const CLAY = "#fc4c02";
+/** Rilo is the app's accent color (orange unless another color was picked in the shop). */
+const CLAY = "var(--accent, #fc4c02)";
 const INK = "#111111";
 const BLUSH = "#ffb08a";
 const CREAM = "#ffffff";
@@ -26,7 +27,7 @@ const GRAY = "#9a9a9a";
 const HAIR = "#c4c4c4";
 const HAIR_DARK = "#8d8d8d";
 const TAN = "#ffd2bd";
-const FRECKLE = "#9c2c00";
+const FRECKLE = "var(--accent-deep, #9c2c00)";
 const CAP_BASE = "#444444";
 
 type Px = [x: number, y: number, color: string];
