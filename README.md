@@ -39,8 +39,28 @@ Other commands:
 | `npm start` | Runs that optimized version on port 3000 |
 | `npm run lint` | Checks the code for common mistakes |
 | `npm run test:notifications` | Runs the notification scenario tests (needs Node 22 or newer) |
+| `npm run android:sync` | Builds the app as static files and copies them into the Android project |
+| `npm run android:apk` | The same, then builds an installable Android file (APK). Needs the Android SDK, see below |
 
 In development mode the break-length picker also has a **1 minute** option, so you can try a whole break without waiting. The published version does not have it.
+
+## The Android app
+
+GoReal also comes as an Android app. It is the same app as the website, packed into a real Android app with [Capacitor](https://capacitorjs.com): every screen, Rilo and your progress work the same. Being a real app is what will let GoReal see your phone time and the apps you open (Android's "usage access"), which a website is not allowed to do. That part comes in the next steps. Right now the Android app is the same as the website, plus a proper app icon and the phone's back button.
+
+**Why not Expo Go?** Expo Go can only run code that is already built into Expo Go. Reading phone usage needs our own native code, so it cannot run in Expo Go whichever tool we use. Expo would also mean rewriting every screen in React Native. Capacitor keeps the app we have and lets us add the Android parts in Kotlin.
+
+**Install it on your phone (no tools needed)**
+1. On GitHub, open the repository, then **Actions**, then **Android APK**, and open the newest run with a green tick.
+2. At the bottom, under **Artifacts**, download **goreal-debug-apk**. It is a zip file with `app-debug.apk` inside.
+3. Copy `app-debug.apk` to your phone (or download it on the phone directly) and open it. Android asks to allow installing apps from this source once. Allow it, then tap **Install**.
+4. A newer APK installs over the old one and keeps your progress.
+
+This is a test version signed with a development key, so Android may show a warning. It is not in the Play Store yet.
+
+**Build it yourself.** You need Node.js 22 or newer and either [Android Studio](https://developer.android.com/studio) or the Android command-line tools with Java 21. Then run `npm run android:apk`. The file ends up in `android/app/build/outputs/apk/debug/app-debug.apk`. With a phone connected over USB (developer mode on), `npx cap run android` installs and starts it. To work on the Android code, run `npm run android:sync` and open the `android` folder in Android Studio.
+
+**How it works.** `GOREAL_TARGET=android` makes `next build` produce plain files in `out/` (see `next.config.ts`). `npx cap sync` copies them into the Android project, and the app shows them from inside the APK, so it works offline. On Today and during onboarding the back button sends GoReal to the background like other apps. Elsewhere it closes the open pop-up or goes back one screen. During a break it does nothing, so a break never ends by accident.
 
 ## What you can do in the app
 
@@ -140,8 +160,12 @@ app/
     home/               Break screen: timer ring, Today card, phone-time sheet
     shop/               hats, extras, scenes and titles
     profile/            stats, goals, achievements
-    reminders/          notification settings, preview and the 48 hour plan
+    reminders/          notification settings, an example day and a simulator
   manifest.ts, icon.svg, apple-icon.tsx   settings for "Add to Home Screen"
+android/                the Android app project (Capacitor). Icons are in android/app/src/main/res
+capacitor.config.ts     the Android app's name, id and where the web files are
+scripts/android/        builds the web files for the app and the APK (`npm run android:apk`)
+.github/workflows/      builds the APK on GitHub for every push
 public/sw.js            service worker: shows notifications and opens the app when you tap one
 scripts/notifications/  scenario tests for the trigger engine and usage (`npm run test:notifications`)
 components/
@@ -157,6 +181,7 @@ components/
   NotificationHost.tsx  asks the trigger engine what just happened, fills the inbox, shows banners and system notifications
   NotificationBell.tsx  the bell with the unread dot and the inbox pop-up
   Switch.tsx            on/off switch
+  AndroidBack.tsx       the phone's back button in the Android app
   TabBar.tsx, Button.tsx, Sheet.tsx (bottom pop-up), StatPills.tsx (streak and coins)
 lib/
   store.ts              everything the app remembers, and the actions that change it
@@ -166,6 +191,7 @@ lib/
     triggers.ts         decides when to speak up, from phone use and from what just changed (pure, no browser code)
     delivery.ts         the only browser-specific part: permission and system notifications
   usage.ts              today's phone time and the current session from stretches of app use (pure)
+  back.ts               which open pop-up the back button closes first
   intents.ts            one-shot requests between screens (open the streak screen from a notification)
   rules.ts              coin and streak rules
   shop.ts               the list of shop items
@@ -184,4 +210,4 @@ There is no account and no server yet. Everything is saved in the phone's browse
 - **Notifications only arrive while GoReal is open or in the background**, and they can only react to the phone time you log (see Notifications above). Long sessions, off-limits apps and closed-app delivery come with the Android app. No accounts or syncing between devices yet.
 
 ## Ideas for later
-Real app blocking through a native app (Expo / React Native), friends and challenges, breaks together with a friend, and a weekly "real life" quest (go outside, read 10 pages).
+Real app blocking in the Android app, friends and challenges, breaks together with a friend, and a weekly "real life" quest (go outside, read 10 pages).
