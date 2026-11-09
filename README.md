@@ -4,6 +4,8 @@ GoReal is a small, friendly focus app for people aged 12 to 20. It helps you spe
 
 This is the first working version (an MVP). It runs in the phone's web browser and can be added to the home screen so it feels like a normal app. It is made for phones only. On a computer it shows up as a phone-sized column in the middle of the screen.
 
+you can try it on: https://kkorbaczjr.github.io/GoReal-final/
+
 ## How to run it on your computer
 
 You need [Node.js](https://nodejs.org) version 20 or newer and [Git](https://git-scm.com).
