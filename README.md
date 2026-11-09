@@ -88,11 +88,12 @@ This is a test version signed with a development key, so Android may show a warn
 - The **Today** card shows your two ways to keep the streak: break minutes so far, and your phone time. Tap the phone-time row to type in today's total from your phone's Screen Time (iPhone) or Digital Wellbeing (Android).
 
 ### 3. Shop
-Everything is pixel art, in five groups:
+Everything is pixel art, in six groups:
 - **Hats** (20): beanie, bow, cat ears, flower, party hat, antennae, bunny ears, cap, pirate bandana, graduation cap, chef hat, headphones, top hat, captain's cap, Einstein, cowboy hat, viking helmet, wizard hat, halo, crown. 150 to 4000 coins.
 - **Extras** (10): freckles, band-aid, mustache, shades, round glasses, eyepatch, star sticker, bow tie, monocle, scarf. 80 to 700 coins.
 - **Scenes** (12): pixel backgrounds behind Rilo, from graph paper and a picnic blanket to a beach, a pine forest, city lights, a starry night, outer space and "orange pop". 200 to 3000 coins.
 - **Titles** (21): a name shown under Rilo. Fifteen cost 150 to 3000 coins. Rookie is free, and five more unlock for free at 1 hour, 5 hours, about 16 hours, about 41 hours and 100 hours of total breaks.
+- **Colors** (7): the orange of the app can be changed to any color of the rainbow: red, orange (free, the one you start with), yellow, green, blue, indigo and violet. Each of the other six costs 100 coins, and once you own a color you can switch between your colors for free. It changes the accent only (buttons, switches, the timer ring, progress bars, the streak flame, coins and highlights). Rilo, the black and white and the app icon stay as they are. Tapping a color in the shop shows it on the whole app first, and it goes back if you do not buy it. Yellow uses dark text on its buttons so they stay readable.
 - **Streak**: the streak freeze (see below), 250 coins each, at most 2 at a time.
 
 Prices are high on purpose. At the default 30 minute goal a day earns about 36 coins, so a cheap item takes a few days and the crown takes months.
@@ -103,7 +104,7 @@ Rilo can wear one hat, one extra and one scene at the same time. Tap an item to 
 - Your Rilo in front of his scene, with your name and title.
 - **This week**: seven circles, one per day. A flame means that day counted for your streak, a snowflake means a freeze covered it. Tap the card to open the streak screen.
 - Stats: total time off-screen, current streak, longest streak, breaks finished, longest break, and how many shop items you own.
-- **My goal**: change your phone limit and your daily break goal at any time. New goals start tomorrow: today and every past day keep the goals they started with.
+- **My goal**: change your phone limit and your daily break goal at any time. Past days always keep their goals. Today follows a change right away while it has no progress yet (no break, no phone time logged), and a stricter goal (a longer break goal, a lower phone limit) also applies while today does not count yet. An easier goal after you already made progress waits until tomorrow, and the screen says so.
 - **Achievements**: 12 badges, for example "First break", "Month strong" (30 day streak), "Cool save" (a freeze saved your streak) and "Collector" (own 5 shop items).
 - **Reminders**: a row that opens the notification settings (see below).
 - **Start over** deletes everything on this phone and goes back to the onboarding.
@@ -153,7 +154,7 @@ Phone use only counts the apps you picked in onboarding.
 | Welcome gift | Every new user gets **100 coins** once, when onboarding ends. It is given only when onboarding ends (never added on top of existing coins, and "Start over" wipes everything first). It does not trigger a shop tip. |
 | Quitting | A break that ends early gives nothing. |
 | Streak | A day counts if you **stayed under your phone limit** (the time you logged) **or** reached your **daily break goal** (30 minutes unless you change it). Phone time counts once the day is over (it only goes up during a day), the break goal counts the moment you reach it. Today shows "On track" while you are under the limit. |
-| Goals | Every day keeps the goals it started with. Changing your goals only affects tomorrow and later. |
+| Goals | Every day keeps the goals it started with. A change reaches today only while today is untouched, or when it is stricter and today does not count yet. Otherwise it starts tomorrow. |
 | Streak freeze | Miss a whole day and a freeze covers it, so the streak survives (the frozen day keeps the streak but does not add to the count). You can buy freezes in the shop and hold at most 2. A freeze is used on its own when you open the app, but only if you have enough for every missed day and you had a real streak. Otherwise nothing is spent and the streak goes back to 0. |
 
 ## How the code is organized
@@ -191,6 +192,7 @@ components/
   NotificationBell.tsx  the bell with the unread dot and the inbox pop-up
   Switch.tsx            on/off switch
   AndroidBack.tsx       the phone's back button in the Android app
+  AccentTheme.tsx       applies the chosen accent color to the whole app (the layout also sets it before the first paint)
   TabBar.tsx, Button.tsx, Sheet.tsx (bottom pop-up), StatPills.tsx (streak and coins)
 lib/
   store.ts              everything the app remembers, and the actions that change it
@@ -203,7 +205,7 @@ lib/
   back.ts               which open pop-up the back button closes first
   intents.ts            one-shot requests between screens (open the streak screen from a notification)
   rules.ts              coin and streak rules
-  shop.ts               the list of shop items
+  shop.ts               the list of shop items and the seven accent colors
   achievements.ts       the list of badges and when they unlock
   date.ts               small helpers for days
 ```

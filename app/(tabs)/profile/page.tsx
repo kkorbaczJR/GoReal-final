@@ -12,7 +12,15 @@ import RiloStage from "@/components/RiloStage";
 import StreakScreen from "@/components/StreakScreen";
 import { achievements } from "@/lib/achievements";
 import { addDays, dayKey, formatMinutes, weekStart } from "@/lib/date";
-import { BREAK_GOAL_OPTIONS, PHONE_LIMIT_OPTIONS, dayState, longestStreak, streakStatus } from "@/lib/rules";
+import {
+  BREAK_GOAL_OPTIONS,
+  PHONE_LIMIT_OPTIONS,
+  dayState,
+  goalsFor,
+  goalsWaitForTomorrow,
+  longestStreak,
+  streakStatus,
+} from "@/lib/rules";
 import { titleName } from "@/lib/shop";
 import { resetEverything, setGoals, useGoReal } from "@/lib/store";
 import shared from "../tabs.module.css";
@@ -22,6 +30,7 @@ const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
 
 export default function Profile() {
   const s = useGoReal()!;
+  const todayGoals = goalsFor(s.days[dayKey()], s);
   const router = useRouter();
   const [confirmReset, setConfirmReset] = useState(false);
   const [showStreak, setShowStreak] = useState(false);
@@ -117,8 +126,8 @@ export default function Profile() {
       <section className={shared.card}>
         <h2 className={shared.sectionTitle}>My goal</h2>
         <p className={styles.goalHint}>
-          A day counts for your streak if you stay under your phone limit <b>or</b> finish your break goal. New goals
-          start tomorrow, today keeps the ones it started with.
+          A day counts for your streak if you stay under your phone limit <b>or</b> finish your break goal. A change
+          applies to today right away unless it would make today easier after you already made progress.
         </p>
         <Segmented
           label="Phone limit per day"
@@ -132,6 +141,12 @@ export default function Profile() {
           value={s.breakGoal}
           onChange={(v) => setGoals({ breakGoal: v })}
         />
+        {goalsWaitForTomorrow(s.days, s) && (
+          <p className={styles.goalWait}>
+            Today still runs on {formatMinutes(todayGoals.phoneLimit)} of phone time and a {formatMinutes(todayGoals.breakGoal)}{" "}
+            break goal. Your new goals start tomorrow.
+          </p>
+        )}
         <div className={styles.apps}>
           <span className={styles.segLabel}>Apps off limits during breaks</span>
           <div className={styles.chips}>
