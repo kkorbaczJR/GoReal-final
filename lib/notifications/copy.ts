@@ -181,3 +181,5 @@ export function writeCopy(kind: NotifKind, ctx: CopyCtx, seed: number): { title:
 export function variantCount(kind: NotifKind, ctx: CopyCtx): number {
   return COPY[kind].filter((v) => !v.when || v.when(ctx)).length;
 }
+
+export const COPY_KINDS = Object.keys(COPY) as NotifKind[];

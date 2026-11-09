@@ -2,16 +2,18 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import BreakOverlay from "@/components/BreakOverlay";
 import Button from "@/components/Button";
 import Mascot from "@/components/Mascot";
+import NotificationBell from "@/components/NotificationBell";
 import { PixelIcon } from "@/components/PixelIcon";
 import Sheet from "@/components/Sheet";
 import StatPills from "@/components/StatPills";
 import StreakScreen from "@/components/StreakScreen";
 import TimerRing from "@/components/TimerRing";
 import { dayKey, formatMinutes } from "@/lib/date";
+import { consumeOpenStreak, onOpenStreak } from "@/lib/intents";
 import { BREAK_LENGTH_OPTIONS, MAX_FREEZES, dayQualifies, goalsFor, rewardForBreak, streakStatus } from "@/lib/rules";
 import { clearFreezeNotice, clearNotice, getState, logPhoneTime, startBreak, useGoReal } from "@/lib/store";
 import shared from "../tabs.module.css";
@@ -33,7 +35,16 @@ export default function Home() {
   const [minutes, setMinutes] = useState(15);
   const [overlay, setOverlay] = useState<{ doneBefore: boolean } | null>(null);
   const [phoneSheet, setPhoneSheet] = useState(false);
-  const [showStreak, setShowStreak] = useState(false);
+  const [showStreak, setShowStreak] = useState(consumeOpenStreak);
+
+  useEffect(
+    () =>
+      onOpenStreak(() => {
+        consumeOpenStreak();
+        setShowStreak(true);
+      }),
+    [],
+  );
 
   const streak = streakStatus(s.days, s);
   const today = s.days[dayKey()] ?? { breakMinutes: 0 };
@@ -66,9 +77,12 @@ export default function Home() {
         />
       </div>
 
-      <h1 className={shared.heading}>
-        {greeting()}, {s.name}
-      </h1>
+      <div className={styles.greetRow}>
+        <h1 className={shared.heading}>
+          {greeting()}, {s.name}
+        </h1>
+        <NotificationBell />
+      </div>
 
       <AnimatePresence>
         {streak.lostStreak > 0 && (

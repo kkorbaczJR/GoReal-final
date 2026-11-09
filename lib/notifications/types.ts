@@ -127,7 +127,7 @@ export function formatClockTime(ms: number): string {
 }
 
 export function quietLabel(q: QuietHours | null): string {
-  return q ? `${q.start}:00 to ${q.end}:00` : "Off";
+  return q ? `${formatHour(q.start)} to ${formatHour(q.end)}` : "Off";
 }
 
 /** Fills gaps in a saved notification state (older saves have none), keeping everything valid. */
@@ -165,4 +165,18 @@ export function withDelivered(notif: NotifState, n: Notif, shown: boolean): Noti
     inbox: [{ ...n, read: false, shown }, ...notif.inbox].slice(0, MAX_INBOX),
     sent: [...notif.sent, n.id].slice(-MAX_SENT),
   };
+}
+
+/** "now", "12 min ago", "3 h ago", "Yesterday 17:00" or the date. For the inbox. */
+export function formatWhen(at: number, now: number): string {
+  const minutes = Math.round((now - at) / 60_000);
+  if (minutes < 1) return "now";
+  if (minutes < 60) return `${minutes} min ago`;
+  const a = new Date(at);
+  const b = new Date(now);
+  const startOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const dayDiff = Math.round((startOf(b) - startOf(a)) / 86_400_000);
+  if (dayDiff === 0) return `${Math.floor(minutes / 60)} h ago`;
+  if (dayDiff === 1) return `Yesterday ${formatClockTime(at)}`;
+  return `${a.getDate()}/${a.getMonth() + 1} ${formatClockTime(at)}`;
 }

@@ -265,3 +265,17 @@
   max-width: 300px;
   margin-bottom: 4px;
 }
+
+.rowLabel {
+  flex: 1;
+  font-size: 15px;
+}
+
+.rowValue {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.rowChev {
+  color: var(--faint);
+}
