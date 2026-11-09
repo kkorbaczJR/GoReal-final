@@ -56,7 +56,18 @@ test("the default is the original orange, so nothing changes for existing users"
     soft: "#fff0e8",
     onAccent: "#ffffff",
     text: "#fc4c02",
+    blush: "#ffb08a",
   });
+});
+
+test("Rilo's blush is his colour, lighter: between the accent and white on every channel", () => {
+  const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  for (const [name, c] of Object.entries(ACCENT_COLORS)) {
+    const accent = rgb(c.accent);
+    const blush = rgb(c.blush);
+    blush.forEach((v, i) => assert.ok(v >= accent[i] && v <= 255, `${name}: channel ${i} is ${v}`));
+    assert.ok(luminance(c.blush) > luminance(c.accent), `${name}: blush is not lighter`);
+  }
 });
 
 test("text on a button is readable on every colour, and accent text on white is readable too", () => {

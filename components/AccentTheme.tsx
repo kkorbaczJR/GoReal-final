@@ -13,6 +13,7 @@ export function applyAccent(accent: Accent | null) {
   style.setProperty("--accent-soft", c.soft);
   style.setProperty("--on-accent", c.onAccent);
   style.setProperty("--accent-text", c.text);
+  style.setProperty("--accent-blush", c.blush);
 }
 
 /**
@@ -28,4 +29,4 @@ export default function AccentTheme() {
 }
 
 /** Runs before the first paint so a coloured app never flashes orange. Same palette as `applyAccent`. */
-export const accentScript = `(function(){try{var P=${JSON.stringify(ACCENT_COLORS)};var s=JSON.parse(localStorage.getItem("goreal:v1")||"{}");var c=P[s.accent];if(!c||s.accent==="${DEFAULT_ACCENT}")return;var r=document.documentElement.style;r.setProperty("--accent",c.accent);r.setProperty("--accent-deep",c.deep);r.setProperty("--accent-soft",c.soft);r.setProperty("--on-accent",c.onAccent);r.setProperty("--accent-text",c.text)}catch(e){}})()`;
+export const accentScript = `(function(){try{var P=${JSON.stringify(ACCENT_COLORS)};var s=JSON.parse(localStorage.getItem("goreal:v1")||"{}");var c=P[s.accent];if(!c||s.accent==="${DEFAULT_ACCENT}")return;var r=document.documentElement.style;r.setProperty("--accent",c.accent);r.setProperty("--accent-deep",c.deep);r.setProperty("--accent-soft",c.soft);r.setProperty("--on-accent",c.onAccent);r.setProperty("--accent-text",c.text);r.setProperty("--accent-blush",c.blush)}catch(e){}})()`;
