@@ -103,6 +103,17 @@ export default function Profile() {
         ))}
       </section>
 
+      <div className={shared.group}>
+        <button className={shared.groupRow} onClick={() => router.push("/reminders")}>
+          <PixelIcon name="bell" size={24} />
+          <span className={styles.rowLabel}>Reminders</span>
+          <span className={styles.rowValue}>
+            {s.notif.prefs.enabled ? "On" : "Off"}
+          </span>
+          <PixelIcon name="chevronRight" size={12} className={styles.rowChev} />
+        </button>
+      </div>
+
       <section className={shared.card}>
         <h2 className={shared.sectionTitle}>My goal</h2>
         <p className={styles.goalHint}>
