@@ -3,6 +3,16 @@
 import { useSyncExternalStore } from "react";
 import { dayKey } from "./date";
 import { MAX_FREEZES, applyFreezes, rewardForBreak, stampGoals, type DayLog } from "./rules";
+import { allowed, eventNotif } from "./notifications/planner";
+import {
+  defaultNotifState,
+  mergeNotifState,
+  withDelivered,
+  type Notif,
+  type NotifCategory,
+  type NotifPrefs,
+  type NotifState,
+} from "./notifications/types";
 import { DEFAULT_TITLE, FREEZE_PRICE, itemById, isOwned, type Background, type Face, type Outfit } from "./shop";
 
 /** Everything GoReal remembers. It lives in the phone's browser storage, no account needed. */
@@ -35,6 +45,9 @@ export type GoRealState = {
   /** Shown once after the app opens: freezes were just spent to save a streak. */
   freezeNotice: { days: number; streak: number; left: number } | null;
 
+  /** Notification settings, the inbox and what was already sent. */
+  notif: NotifState;
+
   /** A break that is running right now. Saved so closing the app mid-break counts as quitting. */
   activeBreak: { startedAt: number; minutes: number } | null;
   /** Message to show once, e.g. after the app was closed during a break. */
@@ -65,6 +78,7 @@ export function initialState(): GoRealState {
     freezes: 0,
     freezesUsed: 0,
     freezeNotice: null,
+    notif: defaultNotifState(),
     activeBreak: null,
     notice: null,
   };
@@ -93,6 +107,19 @@ function settleDay(s: GoRealState, now = new Date()): GoRealState {
       freezesUsed: next.freezesUsed + frozen.used,
       freezeNotice: { days: frozen.used, streak: frozen.saved, left: frozen.freezes },
     };
+    if (allowed(next.notif.prefs, "freezeUsed")) {
+      const n = eventNotif(
+        next,
+        "freezeUsed",
+        {
+          streak: frozen.saved,
+          daysWord: frozen.used === 1 ? "a day" : `${frozen.used} days`,
+          leftText: frozen.freezes === 0 ? "That was your last one." : `You have ${frozen.freezes} left.`,
+        },
+        now,
+      );
+      next = { ...next, notif: withDelivered(next.notif, n, true) };
+    }
   }
   return next;
 }
@@ -112,6 +139,7 @@ function migrate(raw: Record<string, unknown>): Partial<GoRealState> {
   delete copy.league;
   delete copy.xp;
   const next = copy as Partial<GoRealState>;
+  next.notif = mergeNotifState(copy.notif);
   if (typeof next.freezes === "number") next.freezes = Math.min(MAX_FREEZES, Math.max(0, Math.floor(next.freezes)));
   if ((next.outfit as string) === "shades") return { ...next, outfit: null, face: "shades" };
   return next;
@@ -269,6 +297,49 @@ export function buyOrEquip(itemId: string): boolean {
 /** New goals count from tomorrow: today and every past day keep the goals they started with. */
 export function setGoals(goals: { phoneLimit?: number; breakGoal?: number }) {
   update((s) => ({ ...s, days: stampGoals(s.days, s, new Date()), ...goals }));
+}
+
+/* ---------- notifications ---------- */
+
+export type NotifPrefsPatch = Partial<Omit<NotifPrefs, "categories">> & {
+  categories?: Partial<Record<NotifCategory, boolean>>;
+};
+
+export function setNotifPrefs(patch: NotifPrefsPatch) {
+  update((s) => {
+    const { prefs } = s.notif;
+    return {
+      ...s,
+      notif: { ...s.notif, prefs: { ...prefs, ...patch, categories: { ...prefs.categories, ...patch.categories } } },
+    };
+  });
+}
+
+/** Records a delivered notification in the inbox. Returns false if it was already delivered. */
+export function pushNotif(n: Notif, opts: { shown?: boolean } = {}): boolean {
+  if (getSnapshot().notif.sent.includes(n.id)) return false;
+  update((s) => ({ ...s, notif: withDelivered(s.notif, n, opts.shown ?? false) }));
+  return true;
+}
+
+export function markInboxRead() {
+  update((s) =>
+    s.notif.inbox.some((i) => !i.read)
+      ? { ...s, notif: { ...s.notif, inbox: s.notif.inbox.map((i) => (i.read ? i : { ...i, read: true })) } }
+      : s,
+  );
+}
+
+/** The pop-up banner for this one was shown (or skipped), so it is never shown again. */
+export function markShown(id: string) {
+  update((s) => ({
+    ...s,
+    notif: { ...s.notif, inbox: s.notif.inbox.map((i) => (i.id === id ? { ...i, shown: true } : i)) },
+  }));
+}
+
+export function clearInbox() {
+  update((s) => ({ ...s, notif: { ...s.notif, inbox: [] } }));
 }
 
 export function resetEverything() {
