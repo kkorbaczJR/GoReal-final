@@ -150,6 +150,7 @@ Phone use only counts the apps you picked in onboarding.
 | Rule | Detail |
 | --- | --- |
 | Coins | Each minute of a **finished** break gives 1 coin, plus a 20% finish bonus (a 25 minute break pays 30). Short and long breaks pay the same per minute. |
+| Welcome gift | Every new user gets **100 coins** once, when onboarding ends. It is not repeated if you start over and onboard again, and it does not trigger a shop tip. |
 | Quitting | A break that ends early gives nothing. |
 | Streak | A day counts if you **stayed under your phone limit** (the time you logged) **or** reached your **daily break goal** (30 minutes unless you change it). Phone time counts once the day is over (it only goes up during a day), the break goal counts the moment you reach it. Today shows "On track" while you are under the limit. |
 | Goals | Every day keeps the goals it started with. Changing your goals only affects tomorrow and later. |
