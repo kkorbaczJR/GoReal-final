@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { BASE_PATH } from "@/lib/base";
 
 export const dynamic = "force-static";
 
@@ -7,14 +8,14 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "GoReal",
     short_name: "GoReal",
     description: "Take real breaks from your phone, grow your streak, dress up Rilo.",
-    start_url: "/",
+    start_url: `${BASE_PATH}/`,
     display: "standalone",
     orientation: "portrait",
     background_color: "#ffffff",
     theme_color: "#ffffff",
     icons: [
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },
-      { src: "/apple-icon", sizes: "180x180", type: "image/png" },
+      { src: `${BASE_PATH}/icon.svg`, sizes: "any", type: "image/svg+xml" },
+      { src: `${BASE_PATH}/apple-icon`, sizes: "180x180", type: "image/png" },
     ],
   };
 }
