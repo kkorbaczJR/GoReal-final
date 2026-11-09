@@ -7,6 +7,7 @@ import { requestOpenStreak } from "@/lib/intents";
 import { permission, registerServiceWorker, showSystem } from "@/lib/notifications/delivery";
 import { breakEndNotif, detectEvents, isQuiet, usageTriggers } from "@/lib/notifications/triggers";
 import type { Notif, NotifAction } from "@/lib/notifications/types";
+import { canMeasure, usePhone } from "@/lib/phone";
 import { markShown, pushNotif, useGoReal, type GoRealState } from "@/lib/store";
 import { manualUsage } from "@/lib/usage";
 import NotificationCard from "./NotificationCard";
@@ -27,7 +28,7 @@ const isVisible = () => document.visibilityState === "visible";
  * it asks the trigger engine what just happened (streak news, a new thing you can afford, phone time you
  * logged going near or over the limit) and the only timer is the end of a running break. It puts each one
  * in the inbox, pops up a banner when you are looking at the app and sends a system notification when you
- * are not. Live phone use (long sessions, off-limits apps) needs the Android tracker (see README).
+ * are not. In the Android app with usage access on, phone time and long sessions are measured (lib/phone.ts).
  */
 export default function NotificationHost() {
   const s = useGoReal()!;
@@ -35,6 +36,8 @@ export default function NotificationHost() {
   const pathname = usePathname();
   const visible = useSyncExternalStore(subscribeVisibility, isVisible, () => true);
   const [now, setNow] = useState(() => Date.now());
+  const { reading } = usePhone();
+  const measured = s.phoneTracking && canMeasure() ? reading?.snapshot : undefined;
 
   useEffect(() => {
     const refresh = () => setNow(Date.now());
@@ -78,7 +81,7 @@ export default function NotificationHost() {
     const end = breakEndNotif(s, at);
     const due: Notif[] = [
       ...detectEvents(s, at, prev.current),
-      ...usageTriggers(s, manualUsage(s.days, nowMs), at),
+      ...usageTriggers(s, measured ?? manualUsage(s.days, nowMs), at),
       ...(end && end.at <= nowMs ? [end] : []),
     ];
     prev.current = s;
@@ -92,7 +95,7 @@ export default function NotificationHost() {
         pushNotif(n, { shown: n.kind === "breakEnd" && visible });
       }
     }
-  }, [s, now, visible]);
+  }, [s, now, visible, measured]);
 
   const waiting = s.notif.inbox.filter((i) => !i.shown);
   const showable = visible && !s.activeBreak;
