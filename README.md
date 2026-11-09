@@ -88,11 +88,12 @@ This is a test version signed with a development key, so Android may show a warn
 - The **Today** card shows your two ways to keep the streak: break minutes so far, and your phone time. Tap the phone-time row to type in today's total from your phone's Screen Time (iPhone) or Digital Wellbeing (Android).
 
 ### 3. Shop
-Everything is pixel art, in five groups:
+Everything is pixel art, in six groups:
 - **Hats** (20): beanie, bow, cat ears, flower, party hat, antennae, bunny ears, cap, pirate bandana, graduation cap, chef hat, headphones, top hat, captain's cap, Einstein, cowboy hat, viking helmet, wizard hat, halo, crown. 150 to 4000 coins.
 - **Extras** (10): freckles, band-aid, mustache, shades, round glasses, eyepatch, star sticker, bow tie, monocle, scarf. 80 to 700 coins.
 - **Scenes** (12): pixel backgrounds behind Rilo, from graph paper and a picnic blanket to a beach, a pine forest, city lights, a starry night, outer space and "orange pop". 200 to 3000 coins.
 - **Titles** (21): a name shown under Rilo. Fifteen cost 150 to 3000 coins. Rookie is free, and five more unlock for free at 1 hour, 5 hours, about 16 hours, about 41 hours and 100 hours of total breaks.
+- **Colors** (7): the orange of the app can be changed to any color of the rainbow: red, orange (free, the one you start with), yellow, green, blue, indigo and violet. Each of the other six costs 100 coins, and once you own a color you can switch between your colors for free. It changes the accent only (buttons, switches, the timer ring, progress bars, the streak flame, coins and highlights). Rilo, the black and white and the app icon stay as they are. Tapping a color in the shop shows it on the whole app first, and it goes back if you do not buy it. Yellow uses dark text on its buttons so they stay readable.
 - **Streak**: the streak freeze (see below), 250 coins each, at most 2 at a time.
 
 Prices are high on purpose. At the default 30 minute goal a day earns about 36 coins, so a cheap item takes a few days and the crown takes months.
@@ -190,6 +191,7 @@ components/
   NotificationBell.tsx  the bell with the unread dot and the inbox pop-up
   Switch.tsx            on/off switch
   AndroidBack.tsx       the phone's back button in the Android app
+  AccentTheme.tsx       applies the chosen accent color to the whole app (the layout also sets it before the first paint)
   TabBar.tsx, Button.tsx, Sheet.tsx (bottom pop-up), StatPills.tsx (streak and coins)
 lib/
   store.ts              everything the app remembers, and the actions that change it
@@ -202,7 +204,7 @@ lib/
   back.ts               which open pop-up the back button closes first
   intents.ts            one-shot requests between screens (open the streak screen from a notification)
   rules.ts              coin and streak rules
-  shop.ts               the list of shop items
+  shop.ts               the list of shop items and the seven accent colors
   achievements.ts       the list of badges and when they unlock
   date.ts               small helpers for days
 ```
