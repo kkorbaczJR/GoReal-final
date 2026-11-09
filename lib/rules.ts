@@ -169,6 +169,42 @@ export function applyFreezes(
   return { days: next, freezes: freezes - missed.length, used: missed.length, saved };
 }
 
+/**
+ * Changes the goals. Past days never change. Today follows the change when it is safe:
+ * - today has no progress yet (no break minutes, no phone time logged), so nothing can be gamed, or
+ * - the change is stricter (a higher break goal, a lower phone limit) and today does not count yet.
+ * An easier goal after today already has progress, or any change after today counts, waits until tomorrow.
+ * `current` are the goals before the change.
+ */
+export function changeGoals(
+  days: Record<string, DayLog>,
+  current: Goals,
+  change: Partial<Goals>,
+  now = new Date(),
+): Record<string, DayLog> {
+  const stamped = stampGoals(days, current, now);
+  const key = dayKey(now);
+  const today = stamped[key];
+  const old = today.goal ?? current;
+
+  const untouched = today.breakMinutes === 0 && today.phoneMinutes === undefined;
+  const counted = dayQualifies(today, current, false);
+  const mayChange = (stricter: boolean) => untouched || (stricter && !counted);
+
+  const goal: Goals = { ...old };
+  if (change.phoneLimit !== undefined && mayChange(change.phoneLimit < old.phoneLimit)) goal.phoneLimit = change.phoneLimit;
+  if (change.breakGoal !== undefined && mayChange(change.breakGoal > old.breakGoal)) goal.breakGoal = change.breakGoal;
+
+  if (goal.phoneLimit === old.phoneLimit && goal.breakGoal === old.breakGoal) return stamped;
+  return { ...stamped, [key]: { ...today, goal } };
+}
+
+/** True when today still runs on older goals than the ones in settings (the new ones start tomorrow). */
+export function goalsWaitForTomorrow(days: Record<string, DayLog>, settings: Goals, now = new Date()): boolean {
+  const goal = goalsFor(days[dayKey(now)], settings);
+  return goal.phoneLimit !== settings.phoneLimit || goal.breakGoal !== settings.breakGoal;
+}
+
 /** Saves the current goals on every day that has none yet, and makes sure today exists. */
 export function stampGoals(days: Record<string, DayLog>, goals: Goals, now = new Date()): Record<string, DayLog> {
   const stamp: Goals = { phoneLimit: goals.phoneLimit, breakGoal: goals.breakGoal };

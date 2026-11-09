@@ -1,7 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { applyAccent } from "@/components/AccentTheme";
 import Button from "@/components/Button";
 import Mascot from "@/components/Mascot";
 import { PixelIcon, type PixelIconName } from "@/components/PixelIcon";
@@ -9,7 +10,7 @@ import PixelScene from "@/components/PixelScene";
 import RiloStage from "@/components/RiloStage";
 import { formatMinutes } from "@/lib/date";
 import { MAX_FREEZES } from "@/lib/rules";
-import { SHOP_ITEMS, isOwned, titleName, type Category, type ShopItem } from "@/lib/shop";
+import { ACCENT_COLORS, SHOP_ITEMS, isOwned, titleName, type Category, type ShopItem } from "@/lib/shop";
 import { buyFreeze, buyOrEquip, useGoReal, type GoRealState } from "@/lib/store";
 import shared from "../tabs.module.css";
 import styles from "./shop.module.css";
@@ -19,6 +20,7 @@ const CATEGORIES: { id: Category; label: string; icon: PixelIconName }[] = [
   { id: "face", label: "Extras", icon: "glasses" },
   { id: "background", label: "Scenes", icon: "picture" },
   { id: "title", label: "Titles", icon: "badge" },
+  { id: "color", label: "Colors", icon: "palette" },
   { id: "streak", label: "Streak", icon: "snowflake" },
 ];
 
@@ -32,6 +34,8 @@ function isWearing(item: ShopItem, s: GoRealState) {
       return s.background === item.look;
     case "title":
       return s.title === item.id;
+    case "color":
+      return s.accent === item.look;
     case "freeze":
       return false;
   }
@@ -53,6 +57,14 @@ export default function Shop() {
     background: selected?.kind === "background" ? selected.look : s.background,
     title: selected?.kind === "title" ? selected.id : s.title,
   };
+
+  const previewAccent = selected?.kind === "color" ? selected.look : null;
+  // Looking at a colour shows it on the whole app. It goes back to the saved one when you look at something else.
+  useEffect(() => {
+    if (!previewAccent) return;
+    applyAccent(previewAccent);
+    return () => applyAccent(s.accent);
+  }, [previewAccent, s.accent]);
 
   const items = SHOP_ITEMS.filter((i) => i.kind === category);
   const owned = (item: ShopItem) => isOwned(item, s.owned, s.totalBreakMinutes);
@@ -79,7 +91,7 @@ export default function Shop() {
       return;
     }
     if (!wasOwned) flash(`${selected.name} is yours!`);
-    else if (selected.kind !== "title" && wasWearing) flash("Taken off");
+    else if (selected.kind !== "title" && selected.kind !== "color" && wasWearing) flash("Taken off");
   };
 
   let action = "";
@@ -100,10 +112,24 @@ export default function Shop() {
         action = `Buy for ${selected.price}`;
       }
     } else if (wearing(selected)) {
-      action = selected.kind === "title" ? "Using this title" : selected.kind === "background" ? "Remove" : "Take off";
-      disabled = selected.kind === "title";
+      action =
+        selected.kind === "title"
+          ? "Using this title"
+          : selected.kind === "color"
+            ? "Using this colour"
+            : selected.kind === "background"
+              ? "Remove"
+              : "Take off";
+      disabled = selected.kind === "title" || selected.kind === "color";
     } else {
-      action = selected.kind === "title" ? "Use this title" : selected.kind === "background" ? "Use it" : "Wear it";
+      action =
+        selected.kind === "title"
+          ? "Use this title"
+          : selected.kind === "color"
+            ? "Use this colour"
+            : selected.kind === "background"
+              ? "Use it"
+              : "Wear it";
     }
   }
 
@@ -195,7 +221,9 @@ export default function Shop() {
                   onClick={() => setSelectedId(item.id)}
                 >
                   <span className={styles.thumb}>
-                    {item.kind === "background" ? (
+                    {item.kind === "color" ? (
+                      <span className={styles.swatch} style={{ background: ACCENT_COLORS[item.look].accent }} />
+                    ) : item.kind === "background" ? (
                       <PixelScene scene={item.look} className={styles.thumbScene} />
                     ) : (
                       <Mascot
@@ -272,7 +300,7 @@ function FreezeCard({ freezes, price }: { freezes: number; price: number }) {
 function PriceTag({ item, owned, wearing }: { item: ShopItem; owned: boolean; wearing: boolean }) {
   if (item.kind === "freeze") return null;
   if (wearing) {
-    const label = item.kind === "title" || item.kind === "background" ? "In use" : "Wearing";
+    const label = item.kind === "title" || item.kind === "background" || item.kind === "color" ? "In use" : "Wearing";
     return <span className={`${styles.tag} ${styles.tagOn}`}>{label}</span>;
   }
   if (owned) return <span className={styles.tag}>Owned</span>;
