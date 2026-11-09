@@ -1,6 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect } from "react";
+import { onBack } from "@/lib/back";
 import { addDays, dayKey } from "@/lib/date";
 import { MAX_FREEZES, dayState, goalsFor, longestStreak, streakStatus } from "@/lib/rules";
 import { getState } from "@/lib/store";
@@ -18,6 +20,7 @@ const ENERGETIC = [0.34, 1.56, 0.64, 1] as const;
  * the number ticks up by one and today's circle pops in last.
  */
 export default function StreakScreen({ onClose, celebrate = false }: { onClose: () => void; celebrate?: boolean }) {
+  useEffect(() => onBack(onClose), [onClose]);
   const s = getState();
   const { count, todayDone, todayOnTrack } = streakStatus(s.days, s);
   const goals = goalsFor(s.days[dayKey()], s);

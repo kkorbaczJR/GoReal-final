@@ -1,11 +1,14 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+import { onBack } from "@/lib/back";
 import styles from "./Sheet.module.css";
 
 /** iOS-style bottom sheet. */
 export default function Sheet({ open, onClose, children }: { open: boolean; onClose: () => void; children: ReactNode }) {
+  useEffect(() => (open ? onBack(onClose) : undefined), [open, onClose]);
+
   return (
     <AnimatePresence>
       {open && (

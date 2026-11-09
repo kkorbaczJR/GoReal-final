@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import { onBack } from "@/lib/back";
 import { formatClock } from "@/lib/date";
 import { LEAVE_GRACE_SECONDS } from "@/lib/rules";
 import { finishBreak, quitBreak, type GoRealState } from "@/lib/store";
@@ -46,6 +47,9 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
   const [hold, setHold] = useState(false);
   const [dayJustCounted, setDayJustCounted] = useState(false);
   const hiddenAt = useRef<number | null>(null);
+
+  // Back does nothing here: a break ends with its own buttons, not by accident.
+  useEffect(() => onBack(() => {}), []);
 
   const endsAt = active ? active.startedAt + active.minutes * 60_000 : 0;
   const totalMs = active ? active.minutes * 60_000 : 1;
