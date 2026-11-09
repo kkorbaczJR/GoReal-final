@@ -12,6 +12,7 @@ import RiloStage from "@/components/RiloStage";
 import StreakScreen from "@/components/StreakScreen";
 import { achievements } from "@/lib/achievements";
 import { addDays, dayKey, formatMinutes, weekStart } from "@/lib/date";
+import { canMeasure } from "@/lib/phone";
 import {
   BREAK_GOAL_OPTIONS,
   PHONE_LIMIT_OPTIONS,
@@ -34,6 +35,7 @@ export default function Profile() {
   const router = useRouter();
   const [confirmReset, setConfirmReset] = useState(false);
   const [showStreak, setShowStreak] = useState(false);
+  const [android] = useState(canMeasure);
 
   const streak = streakStatus(s.days, s);
   const best = longestStreak(s.days, s);
@@ -121,6 +123,14 @@ export default function Profile() {
           </span>
           <PixelIcon name="chevronRight" size={12} className={styles.rowChev} />
         </button>
+        {android && (
+          <button className={shared.groupRow} onClick={() => router.push("/phone")}>
+            <PixelIcon name="phone" size={24} />
+            <span className={styles.rowLabel}>Phone time</span>
+            <span className={styles.rowValue}>{s.phoneTracking ? "Measured" : "Set up"}</span>
+            <PixelIcon name="chevronRight" size={12} className={styles.rowChev} />
+          </button>
+        )}
       </div>
 
       <section className={shared.card}>

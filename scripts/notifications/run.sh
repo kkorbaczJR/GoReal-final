@@ -9,11 +9,11 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 mkdir -p "$tmp/lib/notifications"
-cp "$root"/lib/{date,rules,shop,usage}.ts "$tmp/lib/"
+cp "$root"/lib/{apps,date,rules,shop,usage}.ts "$tmp/lib/"
 cp "$root"/lib/notifications/{types,copy,triggers}.ts "$tmp/lib/notifications/"
 sed -i -E 's#(from "\.{1,2}/[A-Za-z/]+)"#\1.ts"#' "$tmp"/lib/*.ts "$tmp"/lib/notifications/*.ts
-cp "$here/triggers.test.ts" "$here/goals.test.ts" "$here/colors.test.ts" "$tmp/"
+cp "$here"/{triggers,goals,colors,usage}.test.ts "$tmp/"
 echo '{"type":"module"}' > "$tmp/package.json"
 
 cd "$tmp"
-node --experimental-strip-types --disable-warning=ExperimentalWarning --test triggers.test.ts goals.test.ts colors.test.ts
+node --experimental-strip-types --disable-warning=ExperimentalWarning --test triggers.test.ts goals.test.ts colors.test.ts usage.test.ts

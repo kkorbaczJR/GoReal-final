@@ -14,6 +14,7 @@ import StreakScreen from "@/components/StreakScreen";
 import TimerRing from "@/components/TimerRing";
 import { dayKey, formatMinutes } from "@/lib/date";
 import { consumeOpenStreak, onOpenStreak } from "@/lib/intents";
+import { canMeasure } from "@/lib/phone";
 import { BREAK_LENGTH_OPTIONS, MAX_FREEZES, dayQualifies, goalsFor, rewardForBreak, streakStatus } from "@/lib/rules";
 import { clearFreezeNotice, clearNotice, getState, logPhoneTime, startBreak, useGoReal } from "@/lib/store";
 import shared from "../tabs.module.css";
@@ -50,6 +51,7 @@ export default function Home() {
   const today = s.days[dayKey()] ?? { breakMinutes: 0 };
   const goals = goalsFor(today, s);
   const breakProgress = Math.min(1, today.breakMinutes / goals.breakGoal);
+  const measured = s.phoneTracking && canMeasure();
 
   const begin = () => {
     startBreak(minutes);
@@ -182,11 +184,18 @@ export default function Home() {
             </div>
           </div>
 
-          <button className={shared.groupRow} onClick={() => setPhoneSheet(true)}>
+          <button
+            className={shared.groupRow}
+            onClick={() => (measured ? router.push("/phone") : setPhoneSheet(true))}
+          >
             <div className={styles.goalText}>
               <span>Phone time under {formatMinutes(goals.phoneLimit)}</span>
               <span className={styles.value}>
-                {today.phoneMinutes === undefined ? "Log" : formatMinutes(today.phoneMinutes)}
+                {measured
+                  ? formatMinutes(today.phoneMinutes ?? 0)
+                  : today.phoneMinutes === undefined
+                    ? "Log"
+                    : formatMinutes(today.phoneMinutes)}
               </span>
             </div>
             <PixelIcon name="chevronRight" size={12} className={styles.chev} />
@@ -210,6 +219,14 @@ export default function Home() {
         onClose={() => setPhoneSheet(false)}
         initial={today.phoneMinutes ?? goals.phoneLimit}
         limit={goals.phoneLimit}
+        onMeasure={
+          canMeasure()
+            ? () => {
+                setPhoneSheet(false);
+                router.push("/phone");
+              }
+            : undefined
+        }
       />
 
       <Sheet open={s.notice === "left-during-break"} onClose={clearNotice}>
@@ -265,11 +282,14 @@ function PhoneTimeSheet({
   onClose,
   initial,
   limit,
+  onMeasure,
 }: {
   open: boolean;
   onClose: () => void;
   initial: number;
   limit: number;
+  /** In the Android app: go set up measured phone time instead. */
+  onMeasure?: () => void;
 }) {
   const [value, setValue] = useState(initial);
   const [lastOpen, setLastOpen] = useState(open);
@@ -309,6 +329,11 @@ function PhoneTimeSheet({
         >
           Save
         </Button>
+        {onMeasure && (
+          <Button full variant="ghost" size="medium" onClick={onMeasure}>
+            Let GoReal measure it
+          </Button>
+        )}
       </div>
     </Sheet>
   );

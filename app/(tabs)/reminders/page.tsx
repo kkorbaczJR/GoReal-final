@@ -35,6 +35,7 @@ import {
   type NotifKind,
   type QuietHours,
 } from "@/lib/notifications/types";
+import { canMeasure } from "@/lib/phone";
 import { pushNotif, setNotifPrefs, useGoReal, type GoRealState } from "@/lib/store";
 import type { UsageInterval } from "@/lib/usage";
 import shared from "../tabs.module.css";
@@ -167,8 +168,9 @@ export default function Reminders() {
         </div>
       </div>
       <p className={styles.note}>
-        Live phone use (long sessions, off-limits apps) comes with the Android app, which can see how you use your
-        phone. Until then GoReal reacts to your breaks and to the phone time you log.
+        {s.phoneTracking && canMeasure()
+          ? "GoReal measures your phone time, so long sessions and your limit are checked whenever you open it. Nudges while GoReal is closed come in a later update."
+          : "Live phone use (long sessions, getting close to your limit) needs the Android app with phone time measured. Here GoReal reacts to your breaks and to the phone time you log."}
       </p>
 
       <ExampleDay s={s} on={on} />
