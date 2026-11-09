@@ -20,7 +20,7 @@ type Props = {
 /** Rilo is the app's accent color (orange unless another color was picked in the shop). */
 const CLAY = "var(--accent, #fc4c02)";
 const INK = "#111111";
-const BLUSH = "#ffb08a";
+const BLUSH = "var(--accent-blush, #ffb08a)";
 const CREAM = "#ffffff";
 const SAND = "#ebebeb";
 const GRAY = "#9a9a9a";
