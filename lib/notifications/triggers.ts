@@ -223,7 +223,8 @@ export function detectEvents(state: GoRealState, now: Date, prev?: GoRealState):
     add(eventNotif(state, "milestone", { milestone: status.count, streak: status.count }, now));
   }
 
-  const earned = prev && state.coins > prev.coins;
+  // The welcome gift at the end of onboarding is not something earned, so it gets no shop tip.
+  const earned = prev && prev.onboarded && state.coins > prev.coins;
   if (prev && earned && !tipSentRecently(state.notif.sent, now)) {
     const freezeNow = state.freezes === 0 && status.count >= FREEZE_TIP_MIN_STREAK;
     if (freezeNow && prev.coins < FREEZE_PRICE && state.coins >= FREEZE_PRICE && allowed(prefs, "freezeTip")) {
