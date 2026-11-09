@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Newsreader } from "next/font/google";
+import AndroidBack from "@/components/AndroidBack";
 import "./globals.css";
 
 const newsreader = Newsreader({
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${newsreader.variable} ${geistMono.variable}`}>
       <body>
         <div className="app-shell">{children}</div>
+        <AndroidBack />
       </body>
     </html>
   );
