@@ -166,7 +166,9 @@
   border-radius: 50%;
   background: var(--card);
   box-shadow: inset 0 0 0 1px var(--line);
-  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .stepValue {
@@ -193,4 +195,12 @@
 
 .over {
   color: var(--muted);
+}
+
+.streakRow {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: -4px;
 }

@@ -2,13 +2,14 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { addDays, dayKey, formatClock } from "@/lib/date";
-import { LEAVE_GRACE_SECONDS, dayQualifies, streakStatus } from "@/lib/rules";
-import { finishBreak, getState, quitBreak, type GoRealState } from "@/lib/store";
+import { formatClock } from "@/lib/date";
+import { LEAVE_GRACE_SECONDS } from "@/lib/rules";
+import { finishBreak, quitBreak, type GoRealState } from "@/lib/store";
 import CountUp from "./CountUp";
 import Button from "./Button";
 import Mascot from "./Mascot";
-import { CoinIcon } from "./StatPills";
+import { PixelIcon } from "./PixelIcon";
+import StreakScreen from "./StreakScreen";
 import TimerRing from "./TimerRing";
 import styles from "./BreakOverlay.module.css";
 
@@ -23,7 +24,7 @@ const TIPS = [
 
 type Outcome =
   | { kind: "running" }
-  | { kind: "done"; coins: number; xp: number; minutes: number }
+  | { kind: "done"; coins: number; minutes: number }
   | { kind: "quit"; reason: "gave-up" | "left" }
   | { kind: "streak" };
 
@@ -124,7 +125,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
         {outcome.kind === "running" && active && (
           <motion.div key="run" className={styles.content} exit={{ opacity: 0, y: -20 }}>
             <div className={styles.lockRow}>
-              <LockIcon />
+              <PixelIcon name="lock" size={12} />
               <span>Break mode</span>
             </div>
 
@@ -135,7 +136,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
                 stroke={6}
                 track="rgba(255, 255, 255,0.1)"
               >
-                <Mascot mood="sleeping" size={124} onDark outfit={state.outfit} />
+                <Mascot mood="sleeping" size={124} onDark outfit={state.outfit} face={state.face} />
                 <div className={styles.clock}>{formatClock(leftMs / 1000)}</div>
               </TimerRing>
 
@@ -157,7 +158,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
               <div className={styles.chips}>
                 {state.blockedApps.map((a) => (
                   <span key={a} className={styles.chip}>
-                    <LockIcon small />
+                    <PixelIcon name="lock" size={12} />
                     {a}
                   </span>
                 ))}
@@ -194,15 +195,15 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
           >
             <div />
             <div className={styles.center}>
-              <Mascot mood="proud" size={170} outfit={state.outfit} />
+              <Mascot mood="proud" size={170} outfit={state.outfit} face={state.face} />
               <h1 className={styles.resultTitle}>You did it!</h1>
               <p className={styles.resultSub}>{outcome.minutes === 1 ? "1 minute" : `${outcome.minutes} minutes`} in the real world.</p>
               <div className={styles.rewards}>
                 <RewardPill delay={0.2}>
-                  <CoinIcon size={20} /> +<CountUp to={outcome.coins} />
+                  <PixelIcon name="coin" size={24} /> +<CountUp to={outcome.coins} />
                 </RewardPill>
                 <RewardPill delay={0.4}>
-                  <span className={styles.xp}>XP</span> +<CountUp to={outcome.xp} />
+                  <PixelIcon name="clock" size={24} /> <CountUp to={outcome.minutes} /> min
                 </RewardPill>
               </div>
             </div>
@@ -212,21 +213,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
           </motion.div>
         )}
 
-        {outcome.kind === "streak" && (
-          <motion.div
-            key="streak"
-            className={styles.content}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div />
-            <StreakCelebration />
-            <Button full onClick={onClose}>
-              Continue
-            </Button>
-          </motion.div>
-        )}
+        {outcome.kind === "streak" && <StreakScreen key="streak" celebrate onClose={onClose} />}
 
         {outcome.kind === "quit" && (
           <motion.div
@@ -237,7 +224,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
           >
             <div />
             <div className={styles.center}>
-              <Mascot mood="sad" size={160} outfit={state.outfit} />
+              <Mascot mood="sad" size={160} outfit={state.outfit} face={state.face} />
               <h1 className={styles.resultTitle}>Break ended early</h1>
               <p className={styles.resultSub}>
                 {outcome.reason === "left"
@@ -265,104 +252,5 @@ function RewardPill({ children, delay }: { children: React.ReactNode; delay: num
     >
       {children}
     </motion.div>
-  );
-}
-
-const WEEKDAY = ["S", "M", "T", "W", "T", "F", "S"];
-const ENERGETIC = [0.34, 1.56, 0.64, 1] as const;
-
-/** Me+-style streak moment, shown when a break makes today count. */
-function StreakCelebration() {
-  const fresh = getState();
-  const { count } = streakStatus(fresh.days, fresh);
-  const today = new Date();
-  const week = Array.from({ length: 7 }, (_, i) => addDays(today, i - 6));
-
-  return (
-    <div className={styles.center}>
-      <motion.div
-        initial={{ scale: 0.3, y: 20, opacity: 0 }}
-        animate={{ scale: 1, y: 0, opacity: 1 }}
-        transition={{ duration: 0.55, ease: ENERGETIC }}
-      >
-        <PixelFlame size={112} />
-      </motion.div>
-      <div className={styles.streakNumber}>
-        <CountUp from={Math.max(0, count - 1)} to={count} duration={600} delay={450} />
-      </div>
-      <div className={styles.streakLabel}>day streak!</div>
-
-      <motion.div
-        className={styles.weekCard}
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35, duration: 0.45, ease: ENERGETIC }}
-      >
-        <div className={styles.weekRow}>
-          {week.map((d, i) => {
-            const done = dayQualifies(fresh.days[dayKey(d)], fresh);
-            const isToday = i === 6;
-            return (
-              <div key={i} className={styles.weekDay}>
-                <span className={`${styles.weekLabel} ${isToday ? styles.weekLabelToday : ""}`}>{WEEKDAY[d.getDay()]}</span>
-                <motion.span
-                  className={`${styles.weekDot} ${done ? styles.weekDone : ""}`}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: isToday ? 1.2 : 0.6 + i * 0.06, duration: isToday ? 0.5 : 0.35, ease: ENERGETIC }}
-                >
-                  {done && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12.5l4.5 4.5L19 7.5" />
-                    </svg>
-                  )}
-                </motion.span>
-              </div>
-            );
-          })}
-        </div>
-        <p className={styles.streakLine}>
-          {count === 1 ? "Day one. Every streak starts here." : "You're on a roll. Take a break tomorrow to keep it going."}
-        </p>
-      </motion.div>
-    </div>
-  );
-}
-
-const FLAME_ROWS: [number, number, number][] = [
-  [0, 4, 4], [1, 4, 5], [2, 3, 5], [3, 3, 6], [4, 2, 6], [5, 2, 7], [6, 1, 7],
-  [7, 1, 8], [8, 0, 8], [9, 0, 8], [10, 0, 8], [11, 1, 7], [12, 2, 6],
-];
-const FLAME_CORE: [number, number, number][] = [[7, 4, 4], [8, 3, 5], [9, 3, 5], [10, 3, 5], [11, 4, 4]];
-
-function PixelFlame({ size }: { size: number }) {
-  const px = (rows: [number, number, number][], fill: string) =>
-    rows.flatMap(([y, x0, x1]) =>
-      Array.from({ length: x1 - x0 + 1 }, (_, i) => <rect key={`${fill}${x0 + i},${y}`} x={x0 + i} y={y} width={1.02} height={1.02} fill={fill} />),
-    );
-  return (
-    <motion.svg
-      width={size}
-      height={size}
-      viewBox="-2.5 -1 14 15"
-      shapeRendering="crispEdges"
-      aria-hidden
-      animate={{ scaleY: [1, 1.06, 1], scaleX: [1, 0.96, 1] }}
-      transition={{ duration: 0.8, repeat: Infinity, ease: (t: number) => Math.round(t * 2) / 2 }}
-      style={{ originY: 1 }}
-    >
-      {px(FLAME_ROWS, "var(--accent)")}
-      {px(FLAME_CORE, "#ffffff")}
-    </motion.svg>
-  );
-}
-
-function LockIcon({ small = false }: { small?: boolean }) {
-  const s = small ? 12 : 16;
-  return (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-      <rect x="5" y="11" width="14" height="10" rx="3" fill="currentColor" stroke="none" />
-      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-    </svg>
   );
 }

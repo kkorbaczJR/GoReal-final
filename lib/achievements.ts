@@ -25,6 +25,7 @@ export function achievements(s: GoRealState): Achievement[] {
   add("min100", "100 minutes", "100 min off your phone", s.totalBreakMinutes >= 100);
   add("min500", "500 minutes", "500 min off your phone", s.totalBreakMinutes >= 500);
   add("shopper", "Fresh look", "Get something in the shop", s.owned.length >= 1);
+  add("collector", "Collector", "Own 5 shop items", s.owned.length >= 5);
 
   return list.map((a, i) => ({ ...a, unlocked: checks[i] }));
 }

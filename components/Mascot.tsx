@@ -2,13 +2,14 @@
 
 import { motion } from "framer-motion";
 import { useMemo } from "react";
-import type { Outfit } from "@/lib/shop";
+import type { Face, Outfit } from "@/lib/shop";
 
 export type Mood = "happy" | "wave" | "tired" | "sleeping" | "proud" | "sad";
 
 type Props = {
   mood?: Mood;
   outfit?: Outfit | null;
+  face?: Face | null;
   size?: number;
   /** Rilo on a dark background (break mode): the floating z's turn light. */
   onDark?: boolean;
@@ -21,6 +22,7 @@ const INK = "#111111";
 const BLUSH = "#ffb08a";
 const CREAM = "#ffffff";
 const SAND = "#ebebeb";
+const GRAY = "#9a9a9a";
 
 type Px = [x: number, y: number, color: string];
 
@@ -48,7 +50,6 @@ const OUTFITS: Record<Outfit, Px[]> = {
     ...run(-3, 5, 10, CREAM), ...run(-2, 3, 12, CREAM), ...run(-1, 2, 13, CREAM),
     ...run(0, 1, 14, CREAM), ...run(1, 9, 18, SAND), [7, -4, CLAY], [8, -4, CLAY],
   ],
-  shades: [...run(5, 3, 12, INK), ...run(6, 3, 6, INK), ...run(6, 9, 12, INK), [4, 5, "#555555"]],
   headphones: [
     ...run(-3, 4, 11, INK), [2, -2, INK], [3, -2, INK], [12, -2, INK], [13, -2, INK],
     [1, -1, INK], [14, -1, INK], [0, 0, INK], [15, 0, INK],
@@ -61,6 +62,61 @@ const OUTFITS: Record<Outfit, Px[]> = {
   crown: [
     [4, -4, CREAM], [7, -4, CREAM], [8, -4, CREAM], [11, -4, CREAM],
     ...run(-3, 4, 11, CREAM), ...run(-2, 4, 11, CREAM), ...run(-1, 4, 11, CREAM), [7, -2, CLAY], [8, -2, CLAY],
+  ],
+  party: [
+    [7, -6, CLAY], [8, -6, CLAY], ...run(-5, 7, 8, CREAM), ...run(-4, 6, 9, CLAY),
+    ...run(-3, 6, 9, CREAM), ...run(-2, 5, 10, CLAY), ...run(-1, 5, 10, CREAM),
+  ],
+  bow: [
+    [10, -2, CREAM], [11, -2, CREAM], [14, -2, CREAM], [15, -2, CREAM],
+    [10, -1, CREAM], [11, -1, CREAM], [12, -1, CLAY], [13, -1, CLAY], [14, -1, CREAM], [15, -1, CREAM],
+    [10, 0, CREAM], [11, 0, CREAM], [14, 0, CREAM], [15, 0, CREAM],
+  ],
+  cat: [
+    [2, -3, CLAY], [13, -3, CLAY], ...run(-2, 2, 3, CLAY), ...run(-2, 12, 13, CLAY),
+    ...run(-1, 2, 4, CLAY), ...run(-1, 11, 13, CLAY), ...run(0, 3, 4, CLAY), ...run(0, 11, 12, CLAY),
+    [3, -1, BLUSH], [12, -1, BLUSH],
+  ],
+  bunny: [
+    ...[-6, -5, -4, -3, -2, -1].flatMap((y) => [...run(y, 3, 5, CREAM), ...run(y, 10, 12, CREAM)]),
+    ...[-5, -4, -3, -2].flatMap((y) => [[4, y, BLUSH], [11, y, BLUSH]] as Px[]),
+  ],
+  chef: [
+    ...run(-6, 5, 10, CREAM), ...run(-5, 4, 11, CREAM), ...run(-4, 4, 11, CREAM), ...run(-3, 4, 11, CREAM),
+    ...run(-2, 5, 10, CREAM), ...run(-1, 4, 11, SAND),
+  ],
+  wizard: [
+    ...run(-6, 9, 10, INK), ...run(-5, 8, 10, INK), ...run(-4, 7, 10, INK), ...run(-3, 6, 10, INK),
+    ...run(-2, 5, 11, INK), ...run(-1, 4, 11, INK), ...run(0, 0, 15, INK), [8, -3, CREAM], [10, -2, CLAY],
+  ],
+  halo: [...run(-6, 5, 10, CREAM), ...run(-5, 4, 11, CREAM)],
+  bandana: [
+    ...run(-1, 5, 10, INK), ...run(0, 4, 11, INK), ...run(1, 2, 13, INK), ...run(2, 1, 14, INK),
+    [15, 2, INK], [16, 1, INK], [16, 3, INK], [6, 0, CREAM], [10, 1, CREAM], [4, 2, CREAM], [12, 2, CREAM],
+  ],
+  viking: [
+    ...run(-3, 5, 10, GRAY), ...run(-2, 3, 12, GRAY), ...run(-1, 2, 13, GRAY), ...run(0, 1, 14, SAND),
+    [0, -1, CREAM], [-1, -2, CREAM], [-1, -3, CREAM], [-1, -4, CREAM],
+    [15, -1, CREAM], [16, -2, CREAM], [16, -3, CREAM], [16, -4, CREAM],
+  ],
+};
+
+const FACES: Record<Face, Px[]> = {
+  shades: [...run(5, 3, 12, INK), ...run(6, 3, 6, INK), ...run(6, 9, 12, INK), [4, 5, "#555555"], [10, 5, "#555555"]],
+  glasses: [
+    ...run(4, 3, 5, INK), ...run(8, 3, 5, INK), [2, 5, INK], [2, 6, INK], [2, 7, INK], [6, 5, INK], [6, 6, INK], [6, 7, INK],
+    ...run(4, 10, 12, INK), ...run(8, 10, 12, INK), [9, 5, INK], [9, 6, INK], [9, 7, INK], [13, 5, INK], [13, 6, INK], [13, 7, INK],
+    [7, 5, INK], [8, 5, INK],
+  ],
+  mustache: [...run(8, 5, 10, INK), [4, 9, INK], [5, 9, INK], [10, 9, INK], [11, 9, INK]],
+  bandaid: [...run(3, 10, 13, CREAM), [11, 3, SAND], [12, 3, SAND]],
+  scarf: [
+    ...run(10, 0, 15, INK), ...run(11, 1, 14, INK), [3, 10, CREAM], [3, 11, CREAM], [7, 10, CREAM], [7, 11, CREAM],
+    [11, 10, CREAM], [11, 11, CREAM], ...run(12, 11, 12, INK), ...run(13, 11, 12, INK), [11, 13, CREAM],
+  ],
+  bowtie: [
+    [4, 11, INK], [5, 11, INK], [10, 11, INK], [11, 11, INK], ...run(12, 4, 6, INK), [7, 12, CREAM], [8, 12, CREAM],
+    ...run(12, 9, 11, INK), [4, 13, INK], [5, 13, INK], [10, 13, INK], [11, 13, INK],
   ],
 };
 
@@ -116,16 +172,24 @@ function Pixels({ px }: { px: Px[] }) {
 const steps = (n: number) => (t: number) => Math.round(t * n) / n;
 
 /** Rilo: a small pixel mochi who lives in your phone. */
-export default function Mascot({ mood = "happy", outfit = null, size = 160, onDark = false, still = false }: Props) {
+export default function Mascot({
+  mood = "happy",
+  outfit = null,
+  face = null,
+  size = 160,
+  onDark = false,
+  still = false,
+}: Props) {
   const base = useMemo(() => {
-    const layer = outfit ? [...BODY, ...OUTFITS[outfit]] : BODY;
+    const layer = [...BODY, ...(outfit ? OUTFITS[outfit] : []), ...(face ? FACES[face] : [])];
     const dedup = new Map<string, Px>();
     for (const p of layer) dedup.set(`${p[0]},${p[1]}`, p);
     const pixels = [...dedup.values()];
     return [...outline(pixels), ...pixels];
-  }, [outfit]);
+  }, [outfit, face]);
 
-  const eyes = outfit === "shades" ? [] : EYES[mood];
+  const eyes = face === "shades" ? [] : EYES[mood];
+  const mouth = face === "mustache" ? MOUTHS[mood].filter(([, y]) => y > 8) : MOUTHS[mood];
 
   const idle =
     mood === "sleeping"
@@ -155,7 +219,7 @@ export default function Mascot({ mood = "happy", outfit = null, size = 160, onDa
 
       <motion.g animate={still ? undefined : idle}>
         <Pixels px={base} />
-        <Pixels px={BLUSH_PX} />
+        <Pixels px={face === "glasses" ? BLUSH_PX.filter(([x]) => x === 2 || x === 13) : BLUSH_PX} />
 
         {mood === "happy" || mood === "wave" ? (
           <motion.g
@@ -168,7 +232,7 @@ export default function Mascot({ mood = "happy", outfit = null, size = 160, onDa
         ) : (
           <Pixels px={eyes} />
         )}
-        <Pixels px={MOUTHS[mood]} />
+        <Pixels px={mouth} />
       </motion.g>
 
       {mood === "sleeping" &&

@@ -1,3 +1,4 @@
+
 function pad(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -11,6 +12,11 @@ export function addDays(date: Date, days: number): Date {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
   return d;
+}
+
+export function parseDayKey(key: string): Date {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, m - 1, d);
 }
 
 /** Monday 00:00 (local time) of the week that contains `date`. */

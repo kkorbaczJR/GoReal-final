@@ -5,8 +5,10 @@ import { useCallback, useState } from "react";
 import BreakOverlay from "@/components/BreakOverlay";
 import Button from "@/components/Button";
 import Mascot from "@/components/Mascot";
+import { PixelIcon } from "@/components/PixelIcon";
 import Sheet from "@/components/Sheet";
 import StatPills from "@/components/StatPills";
+import StreakScreen from "@/components/StreakScreen";
 import TimerRing from "@/components/TimerRing";
 import { dayKey, formatMinutes } from "@/lib/date";
 import { BREAK_LENGTH_OPTIONS, dayQualifies, rewardForBreak, streakStatus } from "@/lib/rules";
@@ -29,6 +31,7 @@ export default function Home() {
   const [minutes, setMinutes] = useState(15);
   const [overlay, setOverlay] = useState<{ doneBefore: boolean } | null>(null);
   const [phoneSheet, setPhoneSheet] = useState(false);
+  const [showStreak, setShowStreak] = useState(false);
 
   const streak = streakStatus(s.days, s);
   const today = s.days[dayKey()] ?? { breakMinutes: 0 };
@@ -52,7 +55,12 @@ export default function Home() {
         <span className={shared.date}>
           {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
         </span>
-        <StatPills streak={streak.count} streakLit={streak.todayDone} coins={s.coins} />
+        <StatPills
+          streak={streak.count}
+          streakLit={streak.todayDone}
+          coins={s.coins}
+          onStreakClick={() => setShowStreak(true)}
+        />
       </div>
 
       <h1 className={shared.heading}>
@@ -74,7 +82,7 @@ export default function Home() {
 
       <section className={styles.timer}>
         <TimerRing progress={minutes / 60} size={260} stroke={8}>
-          <Mascot mood={mood} size={116} outfit={s.outfit} />
+          <Mascot mood={mood} size={116} outfit={s.outfit} face={s.face} />
           <div className={styles.minutes}>
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.span
@@ -129,6 +137,17 @@ export default function Home() {
         </div>
 
         <div className={shared.group}>
+          <button className={shared.groupRow} onClick={() => setShowStreak(true)}>
+            <div className={styles.streakRow}>
+              <PixelIcon name="flame" size={24} dim={!streak.todayDone} />
+              <span>Streak</span>
+            </div>
+            <span className={styles.value}>
+              {streak.count} {streak.count === 1 ? "day" : "days"}
+            </span>
+            <PixelIcon name="chevronRight" size={12} className={styles.chev} />
+          </button>
+
           <div className={`${shared.groupRow} ${styles.goalRow}`}>
             <div className={styles.goalText}>
               <span>Break time</span>
@@ -153,9 +172,7 @@ export default function Home() {
                 {today.phoneMinutes === undefined ? "Log" : formatMinutes(today.phoneMinutes)}
               </span>
             </div>
-            <svg className={styles.chev} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 6l6 6-6 6" />
-            </svg>
+            <PixelIcon name="chevronRight" size={12} className={styles.chev} />
           </button>
         </div>
       </section>
@@ -177,6 +194,8 @@ export default function Home() {
           </Button>
         </div>
       </Sheet>
+
+      <AnimatePresence>{showStreak && <StreakScreen onClose={() => setShowStreak(false)} />}</AnimatePresence>
 
       <AnimatePresence>
         {overlay && (
@@ -220,7 +239,7 @@ function PhoneTimeSheet({
         </p>
         <div className={styles.stepper}>
           <motion.button whileTap={{ scale: 0.9 }} onClick={() => setValue((v) => Math.max(0, v - 15))} aria-label="Less">
-            −
+            <PixelIcon name="minus" size={24} />
           </motion.button>
           <div className={styles.stepValue}>
             <span>{formatMinutes(value)}</span>
@@ -229,7 +248,7 @@ function PhoneTimeSheet({
             </small>
           </div>
           <motion.button whileTap={{ scale: 0.9 }} onClick={() => setValue((v) => Math.min(720, v + 15))} aria-label="More">
-            +
+            <PixelIcon name="plus" size={24} />
           </motion.button>
         </div>
         <Button

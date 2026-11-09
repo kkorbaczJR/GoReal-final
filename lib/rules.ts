@@ -25,10 +25,10 @@ export const FINISH_BONUS = 5;
 /** If the app is hidden for longer than this during a break, the break fails. */
 export const LEAVE_GRACE_SECONDS = 10;
 
-/** 1 finished minute = 1 XP and 1 coin, plus a bonus for finishing. Quitting early earns nothing. */
+/** 1 finished minute = 1 coin, plus a bonus for finishing. Quitting early earns nothing. */
 export function rewardForBreak(minutes: number, finished: boolean) {
-  if (!finished) return { coins: 0, xp: 0 };
-  return { coins: minutes + FINISH_BONUS, xp: minutes };
+  if (!finished) return { coins: 0 };
+  return { coins: minutes + FINISH_BONUS };
 }
 
 /** A day counts for the streak if the user hit the break goal OR stayed under the phone limit. */
