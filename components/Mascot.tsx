@@ -25,6 +25,9 @@ const SAND = "#ebebeb";
 const GRAY = "#9a9a9a";
 const HAIR = "#c4c4c4";
 const HAIR_DARK = "#8d8d8d";
+const TAN = "#ffd2bd";
+const FRECKLE = "#9c2c00";
+const CAP_BASE = "#444444";
 
 type Px = [x: number, y: number, color: string];
 
@@ -147,6 +150,44 @@ const OUTFITS: Record<Outfit, Px[]> = {
     ...run(10, 3, 5, HAIR),
     ...run(10, 10, 12, HAIR),
   ],
+  tophat: [
+    ...[-6, -5, -4, -3].flatMap((y) => run(y, 5, 10, INK)),
+    ...run(-2, 5, 10, CLAY),
+    ...run(-1, 5, 10, INK),
+    ...run(0, 2, 13, INK),
+    [6, -5, GRAY], [6, -4, GRAY],
+  ],
+  cowboy: [
+    [5, -3, TAN], [6, -3, TAN], [9, -3, TAN], [10, -3, TAN],
+    ...run(-2, 4, 11, TAN),
+    ...run(-1, 4, 11, INK),
+    ...run(0, -1, 16, TAN),
+    [-1, -1, TAN], [16, -1, TAN],
+    [-2, -2, TAN], [17, -2, TAN],
+  ],
+  graduation: [
+    ...run(-4, 5, 10, INK),
+    ...run(-3, 3, 12, INK),
+    ...run(-2, 1, 14, INK),
+    ...run(-1, 3, 12, INK),
+    ...run(0, 4, 11, CAP_BASE),
+    [7, -3, CREAM], [8, -3, CREAM],
+    [14, -1, CREAM], [14, 0, CREAM], [14, 1, CREAM], [14, 2, CLAY],
+  ],
+  captain: [
+    ...run(-3, 4, 11, CREAM),
+    ...run(-2, 3, 12, CREAM),
+    ...run(-1, 2, 13, CREAM),
+    [7, -2, CLAY], [8, -2, CLAY], [7, -1, CLAY], [8, -1, CLAY],
+    ...run(0, 1, 14, INK),
+    ...run(1, 4, 11, INK),
+  ],
+  antennae: [
+    [6, -1, CREAM], [5, -2, CREAM], [5, -3, CREAM], [4, -4, CREAM],
+    ...run(-6, 3, 4, CLAY), ...run(-5, 3, 4, CLAY),
+    [9, -1, CREAM], [10, -2, CREAM], [10, -3, CREAM], [11, -4, CREAM],
+    ...run(-6, 11, 12, CLAY), ...run(-5, 11, 12, CLAY),
+  ],
 };
 
 const FACES: Record<Face, Px[]> = {
@@ -165,6 +206,29 @@ const FACES: Record<Face, Px[]> = {
   bowtie: [
     [4, 11, INK], [5, 11, INK], [10, 11, INK], [11, 11, INK], ...run(12, 4, 6, INK), [7, 12, CREAM], [8, 12, CREAM],
     ...run(12, 9, 11, INK), [4, 13, INK], [5, 13, INK], [10, 13, INK], [11, 13, INK],
+  ],
+  freckles: [
+    [2, 6, FRECKLE], [3, 7, FRECKLE], [5, 7, FRECKLE],
+    [13, 6, FRECKLE], [12, 7, FRECKLE], [10, 7, FRECKLE],
+  ],
+  eyepatch: [
+    ...run(5, 3, 5, INK), ...run(6, 3, 5, INK), ...run(7, 3, 5, INK),
+    [2, 5, INK], [3, 4, INK], [4, 4, INK],
+    [5, 3, INK], [6, 3, INK], [7, 3, INK],
+    [8, 2, INK], [9, 2, INK], [10, 2, INK],
+    [11, 1, INK], [12, 1, INK], [13, 1, INK],
+  ],
+  monocle: [
+    ...run(4, 10, 12, INK), ...run(8, 10, 12, INK),
+    [9, 5, INK], [9, 6, INK], [9, 7, INK], [13, 5, INK], [13, 6, INK], [13, 7, INK],
+    [14, 8, GRAY], [14, 9, GRAY], [14, 10, GRAY], [13, 11, GRAY],
+  ],
+  star: [
+    [12, 7, CREAM],
+    [11, 8, CREAM], [12, 8, CREAM], [13, 8, CREAM],
+    ...run(9, 10, 14, CREAM),
+    [11, 10, CREAM], [12, 10, CREAM], [13, 10, CREAM],
+    [11, 11, CREAM], [13, 11, CREAM],
   ],
 };
 
@@ -236,7 +300,12 @@ export default function Mascot({
     return [...outline(pixels), ...pixels];
   }, [outfit, face]);
 
-  const eyes = face === "shades" ? [] : EYES[mood];
+  const eyes =
+    face === "shades"
+      ? []
+      : face === "eyepatch"
+        ? EYES[mood].filter(([x]) => x > 7)
+        : EYES[mood];
   const mouth =
     outfit === "einstein" ? [] : face === "mustache" ? MOUTHS[mood].filter(([, y]) => y > 8) : MOUTHS[mood];
 
@@ -268,7 +337,15 @@ export default function Mascot({
 
       <motion.g animate={still ? undefined : idle}>
         <Pixels px={base} />
-        <Pixels px={face === "glasses" ? BLUSH_PX.filter(([x]) => x === 2 || x === 13) : BLUSH_PX} />
+        <Pixels
+          px={
+            face === "glasses"
+              ? BLUSH_PX.filter(([x]) => x === 2 || x === 13)
+              : face === "star" || face === "monocle"
+                ? BLUSH_PX.filter(([x]) => x < 8)
+                : BLUSH_PX
+          }
+        />
 
         {mood === "happy" || mood === "wave" ? (
           <motion.g

@@ -2,8 +2,8 @@
 
 import { useSyncExternalStore } from "react";
 import { dayKey } from "./date";
-import { rewardForBreak, type DayLog } from "./rules";
-import { DEFAULT_TITLE, itemById, isOwned, type Background, type Face, type Outfit } from "./shop";
+import { MAX_FREEZES, applyFreezes, rewardForBreak, stampGoals, type DayLog } from "./rules";
+import { DEFAULT_TITLE, FREEZE_PRICE, itemById, isOwned, type Background, type Face, type Outfit } from "./shop";
 
 /** Everything GoReal remembers. It lives in the phone's browser storage, no account needed. */
 export type GoRealState = {
@@ -27,6 +27,13 @@ export type GoRealState = {
   face: Face | null;
   background: Background | null;
   title: string;
+
+  /** Streak freezes in stock (0 to 2). One is spent automatically for each missed day. */
+  freezes: number;
+  /** Freezes used so far, for the badge. */
+  freezesUsed: number;
+  /** Shown once after the app opens: freezes were just spent to save a streak. */
+  freezeNotice: { days: number; streak: number; left: number } | null;
 
   /** A break that is running right now. Saved so closing the app mid-break counts as quitting. */
   activeBreak: { startedAt: number; minutes: number } | null;
@@ -55,6 +62,9 @@ export function initialState(): GoRealState {
     face: null,
     background: null,
     title: DEFAULT_TITLE,
+    freezes: 0,
+    freezesUsed: 0,
+    freezeNotice: null,
     activeBreak: null,
     notice: null,
   };
@@ -63,10 +73,37 @@ export function initialState(): GoRealState {
 let state: GoRealState | null = null;
 const listeners = new Set<() => void>();
 
+/**
+ * Day housekeeping: every day keeps the goals it started with, and freezes are spent for missed days.
+ * Safe to run any time. Returns the same object when nothing changed.
+ */
+function settleDay(s: GoRealState, now = new Date()): GoRealState {
+  if (!s.onboarded) return s;
+  let next = s;
+
+  const stamped = stampGoals(next.days, next, now);
+  if (stamped !== next.days) next = { ...next, days: stamped };
+
+  const frozen = applyFreezes(next.days, next, next.freezes, now);
+  if (frozen) {
+    next = {
+      ...next,
+      days: frozen.days,
+      freezes: frozen.freezes,
+      freezesUsed: next.freezesUsed + frozen.used,
+      freezeNotice: { days: frozen.used, streak: frozen.saved, left: frozen.freezes },
+    };
+  }
+  return next;
+}
+
 /** Runs once when the app opens: a break that was left open counts as quitting. */
 function settleOnOpen(s: GoRealState): GoRealState {
-  if (!s.activeBreak) return s;
-  return { ...s, activeBreak: null, quitBreaks: s.quitBreaks + 1, notice: "left-during-break" };
+  let next = s;
+  if (next.activeBreak) {
+    next = { ...next, activeBreak: null, quitBreaks: next.quitBreaks + 1, notice: "left-during-break" };
+  }
+  return settleDay(next);
 }
 
 /** Older saves kept the shades as a hat and had league data. */
@@ -75,6 +112,7 @@ function migrate(raw: Record<string, unknown>): Partial<GoRealState> {
   delete copy.league;
   delete copy.xp;
   const next = copy as Partial<GoRealState>;
+  if (typeof next.freezes === "number") next.freezes = Math.min(MAX_FREEZES, Math.max(0, Math.floor(next.freezes)));
   if ((next.outfit as string) === "shades") return { ...next, outfit: null, face: "shades" };
   return next;
 }
@@ -139,7 +177,14 @@ export function update(fn: (s: GoRealState) => GoRealState) {
 /* ---------- actions ---------- */
 
 export function completeOnboarding(input: { name: string; phoneLimit: number; blockedApps: string[] }) {
-  update((s) => ({ ...s, ...input, onboarded: true }));
+  update((s) => settleDay({ ...s, ...input, onboarded: true }));
+}
+
+/** Call when the app comes back to the foreground: a new day may have started. */
+export function refreshDay() {
+  const current = getSnapshot();
+  const next = settleDay(current);
+  if (next !== current) update(() => next);
 }
 
 export function startBreak(minutes: number) {
@@ -152,7 +197,6 @@ export function finishBreak() {
   const { minutes } = s.activeBreak;
   const reward = rewardForBreak(minutes, true);
   const key = dayKey();
-  const day = s.days[key] ?? { breakMinutes: 0 };
   update((prev) => ({
     ...prev,
     activeBreak: null,
@@ -160,7 +204,7 @@ export function finishBreak() {
     totalBreakMinutes: prev.totalBreakMinutes + minutes,
     completedBreaks: prev.completedBreaks + 1,
     longestBreak: Math.max(prev.longestBreak, minutes),
-    days: { ...prev.days, [key]: { ...day, breakMinutes: day.breakMinutes + minutes } },
+    days: { ...prev.days, [key]: { ...dayFor(prev, key), breakMinutes: dayFor(prev, key).breakMinutes + minutes } },
   }));
   return reward;
 }
@@ -171,10 +215,26 @@ export function quitBreak() {
 
 export function logPhoneTime(minutes: number) {
   const key = dayKey();
-  update((s) => {
-    const day = s.days[key] ?? { breakMinutes: 0 };
-    return { ...s, days: { ...s.days, [key]: { ...day, phoneMinutes: minutes } } };
-  });
+  update((s) => ({ ...s, days: { ...s.days, [key]: { ...dayFor(s, key), phoneMinutes: minutes } } }));
+}
+
+/** A day entry that always carries the goals it started with. */
+function dayFor(s: GoRealState, key: string): DayLog {
+  const day = s.days[key] ?? { breakMinutes: 0 };
+  return day.goal ? day : { ...day, goal: { phoneLimit: s.phoneLimit, breakGoal: s.breakGoal } };
+}
+
+export function clearFreezeNotice() {
+  update((s) => ({ ...s, freezeNotice: null }));
+}
+
+/** Buy one streak freeze. You can hold at most two. */
+export function buyFreeze(): "ok" | "full" | "coins" {
+  const s = getSnapshot();
+  if (s.freezes >= MAX_FREEZES) return "full";
+  if (s.coins < FREEZE_PRICE) return "coins";
+  update((prev) => ({ ...prev, coins: prev.coins - FREEZE_PRICE, freezes: prev.freezes + 1 }));
+  return "ok";
 }
 
 export function clearNotice() {
@@ -185,7 +245,7 @@ export function clearNotice() {
 export function buyOrEquip(itemId: string): boolean {
   const s = getSnapshot();
   const item = itemById(itemId);
-  if (!item) return false;
+  if (!item || item.kind === "freeze") return false;
   const owned = isOwned(item, s.owned, s.totalBreakMinutes);
   if (!owned && s.coins < item.price) return false;
   update((prev) => {
@@ -206,8 +266,9 @@ export function buyOrEquip(itemId: string): boolean {
   return true;
 }
 
+/** New goals count from tomorrow: today and every past day keep the goals they started with. */
 export function setGoals(goals: { phoneLimit?: number; breakGoal?: number }) {
-  update((s) => ({ ...s, ...goals }));
+  update((s) => ({ ...s, days: stampGoals(s.days, s, new Date()), ...goals }));
 }
 
 export function resetEverything() {

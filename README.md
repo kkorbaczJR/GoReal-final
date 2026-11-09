@@ -59,29 +59,34 @@ In development mode the break-length picker also has a **1 minute** option, so y
 - The **Today** card shows your two ways to keep the streak: break minutes so far, and your phone time. Tap the phone-time row to type in today's total from your phone's Screen Time (iPhone) or Digital Wellbeing (Android).
 
 ### 3. Shop
-Everything is pixel art, in four groups:
-- **Hats** (15): beanie, bow, cat ears, flower, party hat, bunny ears, cap, pirate bandana, chef hat, headphones, Einstein, viking helmet, wizard hat, halo, crown. 40 to 400 coins.
-- **Extras** (6): band-aid, mustache, shades, round glasses, bow tie, scarf. 30 to 120 coins.
-- **Scenes** (8): pixel backgrounds behind Rilo, from graph paper and a picnic blanket to a sunset, a starry night and "orange pop". 40 to 300 coins.
-- **Titles** (15): a name shown under Rilo. Ten cost 40 to 300 coins. Rookie is free, and four more unlock for free at 1 hour, 5 hours, about 16 hours and about 41 hours of total breaks.
+Everything is pixel art, in five groups:
+- **Hats** (20): beanie, bow, cat ears, flower, party hat, antennae, bunny ears, cap, pirate bandana, graduation cap, chef hat, headphones, top hat, captain's cap, Einstein, cowboy hat, viking helmet, wizard hat, halo, crown. 150 to 4000 coins.
+- **Extras** (10): freckles, band-aid, mustache, shades, round glasses, eyepatch, star sticker, bow tie, monocle, scarf. 80 to 700 coins.
+- **Scenes** (12): pixel backgrounds behind Rilo, from graph paper and a picnic blanket to a beach, a pine forest, city lights, a starry night, outer space and "orange pop". 200 to 3000 coins.
+- **Titles** (21): a name shown under Rilo. Fifteen cost 150 to 3000 coins. Rookie is free, and five more unlock for free at 1 hour, 5 hours, about 16 hours, about 41 hours and 100 hours of total breaks.
+- **Streak**: the streak freeze (see below), 250 coins each, at most 2 at a time.
+
+Prices are high on purpose. At the default 30 minute goal a day earns about 36 coins, so a cheap item takes a few days and the crown takes months.
 
 Rilo can wear one hat, one extra and one scene at the same time. Tap an item to preview it on Rilo at the top, then buy it, wear it, or take it off.
 
 ### 4. You (profile)
 - Your Rilo in front of his scene, with your name and title.
-- **This week**: seven circles, one per day. A flame means that day counted for your streak. Tap the card to open the streak screen.
+- **This week**: seven circles, one per day. A flame means that day counted for your streak, a snowflake means a freeze covered it. Tap the card to open the streak screen.
 - Stats: total time off-screen, current streak, longest streak, breaks finished, longest break, and how many shop items you own.
-- **My goal**: change your phone limit and your daily break goal at any time.
-- **Achievements**: 9 badges, for example "First break", "7 day streak" and "Collector" (own 5 shop items).
+- **My goal**: change your phone limit and your daily break goal at any time. New goals start tomorrow: today and every past day keep the goals they started with.
+- **Achievements**: 12 badges, for example "First break", "Month strong" (30 day streak), "Cool save" (a freeze saved your streak) and "Collector" (own 5 shop items).
 - **Start over** deletes everything on this phone and goes back to the onboarding.
 
 ## The rules
 
 | Rule | Detail |
 | --- | --- |
-| Coins | Each minute of a **finished** break gives 1 coin. Finishing gives 5 extra coins. |
+| Coins | Each minute of a **finished** break gives 1 coin, plus a 20% finish bonus (a 25 minute break pays 30). Short and long breaks pay the same per minute. |
 | Quitting | A break that ends early gives nothing. |
-| Streak | A day counts if you **stayed under your phone limit** (the time you logged) **or** reached your **daily break goal** (30 minutes unless you change it). Miss a whole day and the streak goes back to 0. |
+| Streak | A day counts if you **stayed under your phone limit** (the time you logged) **or** reached your **daily break goal** (30 minutes unless you change it). Phone time counts once the day is over (it only goes up during a day), the break goal counts the moment you reach it. Today shows "On track" while you are under the limit. |
+| Goals | Every day keeps the goals it started with. Changing your goals only affects tomorrow and later. |
+| Streak freeze | Miss a whole day and a freeze covers it, so the streak survives (the frozen day keeps the streak but does not add to the count). You can buy freezes in the shop and hold at most 2. A freeze is used on its own when you open the app, but only if you have enough for every missed day and you had a real streak. Otherwise nothing is spent and the streak goes back to 0. |
 
 ## How the code is organized
 

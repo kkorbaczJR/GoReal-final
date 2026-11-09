@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Splash from "@/components/Splash";
 import TabBar from "@/components/TabBar";
-import { useGoReal } from "@/lib/store";
+import { refreshDay, useGoReal } from "@/lib/store";
 
 export default function TabsLayout({ children }: { children: React.ReactNode }) {
   const s = useGoReal();
@@ -13,6 +13,14 @@ export default function TabsLayout({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     if (s && !s.onboarded) router.replace("/onboarding");
   }, [s, router]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refreshDay();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
 
   if (!s || !s.onboarded) return <Splash />;
 

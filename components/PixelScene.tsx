@@ -48,6 +48,21 @@ function hill(baseY: number, peaks: [number, number][], c: string): Px[] {
   return out;
 }
 
+function pine(cx: number, baseY: number, height: number, c: string): Px[] {
+  const out: Px[] = [...rect(cx, baseY, 1, 2, INK)];
+  for (let i = 0; i < height; i++) {
+    const half = Math.floor((i + 1) / 2);
+    out.push(...rect(cx - half, baseY - height + i, 2 * half + 1, 1, c));
+  }
+  return out;
+}
+
+function building(x: number, top: number, w: number, c: string, windows: string): Px[] {
+  const out: Px[] = rect(x, top, w, H - top, c);
+  for (let wy = top + 2; wy < H - 3; wy += 3) for (let wx = x + 1; wx < x + w - 1; wx += 2) if ((wx + wy) % 4 !== 1) out.push([wx, wy, windows]);
+  return out;
+}
+
 const SCENES: Record<Background, { base: string; px: Px[] }> = {
   grid: {
     base: WHITE,
@@ -91,6 +106,63 @@ const SCENES: Record<Background, { base: string; px: Px[] }> = {
   night: {
     base: INK,
     px: [...sprinkle(30, 3, WHITE), ...disc(31, 6, 3, WHITE), ...disc(33, 5, 2, INK)],
+  },
+  beach: {
+    base: "#fff0e8",
+    px: [
+      ...disc(31, 5, 3, ORANGE),
+      ...cloud(5, 3),
+      ...rect(0, 12, W, 6, "#ebebeb"),
+      ...rect(3, 14, 5, 1, WHITE),
+      ...rect(16, 13, 6, 1, WHITE),
+      ...rect(26, 15, 6, 1, WHITE),
+      ...rect(0, 18, W, 6, "#ffd2bd"),
+      ...rect(30, 20, 5, 1, "#ffb08a"),
+      ...rect(8, 21, 4, 1, "#ffb08a"),
+      ...rect(6, 9, 1, 10, INK),
+      ...rect(2, 8, 4, 1, INK), ...rect(7, 8, 4, 1, INK),
+      ...rect(3, 7, 3, 1, INK), ...rect(7, 7, 3, 1, INK),
+      [1, 9, INK], [11, 9, INK],
+    ],
+  },
+  forest: {
+    base: "#fff0e8",
+    px: [
+      ...disc(33, 5, 2, ORANGE),
+      ...rect(0, 21, W, 3, "#ebebeb"),
+      ...pine(4, 20, 8, "#d4d4d4"),
+      ...pine(12, 20, 11, INK),
+      ...pine(20, 20, 7, "#d4d4d4"),
+      ...pine(27, 20, 10, INK),
+      ...pine(35, 20, 8, "#d4d4d4"),
+    ],
+  },
+  city: {
+    base: "#ffd2bd",
+    px: [
+      ...rect(0, 0, W, 6, "#fff0e8"),
+      ...rect(0, 6, W, 5, "#ffe2d3"),
+      ...disc(27, 11, 4, ORANGE),
+      ...building(1, 12, 6, INK, "#ffb08a"),
+      ...building(8, 8, 5, "#3a3a3a", ORANGE),
+      ...building(14, 14, 6, INK, "#ffb08a"),
+      ...building(21, 10, 4, "#3a3a3a", ORANGE),
+      ...building(26, 15, 6, INK, "#ffb08a"),
+      ...building(33, 9, 6, "#3a3a3a", ORANGE),
+    ],
+  },
+  space: {
+    base: INK,
+    px: [
+      ...sprinkle(34, 21, WHITE),
+      ...sprinkle(10, 8, "#8d8d8d"),
+      ...rect(23, 7, 15, 1, "#ffb08a"),
+      ...disc(30, 8, 4, ORANGE),
+      ...rect(25, 8, 11, 1, "#ffb08a"),
+      ...rect(29, 6, 3, 1, "#ffb08a"),
+      ...disc(8, 17, 2, "#d4d4d4"),
+      [7, 16, WHITE],
+    ],
   },
   pop: {
     base: ORANGE,
