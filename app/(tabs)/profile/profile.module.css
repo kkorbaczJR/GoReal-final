@@ -54,6 +54,7 @@
 }
 
 .dayDot {
+  position: relative;
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -61,14 +62,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .dayDone {
-  background: var(--accent-soft);
+  background: transparent;
 }
 
-.dayToday {
+.dayFlame {
+  width: 34px;
+  height: 34px;
+}
+
+.dayToday:not(.dayDone)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   box-shadow: inset 0 0 0 1.5px var(--ink);
+  pointer-events: none;
 }
 
 .dayLabel {
@@ -252,4 +264,18 @@
   font-size: 15px;
   max-width: 300px;
   margin-bottom: 4px;
+}
+
+.rowLabel {
+  flex: 1;
+  font-size: 15px;
+}
+
+.rowValue {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.rowChev {
+  color: var(--faint);
 }

@@ -1,14 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { addDays, dayKey, formatMinutes } from "@/lib/date";
-import { dayQualifies, longestStreak, streakStatus } from "@/lib/rules";
+import { addDays, dayKey } from "@/lib/date";
+import { MAX_FREEZES, dayState, goalsFor, longestStreak, streakStatus } from "@/lib/rules";
 import { getState } from "@/lib/store";
 import Button from "./Button";
 import CountUp from "./CountUp";
 import { PixelIcon } from "./PixelIcon";
 import styles from "./StreakScreen.module.css";
 
+const short = (m: number) => (m < 60 ? `${m}m` : `${m / 60}h`);
 const WEEKDAY = ["S", "M", "T", "W", "T", "F", "S"];
 const ENERGETIC = [0.34, 1.56, 0.64, 1] as const;
 
@@ -18,7 +19,8 @@ const ENERGETIC = [0.34, 1.56, 0.64, 1] as const;
  */
 export default function StreakScreen({ onClose, celebrate = false }: { onClose: () => void; celebrate?: boolean }) {
   const s = getState();
-  const { count, todayDone } = streakStatus(s.days, s);
+  const { count, todayDone, todayOnTrack } = streakStatus(s.days, s);
+  const goals = goalsFor(s.days[dayKey()], s);
   const best = longestStreak(s.days, s);
   const today = new Date();
   const week = Array.from({ length: 7 }, (_, i) => addDays(today, i - 6));
@@ -29,7 +31,9 @@ export default function StreakScreen({ onClose, celebrate = false }: { onClose: 
       : "You're on a roll. Take a break tomorrow to keep it going."
     : todayDone
       ? "Today already counts. See you tomorrow!"
-      : count > 0
+      : todayOnTrack
+        ? "You are under your phone limit. If it stays that way, today counts at midnight."
+        : count > 0
         ? "Today doesn't count yet. One break keeps your streak alive."
         : "Finish your break goal or stay under your phone limit to start a streak.";
 
@@ -72,15 +76,17 @@ export default function StreakScreen({ onClose, celebrate = false }: { onClose: 
           >
             <div className={styles.week}>
               {week.map((d, i) => {
-                const done = dayQualifies(s.days[dayKey(d)], s);
                 const isToday = i === 6;
+                const state = dayState(s.days[dayKey(d)], s, isToday);
+                const done = state === "done";
+                const frozen = state === "frozen";
                 return (
                   <div key={i} className={styles.day}>
                     <span className={`${styles.dayLabel} ${isToday ? styles.dayLabelToday : ""}`}>
                       {WEEKDAY[d.getDay()]}
                     </span>
                     <motion.span
-                      className={`${styles.dot} ${done ? styles.dotDone : ""} ${isToday && !done ? styles.dotToday : ""}`}
+                      className={`${styles.dot} ${done ? styles.dotDone : ""} ${frozen ? styles.dotFrozen : ""} ${isToday && !done ? styles.dotToday : ""}`}
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{
@@ -90,6 +96,7 @@ export default function StreakScreen({ onClose, celebrate = false }: { onClose: 
                       }}
                     >
                       {done && <PixelIcon name="check" size={24} />}
+                      {frozen && <PixelIcon name="snowflake" size={22} />}
                     </motion.span>
                   </div>
                 );
@@ -103,9 +110,15 @@ export default function StreakScreen({ onClose, celebrate = false }: { onClose: 
               </div>
               <div>
                 <span className={styles.factValue}>
-                  {formatMinutes(s.breakGoal)} / {formatMinutes(s.phoneLimit)}
+                  {short(goals.breakGoal)} / {short(goals.phoneLimit)}
                 </span>
                 <span className={styles.factLabel}>Breaks or phone limit</span>
+              </div>
+              <div>
+                <span className={styles.factValue}>
+                  {s.freezes} of {MAX_FREEZES}
+                </span>
+                <span className={styles.factLabel}>Streak freezes</span>
               </div>
             </div>
           </motion.div>

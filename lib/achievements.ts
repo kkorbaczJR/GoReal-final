@@ -22,6 +22,9 @@ export function achievements(s: GoRealState): Achievement[] {
   add("hour", "Full hour", "Finish a 60 min break", s.longestBreak >= 60);
   add("streak3", "On fire", "Reach a 3 day streak", best >= 3);
   add("streak7", "Week strong", "Reach a 7 day streak", best >= 7);
+  add("streak14", "Two weeks", "Reach a 14 day streak", best >= 14);
+  add("streak30", "Month strong", "Reach a 30 day streak", best >= 30);
+  add("freeze", "Cool save", "Let a streak freeze save your streak", s.freezesUsed >= 1);
   add("min100", "100 minutes", "100 min off your phone", s.totalBreakMinutes >= 100);
   add("min500", "500 minutes", "500 min off your phone", s.totalBreakMinutes >= 500);
   add("shopper", "Fresh look", "Get something in the shop", s.owned.length >= 1);

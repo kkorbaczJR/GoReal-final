@@ -38,6 +38,7 @@ Other commands:
 | `npm run build` | Makes an optimized version for publishing |
 | `npm start` | Runs that optimized version on port 3000 |
 | `npm run lint` | Checks the code for common mistakes |
+| `npm run test:notifications` | Runs the notification scenario tests (needs Node 22 or newer) |
 
 In development mode the break-length picker also has a **1 minute** option, so you can try a whole break without waiting. The published version does not have it.
 
@@ -59,29 +60,72 @@ In development mode the break-length picker also has a **1 minute** option, so y
 - The **Today** card shows your two ways to keep the streak: break minutes so far, and your phone time. Tap the phone-time row to type in today's total from your phone's Screen Time (iPhone) or Digital Wellbeing (Android).
 
 ### 3. Shop
-Everything is pixel art, in four groups:
-- **Hats** (14): beanie, bow, cat ears, flower, party hat, bunny ears, cap, pirate bandana, chef hat, headphones, viking helmet, wizard hat, halo, crown. 40 to 400 coins.
-- **Extras** (6): band-aid, mustache, shades, round glasses, bow tie, scarf. 30 to 120 coins.
-- **Scenes** (8): pixel backgrounds behind Rilo, from graph paper and a picnic blanket to a sunset, a starry night and "orange pop". 40 to 300 coins.
-- **Titles** (15): a name shown under Rilo. Ten cost 40 to 300 coins. Rookie is free, and four more unlock for free at 1 hour, 5 hours, about 16 hours and about 41 hours of total breaks.
+Everything is pixel art, in five groups:
+- **Hats** (20): beanie, bow, cat ears, flower, party hat, antennae, bunny ears, cap, pirate bandana, graduation cap, chef hat, headphones, top hat, captain's cap, Einstein, cowboy hat, viking helmet, wizard hat, halo, crown. 150 to 4000 coins.
+- **Extras** (10): freckles, band-aid, mustache, shades, round glasses, eyepatch, star sticker, bow tie, monocle, scarf. 80 to 700 coins.
+- **Scenes** (12): pixel backgrounds behind Rilo, from graph paper and a picnic blanket to a beach, a pine forest, city lights, a starry night, outer space and "orange pop". 200 to 3000 coins.
+- **Titles** (21): a name shown under Rilo. Fifteen cost 150 to 3000 coins. Rookie is free, and five more unlock for free at 1 hour, 5 hours, about 16 hours, about 41 hours and 100 hours of total breaks.
+- **Streak**: the streak freeze (see below), 250 coins each, at most 2 at a time.
+
+Prices are high on purpose. At the default 30 minute goal a day earns about 36 coins, so a cheap item takes a few days and the crown takes months.
 
 Rilo can wear one hat, one extra and one scene at the same time. Tap an item to preview it on Rilo at the top, then buy it, wear it, or take it off.
 
 ### 4. You (profile)
 - Your Rilo in front of his scene, with your name and title.
-- **This week**: seven circles, one per day. A flame means that day counted for your streak. Tap the card to open the streak screen.
+- **This week**: seven circles, one per day. A flame means that day counted for your streak, a snowflake means a freeze covered it. Tap the card to open the streak screen.
 - Stats: total time off-screen, current streak, longest streak, breaks finished, longest break, and how many shop items you own.
-- **My goal**: change your phone limit and your daily break goal at any time.
-- **Achievements**: 9 badges, for example "First break", "7 day streak" and "Collector" (own 5 shop items).
+- **My goal**: change your phone limit and your daily break goal at any time. New goals start tomorrow: today and every past day keep the goals they started with.
+- **Achievements**: 12 badges, for example "First break", "Month strong" (30 day streak), "Cool save" (a freeze saved your streak) and "Collector" (own 5 shop items).
+- **Reminders**: a row that opens the notification settings (see below).
 - **Start over** deletes everything on this phone and goes back to the onboarding.
+
+### 5. Notifications
+Nothing is sent at a set time of day. Rilo only speaks up when something happens: you have been on your phone for a long time without a pause, you are close to your limit or over it, you are scrolling late and today does not count yet, or something changed in GoReal (a break ended, a freeze saved your streak, you can afford something new). Notifications show up as a banner at the top of the app, in the **bell** next to the greeting on Today (an orange dot means something is unread), and as a system notification when GoReal is in the background and you allowed it.
+
+The **Reminders** screen (You, then Reminders) has:
+- a preview of how a notification looks, the master switch and the permission
+- **A day with Rilo**: an example day of phone use (black bars) played through the real rules, with numbered pins where each notification would go out and the notifications themselves underneath
+- **Try it**: sliders for phone time today and how long you have been on your phone right now, plus an evening switch. It shows the notification Rilo would send at that moment, or why it stays quiet
+- one switch per category with an example of its text, the **long session** length (30, 45 or 60 minutes) and quiet hours
+- a **Send a test notification** button
+
+| Kind | Category | When it goes out | Example |
+| --- | --- | --- | --- |
+| Long session | Long sessions | After 45 minutes (your choice: 30, 45 or 60) on your phone without a pause longer than 3 minutes, then at twice and three times as long | "45 minutes straight" |
+| Near the limit | Phone limit | When today's phone time reaches 80% of your limit | "Almost at your limit" |
+| Over the limit | Phone limit | When it reaches your limit. The text says whether a break can still save today | "You hit your limit" |
+| Streak at risk | Streak alerts | After 20:00, when you have been on your phone for 15 minutes, have a streak and today does not count yet | "Still up, Ada?" |
+| Off-limits app | Breaks | Right away when you open an off-limits app during a break. Ignores quiet hours and the daily cap | "TikTok is off limits right now" |
+| Break finished | Breaks | When a running break ends. The only one with a time, because you started the timer | "Break done" |
+| Freeze used | Streak alerts | When a freeze saves your streak. It goes straight to the bell, because Today already shows the freeze | "A freeze saved your streak" |
+| Streak ended | Streak alerts | The first time you open the app after a streak was lost | "Your 4-day streak ended" |
+| Milestone | Streak alerts | Streak of 3, 7, 14, 30, 50 or 100 and today counts | "A full week" |
+| Shop tip | Shop tips | Right after you earn coins, when something new became affordable (or a freeze, if you have a streak of 5 or more and none in stock). At most once every 4 days | "You can afford something new" |
+
+Phone use only counts the apps you picked in onboarding.
+
+**How the text is written** (`lib/notifications/copy.ts`): every kind has several variants and one is picked by the day number, so the same message does not repeat day after day. Some variants only apply in some situations (the long session text changes the second time, the limit text knows whether today already counts, and the streak warning says so when a freeze is your backup). Fill-ins like `{name}`, `{streak}` or `{session}` come from your data. Rules: friendly and short, titles up to about 40 characters, no emoji, no guilt.
+
+**Rules the trigger engine follows** (`lib/notifications/triggers.ts`):
+- At most **4 nudges a day**, at least **30 minutes apart**, and only one at a time (the most important wins: streak at risk, over the limit, long session, near the limit). Breaks, streak news and an off-limits app always get through.
+- **Quiet hours** (default 22:00 to 8:00, or off): no nudges at all, except an off-limits app during a break.
+- **Never twice**: each notification has an id, like `limit80:2026-11-09` or `longSession:<session start>:1`. Delivered ids are remembered, so reopening the app or changing a setting never repeats one. The cap counts delivery times, so clearing the inbox does not reset it.
+- Switching off the master switch or a category stops those notifications.
+
+**Where the phone use comes from.** `lib/usage.ts` turns stretches of app use into today's total and the session going on right now (a pause of up to 3 minutes does not end a session). The Android app will feed it real data from Android's usage access and call `usageTriggers` every time it has fresh numbers, even with GoReal closed. A website cannot see other apps, so for now the web app only knows the phone time you log by hand: logging 48 of 60 minutes gives you the "almost at your limit" heads up. Long sessions and off-limits apps need the Android app.
+
+**What works today and what does not.** In the web app notifications can only appear while GoReal is open or in the background. The trigger engine is plain TypeScript with no browser code, so the phone app runs the same functions and shows the results with `expo-notifications`. `lib/notifications/delivery.ts` documents how each function maps.
 
 ## The rules
 
 | Rule | Detail |
 | --- | --- |
-| Coins | Each minute of a **finished** break gives 1 coin. Finishing gives 5 extra coins. |
+| Coins | Each minute of a **finished** break gives 1 coin, plus a 20% finish bonus (a 25 minute break pays 30). Short and long breaks pay the same per minute. |
 | Quitting | A break that ends early gives nothing. |
-| Streak | A day counts if you **stayed under your phone limit** (the time you logged) **or** reached your **daily break goal** (30 minutes unless you change it). Miss a whole day and the streak goes back to 0. |
+| Streak | A day counts if you **stayed under your phone limit** (the time you logged) **or** reached your **daily break goal** (30 minutes unless you change it). Phone time counts once the day is over (it only goes up during a day), the break goal counts the moment you reach it. Today shows "On track" while you are under the limit. |
+| Goals | Every day keeps the goals it started with. Changing your goals only affects tomorrow and later. |
+| Streak freeze | Miss a whole day and a freeze covers it, so the streak survives (the frozen day keeps the streak but does not add to the count). You can buy freezes in the shop and hold at most 2. A freeze is used on its own when you open the app, but only if you have enough for every missed day and you had a real streak. Otherwise nothing is spent and the streak goes back to 0. |
 
 ## How the code is organized
 
@@ -96,7 +140,10 @@ app/
     home/               Break screen: timer ring, Today card, phone-time sheet
     shop/               hats, extras, scenes and titles
     profile/            stats, goals, achievements
+    reminders/          notification settings, preview and the 48 hour plan
   manifest.ts, icon.svg, apple-icon.tsx   settings for "Add to Home Screen"
+public/sw.js            service worker: shows notifications and opens the app when you tap one
+scripts/notifications/  scenario tests for the trigger engine and usage (`npm run test:notifications`)
 components/
   Mascot.tsx            Rilo, a pixel-art mochi drawn in code, with moods (happy, wave, tired, sleeping, proud, sad), pixel hats and extras
   BreakOverlay.tsx      the black break mode, plus the "You did it!" and "Break ended early" screens
@@ -106,9 +153,20 @@ components/
   RiloStage.tsx         Rilo standing in a rounded card in front of his scene
   TimerRing.tsx         the animated circular ring
   CountUp.tsx           numbers that tick up when a screen opens
+  NotificationCard.tsx  a notification drawn like a phone notification (banner, inbox and previews)
+  NotificationHost.tsx  asks the trigger engine what just happened, fills the inbox, shows banners and system notifications
+  NotificationBell.tsx  the bell with the unread dot and the inbox pop-up
+  Switch.tsx            on/off switch
   TabBar.tsx, Button.tsx, Sheet.tsx (bottom pop-up), StatPills.tsx (streak and coins)
 lib/
   store.ts              everything the app remembers, and the actions that change it
+  notifications/
+    types.ts            kinds, categories, settings, limits (4 nudges a day, 30 minutes apart) and small helpers
+    copy.ts             all the notification text and how a variant is picked
+    triggers.ts         decides when to speak up, from phone use and from what just changed (pure, no browser code)
+    delivery.ts         the only browser-specific part: permission and system notifications
+  usage.ts              today's phone time and the current session from stretches of app use (pure)
+  intents.ts            one-shot requests between screens (open the streak screen from a notification)
   rules.ts              coin and streak rules
   shop.ts               the list of shop items
   achievements.ts       the list of badges and when they unlock
@@ -123,7 +181,7 @@ There is no account and no server yet. Everything is saved in the phone's browse
 - **It cannot really block other apps.** A web app is not allowed to do that on iPhone or Android. Only a native app can, using Apple's Screen Time tools or Android's accessibility and usage-access permissions, and Apple has to approve it. For now, break mode only lists the off-limits apps, and leaving GoReal ends the break.
 - **Locking the phone also counts as leaving.** A website cannot tell the difference between locking the phone and opening another app. That is why GoReal keeps the screen on during a break. Lay the phone face down and leave GoReal open.
 - **Phone time is typed in by hand.** A website cannot read Screen Time, so you enter your total yourself. You can log it at any time of day, and the last number you enter counts.
-- **No notifications, accounts or syncing** between devices yet.
+- **Notifications only arrive while GoReal is open or in the background**, and they can only react to the phone time you log (see Notifications above). Long sessions, off-limits apps and closed-app delivery come with the Android app. No accounts or syncing between devices yet.
 
 ## Ideas for later
 Real app blocking through a native app (Expo / React Native), friends and challenges, breaks together with a friend, and a weekly "real life" quest (go outside, read 10 pages).
