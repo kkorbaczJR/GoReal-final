@@ -72,20 +72,22 @@ export type AccentColors = {
   onAccent: string;
   /** Big accent-coloured text on white. The accent itself, except yellow, which needs a darker one. */
   text: string;
+  /** Rilo's cheeks and the inside of his cat and bunny ears: the accent mixed with white. */
+  blush: string;
 };
 
 /**
- * The orange of the app and six more, in rainbow order. Only the accent changes: Rilo, the white and black
+ * The orange of the app and six more, in rainbow order. The accent and Rilo change: the white and black
  * and the app icon stay as they are. Yellow is the one with dark text on top, white on yellow is unreadable.
  */
 export const ACCENT_COLORS: Record<Accent, AccentColors> = {
-  red: { accent: "#dc2626", deep: "#b91c1c", soft: "#fdecec", onAccent: "#ffffff", text: "#dc2626" },
-  orange: { accent: "#fc4c02", deep: "#e03e00", soft: "#fff0e8", onAccent: "#ffffff", text: "#fc4c02" },
-  yellow: { accent: "#facc15", deep: "#a16207", soft: "#fef9c3", onAccent: "#111111", text: "#a16207" },
-  green: { accent: "#16a34a", deep: "#15803d", soft: "#e3f6e9", onAccent: "#ffffff", text: "#16a34a" },
-  blue: { accent: "#2563eb", deep: "#1d4ed8", soft: "#e3ecfd", onAccent: "#ffffff", text: "#2563eb" },
-  indigo: { accent: "#4f46e5", deep: "#4338ca", soft: "#e8e8fd", onAccent: "#ffffff", text: "#4f46e5" },
-  violet: { accent: "#9333ea", deep: "#7e22ce", soft: "#f2e8fd", onAccent: "#ffffff", text: "#9333ea" },
+  red: { accent: "#dc2626", deep: "#b91c1c", soft: "#fdecec", onAccent: "#ffffff", text: "#dc2626", blush: "#ef9d9d" },
+  orange: { accent: "#fc4c02", deep: "#e03e00", soft: "#fff0e8", onAccent: "#ffffff", text: "#fc4c02", blush: "#ffb08a" },
+  yellow: { accent: "#facc15", deep: "#a16207", soft: "#fef9c3", onAccent: "#111111", text: "#a16207", blush: "#fde896" },
+  green: { accent: "#16a34a", deep: "#15803d", soft: "#e3f6e9", onAccent: "#ffffff", text: "#16a34a", blush: "#96d6ae" },
+  blue: { accent: "#2563eb", deep: "#1d4ed8", soft: "#e3ecfd", onAccent: "#ffffff", text: "#2563eb", blush: "#9db9f6" },
+  indigo: { accent: "#4f46e5", deep: "#4338ca", soft: "#e8e8fd", onAccent: "#ffffff", text: "#4f46e5", blush: "#b0acf3" },
+  violet: { accent: "#9333ea", deep: "#7e22ce", soft: "#f2e8fd", onAccent: "#ffffff", text: "#9333ea", blush: "#cea3f6" },
 };
 
 export function isAccent(value: unknown): value is Accent {
