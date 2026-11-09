@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Newsreader } from "next/font/google";
+import AccentTheme, { accentScript } from "@/components/AccentTheme";
 import AndroidBack from "@/components/AndroidBack";
 import "./globals.css";
 
@@ -37,10 +38,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${newsreader.variable} ${geistMono.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: accentScript }} />
+      </head>
       <body>
         <div className="app-shell">{children}</div>
         <AndroidBack />
+        <AccentTheme />
       </body>
     </html>
   );
