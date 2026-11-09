@@ -54,9 +54,9 @@ The site lives under `/GoReal-final/` instead of the root of a domain, so its bu
 
 ## The Android app
 
-GoReal also comes as an Android app. It is the same app as the website, packed into a real Android app with [Capacitor](https://capacitorjs.com): every screen, Rilo and your progress work the same. Being a real app is what will let GoReal see your phone time and the apps you open (Android's "usage access"), which a website is not allowed to do. That part comes in the next steps. Right now the Android app is the same as the website, plus a proper app icon and the phone's back button.
+GoReal also comes as an Android app. It is the same app as the website, packed into a real Android app with [Capacitor](https://capacitorjs.com): every screen, Rilo and your progress work the same. Being a real app is what lets GoReal measure your phone time (Android's "usage access", see below), which a website is not allowed to do. It also has a proper app icon and handles the phone's back button.
 
-**Why not Expo Go?** Expo Go can only run code that is already built into Expo Go. Reading phone usage needs our own native code, so it cannot run in Expo Go whichever tool we use. Expo would also mean rewriting every screen in React Native. Capacitor keeps the app we have and lets us add the Android parts in Kotlin.
+**Why not Expo Go?** Expo Go can only run code that is already built into Expo Go. Reading phone usage needs our own native code, so it cannot run in Expo Go whichever tool we use. Expo would also mean rewriting every screen in React Native. Capacitor keeps the app we have and lets us add the Android parts in Java, like the rest of the Android project.
 
 **Install it on your phone (no tools needed)**
 1. On GitHub, open the repository, then **Actions**, then **Android APK**, and open the newest run with a green tick.
@@ -69,6 +69,33 @@ This is a test version signed with a development key, so Android may show a warn
 **Build it yourself.** You need Node.js 22 or newer and either [Android Studio](https://developer.android.com/studio) or the Android command-line tools with Java 21. Then run `npm run android:apk`. The file ends up in `android/app/build/outputs/apk/debug/app-debug.apk`. With a phone connected over USB (developer mode on), `npx cap run android` installs and starts it. To work on the Android code, run `npm run android:sync` and open the `android` folder in Android Studio.
 
 **How it works.** `GOREAL_TARGET=android` makes `next build` produce plain files in `out/` (see `next.config.ts`). `npx cap sync` copies them into the Android project, and the app shows them from inside the APK, so it works offline. On Today and during onboarding the back button sends GoReal to the background like other apps. Elsewhere it closes the open pop-up or goes back one screen. During a break it does nothing, so a break never ends by accident.
+
+### Measured phone time (Android only)
+
+In the Android app GoReal can measure your phone time instead of you typing it in. It only counts the apps you picked in onboarding.
+
+**Turning it on.** Open **You → Phone time** (or tap the phone-time row on Today, then **Let GoReal measure it**). The screen explains what GoReal will see, then **Open settings** takes you straight to GoReal's switch under **Usage access**. Turn on **Permit usage access** and come back. GoReal notices on its own. To stop, turn the same switch off; GoReal goes back to typing it in by hand.
+
+**What it sees, and what it does not.**
+- Only when the picked apps were on screen, and for how long. Never what is inside them: no messages, videos, posts or anything typed.
+- Nothing about other apps. The Android code (`PhoneUsagePlugin.java`) only reports the apps GoReal asks for.
+- "Games" means every installed app that marks itself as a game.
+- Nothing leaves the phone.
+
+**What it does with it.**
+- Today's phone time fills itself in, and the phone-time row on Today opens the Phone time screen.
+- The Phone time screen shows today against your limit, the current session (time on those apps without a pause of more than 3 minutes), minutes per app, and yesterday and the day before. Apps you picked that are not installed say "Not on this phone".
+- "Almost at your limit", "Over your limit" and the long-session nudges use the real numbers whenever GoReal is open. Nudges while GoReal is closed come in the next step, together with real Android notifications.
+
+**How the numbers are made.**
+- GoReal reads Android's usage events when it opens, when it comes back to the screen, and every minute while it is on screen.
+- An app counts from the moment it comes to the front until something else does, or the screen turns off.
+- Using two picked apps at once (split screen) counts once.
+- Today follows the measurement. A finished day can only go up, never down: Android forgets old usage after a few days, and a forgotten day must not turn into "0 minutes, under the limit".
+- Days before you finished onboarding never count.
+- When GoReal opens it waits for the first reading (it shows the splash for a moment) before it spends a streak freeze or shows streak news. Otherwise a day you never opened GoReal on, but stayed under your limit, would look missed and waste a freeze.
+
+**Testing it on the emulator.** Usage access can be switched with `adb shell appops set com.goreal.app GET_USAGE_STATS allow` (or `default` to turn it off). The emulator has no TikTok, so for testing we installed tiny stand-in apps with TikTok's and Instagram's real package names, plus one that marks itself as a game.
 
 ## What you can do in the app
 
@@ -85,7 +112,7 @@ This is a test version signed with a development key, so Android may show a warn
 - The app asks the phone to keep the screen on during a break, so the phone does not lock itself.
 - When a finished break makes the day count, a full-screen "day streak!" moment shows a pixel flame, your streak number and the last 7 days.
 - At the top you always see your streak (flame) and coins. Tap the flame, or the **Streak** row in the Today card, to open the full streak screen: a big pixel flame, your streak number, the last 7 days, your best streak and your goal.
-- The **Today** card shows your two ways to keep the streak: break minutes so far, and your phone time. Tap the phone-time row to type in today's total from your phone's Screen Time (iPhone) or Digital Wellbeing (Android).
+- The **Today** card shows your two ways to keep the streak: break minutes so far, and your phone time. On the website, tap the phone-time row to type in today's total from your phone's Screen Time (iPhone) or Digital Wellbeing (Android). In the Android app with measured phone time it fills itself in, and the row opens the Phone time screen.
 
 ### 3. Shop
 Everything is pixel art, in five groups:
@@ -106,6 +133,7 @@ Rilo can wear one hat, one extra and one scene at the same time. Tap an item to 
 - **My goal**: change your phone limit and your daily break goal at any time. New goals start tomorrow: today and every past day keep the goals they started with.
 - **Achievements**: 12 badges, for example "First break", "Month strong" (30 day streak), "Cool save" (a freeze saved your streak) and "Collector" (own 5 shop items).
 - **Reminders**: a row that opens the notification settings (see below).
+- **Phone time** (Android app only): set up or check measured phone time.
 - **Start over** deletes everything on this phone and goes back to the onboarding.
 
 ### 5. Notifications
@@ -141,7 +169,7 @@ Phone use only counts the apps you picked in onboarding.
 - **Never twice**: each notification has an id, like `limit80:2026-11-09` or `longSession:<session start>:1`. Delivered ids are remembered, so reopening the app or changing a setting never repeats one. The cap counts delivery times, so clearing the inbox does not reset it.
 - Switching off the master switch or a category stops those notifications.
 
-**Where the phone use comes from.** `lib/usage.ts` turns stretches of app use into today's total and the session going on right now (a pause of up to 3 minutes does not end a session). The Android app will feed it real data from Android's usage access and call `usageTriggers` every time it has fresh numbers, even with GoReal closed. A website cannot see other apps, so for now the web app only knows the phone time you log by hand: logging 48 of 60 minutes gives you the "almost at your limit" heads up. Long sessions and off-limits apps need the Android app.
+**Where the phone use comes from.** `lib/usage.ts` turns stretches of app use into today's total and the session going on right now (a pause of up to 3 minutes does not end a session). In the Android app with measured phone time, `lib/phone.ts` reads those stretches from Android and the notification host calls `usageTriggers` with them whenever GoReal is open (see "Measured phone time" above). With GoReal closed nothing runs yet; that is the next step. A website cannot see other apps, so the web app only knows the phone time you log by hand: logging 48 of 60 minutes gives you the "almost at your limit" heads up.
 
 **What works today and what does not.** In the web app notifications can only appear while GoReal is open or in the background. The trigger engine is plain TypeScript with no browser code, so the phone app runs the same functions and shows the results with `expo-notifications`. `lib/notifications/delivery.ts` documents how each function maps.
 
@@ -152,7 +180,7 @@ Phone use only counts the apps you picked in onboarding.
 | Coins | Each minute of a **finished** break gives 1 coin, plus a 20% finish bonus (a 25 minute break pays 30). Short and long breaks pay the same per minute. |
 | Welcome gift | Every new user gets **100 coins** once, when onboarding ends. It is given only when onboarding ends (never added on top of existing coins, and "Start over" wipes everything first). It does not trigger a shop tip. |
 | Quitting | A break that ends early gives nothing. |
-| Streak | A day counts if you **stayed under your phone limit** (the time you logged) **or** reached your **daily break goal** (30 minutes unless you change it). Phone time counts once the day is over (it only goes up during a day), the break goal counts the moment you reach it. Today shows "On track" while you are under the limit. |
+| Streak | A day counts if you **stayed under your phone limit** (the time you logged, or measured in the Android app) **or** reached your **daily break goal** (30 minutes unless you change it). Phone time counts once the day is over (it only goes up during a day), the break goal counts the moment you reach it. Today shows "On track" while you are under the limit. |
 | Goals | Every day keeps the goals it started with. Changing your goals only affects tomorrow and later. |
 | Streak freeze | Miss a whole day and a freeze covers it, so the streak survives (the frozen day keeps the streak but does not add to the count). You can buy freezes in the shop and hold at most 2. A freeze is used on its own when you open the app, but only if you have enough for every missed day and you had a real streak. Otherwise nothing is spent and the streak goes back to 0. |
 
@@ -170,8 +198,10 @@ app/
     shop/               hats, extras, scenes and titles
     profile/            stats, goals, achievements
     reminders/          notification settings, an example day and a simulator
+    phone/              measured phone time (Android): set it up, or see today, the current session and each app
   manifest.ts, icon.svg, apple-icon.tsx   settings for "Add to Home Screen"
 android/                the Android app project (Capacitor). Icons are in android/app/src/main/res
+  .../PhoneUsagePlugin.java   reads Android's usage access for the picked apps only
 capacitor.config.ts     the Android app's name, id and where the web files are
 scripts/android/        builds the web files for the app and the APK (`npm run android:apk`)
 .github/workflows/      builds the APK for every push, and publishes the website when `main` changes
@@ -191,6 +221,7 @@ components/
   NotificationBell.tsx  the bell with the unread dot and the inbox pop-up
   Switch.tsx            on/off switch
   AndroidBack.tsx       the phone's back button in the Android app
+  PhoneTracker.tsx      reads measured phone time on open, on return and every minute (Android app)
   TabBar.tsx, Button.tsx, Sheet.tsx (bottom pop-up), StatPills.tsx (streak and coins)
 lib/
   store.ts              everything the app remembers, and the actions that change it
@@ -199,7 +230,9 @@ lib/
     copy.ts             all the notification text and how a variant is picked
     triggers.ts         decides when to speak up, from phone use and from what just changed (pure, no browser code)
     delivery.ts         the only browser-specific part: permission and system notifications
-  usage.ts              today's phone time and the current session from stretches of app use (pure)
+  usage.ts              today's phone time, the current session, per-day and per-app minutes from stretches of app use (pure)
+  apps.ts               the apps you can pick, and their Android package names
+  phone.ts              talks to the Android plugin and keeps the latest reading
   back.ts               which open pop-up the back button closes first
   intents.ts            one-shot requests between screens (open the streak screen from a notification)
   rules.ts              coin and streak rules
@@ -215,8 +248,8 @@ There is no account and no server yet. Everything is saved in the phone's browse
 
 - **It cannot really block other apps.** A web app is not allowed to do that on iPhone or Android. Only a native app can, using Apple's Screen Time tools or Android's accessibility and usage-access permissions, and Apple has to approve it. For now, break mode only lists the off-limits apps, and leaving GoReal ends the break.
 - **Locking the phone also counts as leaving.** A website cannot tell the difference between locking the phone and opening another app. That is why GoReal keeps the screen on during a break. Lay the phone face down and leave GoReal open.
-- **Phone time is typed in by hand.** A website cannot read Screen Time, so you enter your total yourself. You can log it at any time of day, and the last number you enter counts.
-- **Notifications only arrive while GoReal is open or in the background**, and they can only react to the phone time you log (see Notifications above). Long sessions, off-limits apps and closed-app delivery come with the Android app. No accounts or syncing between devices yet.
+- **On the website, phone time is typed in by hand.** A website cannot read Screen Time, so you enter your total yourself. You can log it at any time of day, and the last number you enter counts. The Android app can measure it (see above).
+- **Notifications only arrive while GoReal is open or in the background.** On the website they can only react to the phone time you log. In the Android app they use measured phone time, but only while GoReal is open. Closed-app delivery and off-limits-app alerts during a break come next. No accounts or syncing between devices yet.
 
 ## Ideas for later
 Real app blocking in the Android app, friends and challenges, breaks together with a friend, and a weekly "real life" quest (go outside, read 10 pages).

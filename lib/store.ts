@@ -13,7 +13,9 @@ import {
   type NotifPrefs,
   type NotifState,
 } from "./notifications/types";
+import { canMeasure } from "./phone";
 import { DEFAULT_TITLE, FREEZE_PRICE, itemById, isOwned, type Background, type Face, type Outfit } from "./shop";
+import { withPhoneMinutes } from "./usage";
 
 /** Everything GoReal remembers. It lives in the phone's browser storage, no account needed. */
 export type GoRealState = {
@@ -23,6 +25,10 @@ export type GoRealState = {
   phoneLimit: number;
   breakGoal: number;
   blockedApps: string[];
+  /** The day onboarding ended. Measured phone time never counts for days before it. */
+  startedOn: string | null;
+  /** The Android app measures phone time (usage access is on), so it is not logged by hand. */
+  phoneTracking: boolean;
 
   coins: number;
   totalBreakMinutes: number;
@@ -64,6 +70,8 @@ export function initialState(): GoRealState {
     phoneLimit: 60,
     breakGoal: 30,
     blockedApps: [],
+    startedOn: null,
+    phoneTracking: false,
     coins: 0,
     totalBreakMinutes: 0,
     completedBreaks: 0,
@@ -86,6 +94,11 @@ export function initialState(): GoRealState {
 
 let state: GoRealState | null = null;
 const listeners = new Set<() => void>();
+/**
+ * In the Android app with phone time measured, yesterday may look missed until the first reading arrives
+ * (GoReal was not opened that evening). No freeze is spent and no streak news shown until it does.
+ */
+let waitingForPhone = false;
 
 /**
  * Day housekeeping: every day keeps the goals it started with, and freezes are spent for missed days.
@@ -98,7 +111,7 @@ function settleDay(s: GoRealState, now = new Date()): GoRealState {
   const stamped = stampGoals(next.days, next, now);
   if (stamped !== next.days) next = { ...next, days: stamped };
 
-  const frozen = applyFreezes(next.days, next, next.freezes, now);
+  const frozen = waitingForPhone ? null : applyFreezes(next.days, next, next.freezes, now);
   if (frozen) {
     next = {
       ...next,
@@ -140,6 +153,7 @@ function migrate(raw: Record<string, unknown>): Partial<GoRealState> {
   delete copy.xp;
   const next = copy as Partial<GoRealState>;
   next.notif = mergeNotifState(copy.notif);
+  if (next.onboarded && !next.startedOn) next.startedOn = Object.keys(next.days ?? {}).sort()[0] ?? dayKey();
   if (typeof next.freezes === "number") next.freezes = Math.min(MAX_FREEZES, Math.max(0, Math.floor(next.freezes)));
   if ((next.outfit as string) === "shades") return { ...next, outfit: null, face: "shades" };
   return next;
@@ -153,6 +167,7 @@ function load(): GoRealState {
   } catch {
     // Broken or blocked storage: start fresh.
   }
+  if (state === null) waitingForPhone = loaded.phoneTracking && canMeasure();
   const settled = settleOnOpen(loaded);
   if (settled !== loaded) persist(settled);
   return settled;
@@ -191,6 +206,18 @@ export function useGoReal(): GoRealState | null {
   return useSyncExternalStore(subscribe, getSnapshot, () => null);
 }
 
+/** True until the first phone-time reading arrives (Android app with phone time measured only). */
+export function useWaitingForPhone(): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => {
+      getSnapshot();
+      return waitingForPhone;
+    },
+    () => false,
+  );
+}
+
 /** Latest state outside of React rendering (e.g. right after an action). */
 export function getState(): GoRealState {
   return getSnapshot();
@@ -205,7 +232,15 @@ export function update(fn: (s: GoRealState) => GoRealState) {
 /* ---------- actions ---------- */
 
 export function completeOnboarding(input: { name: string; phoneLimit: number; blockedApps: string[] }) {
-  update((s) => settleDay({ ...s, ...input, coins: s.coins + (s.onboarded ? 0 : WELCOME_GIFT), onboarded: true }));
+  update((s) =>
+    settleDay({
+      ...s,
+      ...input,
+      coins: s.coins + (s.onboarded ? 0 : WELCOME_GIFT),
+      startedOn: s.startedOn ?? dayKey(),
+      onboarded: true,
+    }),
+  );
 }
 
 /** Call when the app comes back to the foreground: a new day may have started. */
@@ -244,6 +279,25 @@ export function quitBreak() {
 export function logPhoneTime(minutes: number) {
   const key = dayKey();
   update((s) => ({ ...s, days: { ...s.days, [key]: { ...dayFor(s, key), phoneMinutes: minutes } } }));
+}
+
+/** Fresh minutes per day from the Android app. Turns measuring on and lets the day settle. */
+export function syncPhoneTime(totals: Record<string, number>) {
+  const wasWaiting = waitingForPhone;
+  waitingForPhone = false;
+  const s = getSnapshot();
+  const days = withPhoneMinutes(s.days, totals, s.startedOn ?? dayKey(), dayKey());
+  const next = settleDay(days === s.days && s.phoneTracking ? s : { ...s, days, phoneTracking: true });
+  if (next !== s || wasWaiting) update(() => next);
+}
+
+/** The Android app could not read phone time. If usage access was turned off, go back to logging by hand. */
+export function phoneReadFailed(accessOff: boolean) {
+  const s = getSnapshot();
+  const turnOff = accessOff && s.phoneTracking;
+  if (!waitingForPhone && !turnOff) return;
+  waitingForPhone = false;
+  update((prev) => settleDay(turnOff ? { ...prev, phoneTracking: false } : prev));
 }
 
 /** A day entry that always carries the goals it started with. */

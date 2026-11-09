@@ -11,7 +11,7 @@ export type Goals = {
 export type DayLog = {
   /** Minutes of finished breaks on that day. */
   breakMinutes: number;
-  /** Phone time the user reported for that day (from their phone's Screen Time). */
+  /** Minutes in the picked apps that day: measured by the Android app, or logged by hand on the web. */
   phoneMinutes?: number;
   /** The goals that applied that day. Changing goals later never rewrites old days. */
   goal?: Goals;

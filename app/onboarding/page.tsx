@@ -7,15 +7,11 @@ import Button from "@/components/Button";
 import Mascot from "@/components/Mascot";
 import { PixelIcon } from "@/components/PixelIcon";
 import Splash from "@/components/Splash";
+import { APP_CHOICES } from "@/lib/apps";
 import { formatMinutes } from "@/lib/date";
 import { PHONE_LIMIT_OPTIONS } from "@/lib/rules";
 import { completeOnboarding, useGoReal } from "@/lib/store";
 import styles from "./onboarding.module.css";
-
-const APP_CHOICES = [
-  "TikTok", "Instagram", "YouTube", "Snapchat", "Discord", "Roblox",
-  "WhatsApp", "X", "Twitch", "Reddit", "Netflix", "Games",
-];
 
 const LIMIT_COPY: Record<number, string> = {
   30: "Mostly offline",
