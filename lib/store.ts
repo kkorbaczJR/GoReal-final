@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { dayKey } from "./date";
-import { MAX_FREEZES, WELCOME_GIFT, applyFreezes, rewardForBreak, stampGoals, type DayLog } from "./rules";
+import { MAX_FREEZES, WELCOME_GIFT, applyFreezes, changeGoals, rewardForBreak, stampGoals, type DayLog } from "./rules";
 import { allowed, eventNotif } from "./notifications/triggers";
 import {
   defaultNotifState,
@@ -14,7 +14,18 @@ import {
   type NotifState,
 } from "./notifications/types";
 import { canMeasure } from "./phone";
-import { DEFAULT_TITLE, FREEZE_PRICE, itemById, isOwned, type Background, type Face, type Outfit } from "./shop";
+import {
+  DEFAULT_ACCENT,
+  DEFAULT_TITLE,
+  FREEZE_PRICE,
+  itemById,
+  isAccent,
+  isOwned,
+  type Accent,
+  type Background,
+  type Face,
+  type Outfit,
+} from "./shop";
 import { withPhoneMinutes } from "./usage";
 
 /** Everything GoReal remembers. It lives in the phone's browser storage, no account needed. */
@@ -43,6 +54,8 @@ export type GoRealState = {
   face: Face | null;
   background: Background | null;
   title: string;
+  /** The colour of buttons and highlights, orange unless another one was bought in the shop. */
+  accent: Accent;
 
   /** Streak freezes in stock (0 to 2). One is spent automatically for each missed day. */
   freezes: number;
@@ -83,6 +96,7 @@ export function initialState(): GoRealState {
     face: null,
     background: null,
     title: DEFAULT_TITLE,
+    accent: DEFAULT_ACCENT,
     freezes: 0,
     freezesUsed: 0,
     freezeNotice: null,
@@ -155,6 +169,10 @@ function migrate(raw: Record<string, unknown>): Partial<GoRealState> {
   next.notif = mergeNotifState(copy.notif);
   if (next.onboarded && !next.startedOn) next.startedOn = Object.keys(next.days ?? {}).sort()[0] ?? dayKey();
   if (typeof next.freezes === "number") next.freezes = Math.min(MAX_FREEZES, Math.max(0, Math.floor(next.freezes)));
+  const ownedIds = Array.isArray(next.owned) ? next.owned : [];
+  if (!isAccent(next.accent) || (next.accent !== DEFAULT_ACCENT && !ownedIds.includes(`color-${next.accent}`))) {
+    delete next.accent;
+  }
   if ((next.outfit as string) === "shades") return { ...next, outfit: null, face: "shades" };
   return next;
 }
@@ -343,14 +361,16 @@ export function buyOrEquip(itemId: string): boolean {
         return { ...next, background: prev.background === item.look && owned ? null : item.look };
       case "title":
         return { ...next, title: item.id };
+      case "color":
+        return { ...next, accent: item.look };
     }
   });
   return true;
 }
 
-/** New goals count from tomorrow: today and every past day keep the goals they started with. */
+/** Past days keep their goals. Today follows the change when that cannot be gamed (see `changeGoals`). */
 export function setGoals(goals: { phoneLimit?: number; breakGoal?: number }) {
-  update((s) => ({ ...s, days: stampGoals(s.days, s, new Date()), ...goals }));
+  update((s) => ({ ...s, days: changeGoals(s.days, s, goals, new Date()), ...goals }));
 }
 
 /* ---------- notifications ---------- */

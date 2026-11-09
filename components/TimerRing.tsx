@@ -18,7 +18,7 @@ export default function TimerRing({
   size = 280,
   stroke = 18,
   track = "#ebebeb",
-  color = "#fc4c02",
+  color = "var(--accent)",
   children,
 }: Props) {
   const r = (size - stroke) / 2;
@@ -32,7 +32,7 @@ export default function TimerRing({
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={color}
+          style={{ stroke: color }}
           strokeWidth={stroke}
           strokeLinecap="round"
           fill="none"
