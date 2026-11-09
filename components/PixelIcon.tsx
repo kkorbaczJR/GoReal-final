@@ -4,6 +4,20 @@
  * Sizes that are multiples of 12 keep every pixel the same width.
  */
 const ICONS = {
+  snowflake: [
+    ".....##.....",
+    "..#..##..#..",
+    "...#.##.#...",
+    "....####....",
+    ".....##.....",
+    "############",
+    "############",
+    ".....##.....",
+    "....####....",
+    "...#.##.#...",
+    "..#..##..#..",
+    ".....##.....",
+  ],
   flame: [
     "......o.....",
     ".....ooo....",
@@ -244,12 +258,18 @@ export function PixelIcon({
   size = 24,
   dim = false,
   className,
+  viewBox = "0 0 12 12",
+  stretch = false,
 }: {
   name: PixelIconName;
   size?: number;
   /** Gray version (e.g. an unlit streak). */
   dim?: boolean;
   className?: string;
+  /** Crop the 12×12 grid, e.g. to the pixels that are actually drawn. */
+  viewBox?: string;
+  /** Stretch the cropped pixels to `size` instead of keeping them square. */
+  stretch?: boolean;
 }) {
   const rows = ICONS[name];
   const rects: React.ReactNode[] = [];
@@ -265,7 +285,8 @@ export function PixelIcon({
     <svg
       width={size}
       height={size}
-      viewBox="0 0 12 12"
+      viewBox={viewBox}
+      preserveAspectRatio={stretch ? "none" : undefined}
       shapeRendering="crispEdges"
       aria-hidden
       className={className}

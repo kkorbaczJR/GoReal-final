@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import BreakOverlay from "@/components/BreakOverlay";
 import Button from "@/components/Button";
@@ -11,8 +12,8 @@ import StatPills from "@/components/StatPills";
 import StreakScreen from "@/components/StreakScreen";
 import TimerRing from "@/components/TimerRing";
 import { dayKey, formatMinutes } from "@/lib/date";
-import { BREAK_LENGTH_OPTIONS, dayQualifies, rewardForBreak, streakStatus } from "@/lib/rules";
-import { clearNotice, getState, logPhoneTime, startBreak, useGoReal } from "@/lib/store";
+import { BREAK_LENGTH_OPTIONS, MAX_FREEZES, dayQualifies, goalsFor, rewardForBreak, streakStatus } from "@/lib/rules";
+import { clearFreezeNotice, clearNotice, getState, logPhoneTime, startBreak, useGoReal } from "@/lib/store";
 import shared from "../tabs.module.css";
 import styles from "./home.module.css";
 
@@ -28,6 +29,7 @@ function greeting() {
 
 export default function Home() {
   const s = useGoReal()!;
+  const router = useRouter();
   const [minutes, setMinutes] = useState(15);
   const [overlay, setOverlay] = useState<{ doneBefore: boolean } | null>(null);
   const [phoneSheet, setPhoneSheet] = useState(false);
@@ -35,7 +37,8 @@ export default function Home() {
 
   const streak = streakStatus(s.days, s);
   const today = s.days[dayKey()] ?? { breakMinutes: 0 };
-  const breakProgress = Math.min(1, today.breakMinutes / s.breakGoal);
+  const goals = goalsFor(today, s);
+  const breakProgress = Math.min(1, today.breakMinutes / goals.breakGoal);
 
   const begin = () => {
     startBreak(minutes);
@@ -44,7 +47,7 @@ export default function Home() {
 
   const todayCountsNow = useCallback(() => {
     const fresh = getState();
-    return dayQualifies(fresh.days[dayKey()], fresh);
+    return dayQualifies(fresh.days[dayKey()], fresh, false);
   }, []);
 
   const mood = streak.lostStreak > 0 ? "sad" : streak.todayDone ? "proud" : "happy";
@@ -131,8 +134,8 @@ export default function Home() {
       <section>
         <div className={styles.todayHead}>
           <h2 className={shared.sectionTitle} style={{ marginBottom: 0 }}>Today</h2>
-          <span className={`${styles.badge} ${streak.todayDone ? styles.badgeOn : ""}`}>
-            {streak.todayDone ? "Day counted" : "One of these counts"}
+          <span className={`${styles.badge} ${streak.todayDone || streak.todayOnTrack ? styles.badgeOn : ""}`}>
+            {streak.todayDone ? "Day counted" : streak.todayOnTrack ? "On track" : "One of these counts"}
           </span>
         </div>
 
@@ -152,7 +155,7 @@ export default function Home() {
             <div className={styles.goalText}>
               <span>Break time</span>
               <span className={styles.value}>
-                {today.breakMinutes} of {formatMinutes(s.breakGoal)}
+                {today.breakMinutes} of {formatMinutes(goals.breakGoal)}
               </span>
             </div>
             <div className={styles.bar}>
@@ -167,11 +170,22 @@ export default function Home() {
 
           <button className={shared.groupRow} onClick={() => setPhoneSheet(true)}>
             <div className={styles.goalText}>
-              <span>Phone time under {formatMinutes(s.phoneLimit)}</span>
+              <span>Phone time under {formatMinutes(goals.phoneLimit)}</span>
               <span className={styles.value}>
                 {today.phoneMinutes === undefined ? "Log" : formatMinutes(today.phoneMinutes)}
               </span>
             </div>
+            <PixelIcon name="chevronRight" size={12} className={styles.chev} />
+          </button>
+
+          <button className={shared.groupRow} onClick={() => router.push("/shop")}>
+            <div className={styles.streakRow}>
+              <PixelIcon name="snowflake" size={24} dim={s.freezes === 0} />
+              <span>Streak freezes</span>
+            </div>
+            <span className={styles.value}>
+              {s.freezes} of {MAX_FREEZES}
+            </span>
             <PixelIcon name="chevronRight" size={12} className={styles.chev} />
           </button>
         </div>
@@ -180,8 +194,8 @@ export default function Home() {
       <PhoneTimeSheet
         open={phoneSheet}
         onClose={() => setPhoneSheet(false)}
-        initial={today.phoneMinutes ?? s.phoneLimit}
-        limit={s.phoneLimit}
+        initial={today.phoneMinutes ?? goals.phoneLimit}
+        limit={goals.phoneLimit}
       />
 
       <Sheet open={s.notice === "left-during-break"} onClose={clearNotice}>
@@ -193,6 +207,27 @@ export default function Home() {
             Okay
           </Button>
         </div>
+      </Sheet>
+
+      <Sheet open={s.freezeNotice !== null} onClose={clearFreezeNotice}>
+        {s.freezeNotice && (
+          <div className={styles.noticeBody}>
+            <PixelIcon name="snowflake" size={72} />
+            <h2>
+              {s.freezeNotice.days === 1 ? "A freeze saved your streak" : `${s.freezeNotice.days} freezes saved your streak`}
+            </h2>
+            <p className={shared.muted}>
+              You missed {s.freezeNotice.days === 1 ? "a day" : `${s.freezeNotice.days} days`}, so your{" "}
+              {s.freezeNotice.streak}-day streak is still alive.{" "}
+              {s.freezeNotice.left === 0
+                ? "That was your last freeze. You can get more in the shop."
+                : `You have ${s.freezeNotice.left} left.`}
+            </p>
+            <Button full onClick={clearFreezeNotice}>
+              Nice
+            </Button>
+          </div>
+        )}
       </Sheet>
 
       <AnimatePresence>{showStreak && <StreakScreen onClose={() => setShowStreak(false)} />}</AnimatePresence>

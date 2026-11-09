@@ -184,3 +184,59 @@
   font-size: 14px;
   white-space: nowrap;
 }
+
+.freezeCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 20px 20px;
+  border-radius: var(--radius-l);
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--line);
+  text-align: center;
+}
+
+.freezeSlots {
+  display: flex;
+  gap: 12px;
+}
+
+.freezeSlot {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius-m);
+  background: var(--soft);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.freezeSlotOn {
+  background: var(--card);
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.freezeTitle {
+  margin: 6px 0 0;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 22px;
+}
+
+.freezeText {
+  margin: 0;
+  max-width: 300px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.freezePrice {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}

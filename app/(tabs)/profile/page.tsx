@@ -12,7 +12,7 @@ import RiloStage from "@/components/RiloStage";
 import StreakScreen from "@/components/StreakScreen";
 import { achievements } from "@/lib/achievements";
 import { addDays, dayKey, formatMinutes, weekStart } from "@/lib/date";
-import { BREAK_GOAL_OPTIONS, PHONE_LIMIT_OPTIONS, dayQualifies, longestStreak, streakStatus } from "@/lib/rules";
+import { BREAK_GOAL_OPTIONS, PHONE_LIMIT_OPTIONS, dayState, longestStreak, streakStatus } from "@/lib/rules";
 import { titleName } from "@/lib/shop";
 import { resetEverything, setGoals, useGoReal } from "@/lib/store";
 import shared from "../tabs.module.css";
@@ -66,8 +66,9 @@ export default function Profile() {
         <div className={styles.week}>
           {WEEKDAYS.map((d, i) => {
             const key = dayKey(addDays(monday, i));
-            const done = dayQualifies(s.days[key], s);
             const isToday = key === today;
+            const state = dayState(s.days[key], s, isToday);
+            const done = state === "done";
             return (
               <div key={i} className={styles.day}>
                 <motion.span
@@ -76,7 +77,11 @@ export default function Profile() {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: i * 0.04, type: "spring", stiffness: 400, damping: 20 }}
                 >
-                  {done ? <PixelIcon name="flame" size={24} /> : null}
+                  {done ? (
+                    <PixelIcon name="flame" size={34} viewBox="2 0 9 12" stretch className={styles.dayFlame} />
+                  ) : state === "frozen" ? (
+                    <PixelIcon name="snowflake" size={22} />
+                  ) : null}
                 </motion.span>
                 <span className={styles.dayLabel}>{d}</span>
               </div>
@@ -101,7 +106,8 @@ export default function Profile() {
       <section className={shared.card}>
         <h2 className={shared.sectionTitle}>My goal</h2>
         <p className={styles.goalHint}>
-          A day counts for your streak if you stay under your phone limit <b>or</b> finish your break goal.
+          A day counts for your streak if you stay under your phone limit <b>or</b> finish your break goal. New goals
+          start tomorrow, today keeps the ones it started with.
         </p>
         <Segmented
           label="Phone limit per day"
