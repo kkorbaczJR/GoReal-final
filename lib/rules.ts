@@ -19,6 +19,9 @@ export type DayLog = {
   frozen?: boolean;
 };
 
+/** Coins every new user gets when onboarding ends, enough for a first color or an extra. */
+export const WELCOME_GIFT = 100;
+
 export const PHONE_LIMIT_OPTIONS = [30, 60, 120];
 export const BREAK_GOAL_OPTIONS = [15, 30, 60];
 export const BREAK_LENGTH_OPTIONS = [5, 10, 15, 25, 45, 60];

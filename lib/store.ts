@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { dayKey } from "./date";
-import { MAX_FREEZES, applyFreezes, rewardForBreak, stampGoals, type DayLog } from "./rules";
+import { MAX_FREEZES, WELCOME_GIFT, applyFreezes, rewardForBreak, stampGoals, type DayLog } from "./rules";
 import { allowed, eventNotif } from "./notifications/triggers";
 import {
   defaultNotifState,
@@ -205,7 +205,7 @@ export function update(fn: (s: GoRealState) => GoRealState) {
 /* ---------- actions ---------- */
 
 export function completeOnboarding(input: { name: string; phoneLimit: number; blockedApps: string[] }) {
-  update((s) => settleDay({ ...s, ...input, onboarded: true }));
+  update((s) => settleDay({ ...s, ...input, coins: s.coins + (s.onboarded ? 0 : WELCOME_GIFT), onboarded: true }));
 }
 
 /** Call when the app comes back to the foreground: a new day may have started. */

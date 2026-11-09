@@ -213,6 +213,13 @@ test("shop tips only right after earning coins, at most once every 4 days", () =
   assert.match(freeze.find((n) => n.kind === "freezeTip")!.body, /250/);
 });
 
+test("the welcome gift at the end of onboarding is not a reason for a shop tip", () => {
+  const before = mk({ onboarded: false, coins: 0 });
+  const after = mk({ onboarded: true, coins: 100 });
+  assert.deepEqual(detectEvents(after, NOW, before), []);
+  assert.deepEqual(kinds(detectEvents(mk({ coins: 260 }), NOW, mk({ coins: 200 }))), ["shopTip"]);
+});
+
 test("break end is the only notification with a time", () => {
   const brk = { startedAt: NOW.getTime(), minutes: 25 };
   const n = breakEndNotif(mk({ activeBreak: brk }), NOW)!;

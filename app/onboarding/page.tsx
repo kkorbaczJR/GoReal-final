@@ -174,6 +174,7 @@ export default function Onboarding() {
                 </div>
                 <h1 className={styles.title}>Rilo naps when you put the phone down</h1>
                 <ul className={styles.facts}>
+                  <li>Here are 100 coins to get you started</li>
                   <li>1 minute of break earns 1 coin</li>
                   <li>Leave the app early and the break ends</li>
                   <li>Spend coins on hats, extras and scenes for Rilo</li>
