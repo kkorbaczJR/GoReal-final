@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Button from "@/components/Button";
 import CountUp from "@/components/CountUp";
+import { useInstall } from "@/components/Install";
 import Mascot from "@/components/Mascot";
 import Sheet from "@/components/Sheet";
 import { PixelIcon } from "@/components/PixelIcon";
@@ -38,6 +39,7 @@ export default function Profile() {
   const [showStreak, setShowStreak] = useState(false);
   const [android] = useState(canMeasure);
   const account = useAccount();
+  const install = useInstall();
 
   const streak = streakStatus(s.days, s);
   const best = longestStreak(s.days, s);
@@ -143,7 +145,16 @@ export default function Profile() {
             <PixelIcon name="chevronRight" size={12} className={styles.rowChev} />
           </button>
         )}
+        {install.canInstall && (
+          <button className={shared.groupRow} onClick={install.start}>
+            <PixelIcon name="install" size={24} />
+            <span className={styles.rowLabel}>Install app</span>
+            <span className={styles.rowValue}>Home screen</span>
+            <PixelIcon name="chevronRight" size={12} className={styles.rowChev} />
+          </button>
+        )}
       </div>
+      {install.ui}
 
       <section className={shared.card}>
         <h2 className={shared.sectionTitle}>My goal</h2>

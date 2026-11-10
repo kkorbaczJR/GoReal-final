@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import BreakOverlay from "@/components/BreakOverlay";
 import Button from "@/components/Button";
+import { InstallCard } from "@/components/Install";
 import Mascot from "@/components/Mascot";
 import NotificationBell from "@/components/NotificationBell";
 import { PixelIcon } from "@/components/PixelIcon";
@@ -213,6 +214,8 @@ export default function Home() {
           </button>
         </div>
       </section>
+
+      <InstallCard />
 
       <PhoneTimeSheet
         open={phoneSheet}

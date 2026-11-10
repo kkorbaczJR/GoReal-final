@@ -3,6 +3,9 @@ import { Geist_Mono, Newsreader } from "next/font/google";
 import AccentTheme, { accentScript } from "@/components/AccentTheme";
 import AccountSync from "@/components/AccountSync";
 import AndroidBack from "@/components/AndroidBack";
+import PwaHost from "@/components/PwaHost";
+import { BASE_PATH } from "@/lib/base";
+import { installScript } from "@/lib/install-script";
 import "./globals.css";
 
 const newsreader = Newsreader({
@@ -21,6 +24,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "GoReal",
   description: "Take real breaks from your phone, grow your streak, dress up Rilo.",
+  icons: { apple: `${BASE_PATH}/icons/apple-touch-icon.png` },
   appleWebApp: {
     capable: true,
     title: "GoReal",
@@ -42,12 +46,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${newsreader.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: accentScript }} />
+        <script dangerouslySetInnerHTML={{ __html: installScript }} />
       </head>
       <body>
         <div className="app-shell">{children}</div>
         <AndroidBack />
         <AccentTheme />
         <AccountSync />
+        <PwaHost />
       </body>
     </html>
   );
