@@ -1,0 +1,188 @@
+.page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: calc(8px + var(--safe-top)) 24px calc(24px + var(--safe-bottom));
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  margin-left: -6px;
+  padding: 0 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.hero {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.title {
+  font-size: 30px;
+  line-height: 1.18;
+  font-weight: 500;
+}
+
+.lede {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin-top: -4px;
+}
+
+.google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 54px;
+  margin-top: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: 16px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.google:active {
+  background: var(--soft);
+}
+
+.google:disabled {
+  opacity: 0.5;
+}
+
+.or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.or::before,
+.or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input {
+  width: 100%;
+  height: 54px;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--line);
+  background: var(--card);
+  padding: 0 18px;
+  font-size: 17px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: var(--ink);
+}
+
+.passwordRow {
+  position: relative;
+}
+
+.passwordRow .input {
+  padding-right: 72px;
+}
+
+.show {
+  position: absolute;
+  top: 0;
+  right: 4px;
+  height: 54px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.error {
+  font-size: 14px;
+  line-height: 1.45;
+  color: #c62828;
+  overflow: hidden;
+}
+
+.sent {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px;
+  border-radius: var(--radius-m);
+  background: var(--accent-soft);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.sent > :first-child {
+  flex: none;
+  margin-top: 1px;
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.link,
+.linkStrong {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.linkStrong {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.switch {
+  font-size: 15px;
+  color: var(--muted);
+}

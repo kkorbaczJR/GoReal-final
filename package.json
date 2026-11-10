@@ -9,12 +9,16 @@
     "lint": "eslint",
     "test:notifications": "bash scripts/notifications/run.sh",
     "android:sync": "node scripts/android/build.mjs",
-    "android:apk": "node scripts/android/build.mjs --apk"
+    "android:apk": "node scripts/android/build.mjs --apk",
+    "accounts:emulators": "npx --yes firebase-tools@15.35.0 emulators:start --only auth,firestore --project demo-goreal",
+    "accounts:dev": "NEXT_PUBLIC_FIREBASE_EMULATOR=127.0.0.1 next dev -p 3000 -H 0.0.0.0",
+    "accounts:testers": "node scripts/accounts/create-testers.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",
     "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.6.0",
+    "firebase": "^13.2.0",
     "framer-motion": "^14.10.1",
     "next": "16.4.5",
     "react": "19.3.0",
