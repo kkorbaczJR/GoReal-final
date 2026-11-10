@@ -3,14 +3,17 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { GoogleButton } from "@/components/AuthScreen";
 import Button from "@/components/Button";
 import Mascot from "@/components/Mascot";
 import { PixelIcon } from "@/components/PixelIcon";
 import Splash from "@/components/Splash";
+import { continueWithGoogle, onGooglePopupLeft, preloadAccounts } from "@/lib/account";
 import { APP_CHOICES } from "@/lib/apps";
 import { formatMinutes } from "@/lib/date";
+import { accountsEnabled } from "@/lib/firebase-config";
 import { PHONE_LIMIT_OPTIONS } from "@/lib/rules";
-import { completeOnboarding, useGoReal } from "@/lib/store";
+import { completeOnboarding, getState, useGoReal } from "@/lib/store";
 import styles from "./onboarding.module.css";
 
 const LIMIT_COPY: Record<number, string> = {
@@ -19,7 +22,9 @@ const LIMIT_COPY: Record<number, string> = {
   120: "A gentle start",
 };
 
-const STEPS = 4;
+/** The last step offers an account, when accounts are on. */
+const STEPS = accountsEnabled ? 5 : 4;
+const ACCOUNT_STEP = 4;
 
 export default function Onboarding() {
   const s = useGoReal();
@@ -29,21 +34,59 @@ export default function Onboarding() {
   const [name, setName] = useState("");
   const [limit, setLimit] = useState(60);
   const [apps, setApps] = useState<string[]>(["TikTok", "Instagram"]);
+  const [googleBusy, setGoogleBusy] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+  const [toSignUp, setToSignUp] = useState(false);
+
+  /** Onboarding is already saved while signing up, so don't jump to Today until that is done (or failed). */
+  const onAccountStep = googleBusy || googleError !== null || toSignUp;
 
   useEffect(() => {
-    if (s?.onboarded) router.replace("/home");
-  }, [s, router]);
+    if (s?.onboarded && !onAccountStep) router.replace("/home");
+  }, [s, router, onAccountStep]);
 
-  if (!s || s.onboarded) return <Splash />;
+  useEffect(() => {
+    if (step === ACCOUNT_STEP) preloadAccounts();
+  }, [step]);
+
+  useEffect(() => {
+    if (!googleBusy) return;
+    return onGooglePopupLeft(() => {
+      setGoogleBusy(false);
+      setGoogleError("");
+    });
+  }, [googleBusy]);
+
+  if (!s || (s.onboarded && !onAccountStep)) return <Splash />;
 
   const go = (delta: number) => {
     setDir(delta);
     setStep((v) => Math.min(STEPS - 1, Math.max(0, v + delta)));
   };
 
+  const complete = () => completeOnboarding({ name: name.trim() || "Friend", phoneLimit: limit, blockedApps: apps });
+
   const finish = () => {
-    completeOnboarding({ name: name.trim() || "Friend", phoneLimit: limit, blockedApps: apps });
+    complete();
     router.replace("/home");
+  };
+
+  const signUpWithEmail = () => {
+    setToSignUp(true);
+    complete();
+    router.replace("/signup");
+  };
+
+  /** Google first, so the popup opens straight from the tap. A new account gets this phone's progress. */
+  const signUpWithGoogle = async () => {
+    setGoogleError(null);
+    setGoogleBusy(true);
+    const pending = continueWithGoogle();
+    complete();
+    const result = await pending;
+    setGoogleBusy(false);
+    if (result !== null) return setGoogleError(result);
+    router.replace(getState().onboarded ? "/home" : "/onboarding");
   };
 
   const canContinue = step === 0 ? name.trim().length > 0 : step === 2 ? apps.length > 0 : true;
@@ -97,6 +140,11 @@ export default function Onboarding() {
                   autoFocus
                   onKeyDown={(e) => e.key === "Enter" && canContinue && go(1)}
                 />
+                {accountsEnabled && (
+                  <button className={styles.haveAccount} onClick={() => router.push("/login")}>
+                    I already have an account
+                  </button>
+                )}
               </>
             )}
 
@@ -177,12 +225,40 @@ export default function Onboarding() {
                 </ul>
               </>
             )}
+
+            {step === ACCOUNT_STEP && (
+              <>
+                <div className={styles.hero}>
+                  <Mascot mood="proud" size={140} />
+                </div>
+                <h1 className={styles.title}>Keep your progress safe</h1>
+                <p className={styles.hint}>
+                  With an account your streak, coins and everything Rilo owns come back on a new phone. You can also do
+                  this later in your profile.
+                </p>
+                {googleError && (
+                  <p className={styles.error} role="alert">
+                    {googleError}
+                  </p>
+                )}
+              </>
+            )}
           </motion.section>
         </AnimatePresence>
       </div>
 
       <footer className={styles.footer}>
-        {step < STEPS - 1 ? (
+        {step === ACCOUNT_STEP ? (
+          <div className={styles.accountButtons}>
+            <GoogleButton onClick={signUpWithGoogle} busy={googleBusy} disabled={googleBusy} />
+            <Button full disabled={googleBusy} onClick={signUpWithEmail}>
+              Sign up with email
+            </Button>
+            <Button full variant="ghost" size="medium" disabled={googleBusy} onClick={finish}>
+              Not now
+            </Button>
+          </div>
+        ) : step < STEPS - 1 ? (
           <Button full disabled={!canContinue} onClick={() => go(1)}>
             Continue
           </Button>

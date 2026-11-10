@@ -28,7 +28,10 @@ import {
 } from "./shop";
 import { withPhoneMinutes } from "./usage";
 
-/** Everything GoReal remembers. It lives in the phone's browser storage, no account needed. */
+/**
+ * Everything GoReal remembers. It lives in the phone's browser storage, no account needed. With an account
+ * it is also saved there (see `lib/account.ts`).
+ */
 export type GoRealState = {
   version: 1;
   onboarded: boolean;
@@ -241,9 +244,26 @@ export function getState(): GoRealState {
   return getSnapshot();
 }
 
+let onLocalChange: (() => void) | null = null;
+
+/** Called after every change made on this phone (not after `replaceState`), so it can be saved to the account. */
+export function setLocalChangeHook(hook: (() => void) | null) {
+  onLocalChange = hook;
+}
+
 export function update(fn: (s: GoRealState) => GoRealState) {
-  state = fn(getSnapshot());
+  const prev = getSnapshot();
+  state = fn(prev);
   persist(state);
+  listeners.forEach((l) => l());
+  if (state !== prev) onLocalChange?.();
+}
+
+/** Progress downloaded from the account replaces what is on this phone. */
+export function replaceState(saved: Record<string, unknown>) {
+  const next = settleDay({ ...initialState(), ...migrate(saved) });
+  state = next;
+  persist(next);
   listeners.forEach((l) => l());
 }
 

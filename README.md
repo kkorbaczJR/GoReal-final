@@ -43,12 +43,15 @@ Other commands:
 | `npm run test:notifications` | Runs the notification scenario tests (needs Node 22 or newer) |
 | `npm run android:sync` | Builds the app as static files and copies them into the Android project |
 | `npm run android:apk` | The same, then builds an installable Android file (APK). Needs the Android SDK, see below |
+| `npm run accounts:emulators` | Starts pretend Firebase servers on your computer for testing accounts (needs Java) |
+| `npm run accounts:dev` | Runs the app against those pretend servers |
+| `npm run accounts:testers` | Creates test accounts with lots of coins (see "Accounts") |
 
 In development mode the break-length picker also has a **1 minute** option, so you can try a whole break without waiting. The published version does not have it.
 
 ## The website
 
-The link at the top is the real app, published automatically with GitHub Pages. Every time something is merged into `main`, `.github/workflows/pages.yml` builds the app as plain files and publishes them, so the site is always the newest version. Nothing is saved on a server: each visitor's progress stays in their own browser, so everyone starts fresh. On a phone, "Add to Home Screen" turns it into an app icon.
+The link at the top is the real app, published automatically with GitHub Pages. Every time something is merged into `main`, `.github/workflows/pages.yml` builds the app as plain files and publishes them, so the site is always the newest version. Progress is saved in each visitor's own browser, and also in their account once they sign up (see "Accounts"). On a phone, "Add to Home Screen" turns it into an app icon.
 
 The site lives under `/GoReal-final/` instead of the root of a domain, so its build uses `GOREAL_TARGET=pages` and `NEXT_PUBLIC_BASE_PATH=/GoReal-final` (see `next.config.ts` and `lib/base.ts`). To try that build yourself, run `npx next build` with those two set and serve the `out` folder under that path. GitHub Pages must be set to **GitHub Actions** under Settings, Pages (it already is).
 
@@ -99,11 +102,12 @@ In the Android app GoReal can measure your phone time instead of you typing it i
 
 ## What you can do in the app
 
-### 1. Onboarding (first launch, 4 steps)
-1. Tell Rilo your name.
+### 1. Onboarding (first launch, 4 steps, 5 with accounts on)
+1. Tell Rilo your name. **I already have an account** goes to Log in instead.
 2. Pick your **daily phone-time limit**: 30 minutes, 1 hour, or 2 hours.
 3. Pick the apps that pull you in the most (TikTok, Instagram, YouTube and others). These are "off limits" during a break.
 4. Meet Rilo and learn the rules.
+5. **Keep your progress safe**: Continue with Google, Sign up with email, or Not now.
 
 ### 2. Break (home screen)
 - A big ring shows how long the break will be. Pick 5, 10, 15, 25, 45 or 60 minutes and tap **Start break**.
@@ -133,9 +137,10 @@ Rilo can wear one hat, one extra and one scene at the same time. Tap an item to 
 - Stats: total time off-screen, current streak, longest streak, breaks finished, longest break, and how many shop items you own.
 - **My goal**: change your phone limit and your daily break goal at any time. Past days always keep their goals. Today follows a change right away while it has no progress yet (no break, no phone time logged), and a stricter goal (a longer break goal, a lower phone limit) also applies while today does not count yet. An easier goal after you already made progress waits until tomorrow, and the screen says so.
 - **Achievements**: 12 badges, for example "First break", "Month strong" (30 day streak), "Cool save" (a freeze saved your streak) and "Collector" (own 5 shop items).
+- **Account**: sign up or log in, or, when signed in, your email, whether everything is saved, Log out and Delete account (see "Accounts").
 - **Reminders**: a row that opens the notification settings (see below).
 - **Phone time** (Android app only): set up or check measured phone time.
-- **Start over** deletes everything on this phone and goes back to the onboarding.
+- **Start over** deletes everything on this phone (and in your account, when signed in) and goes back to the onboarding.
 
 ### 5. Notifications
 Nothing is sent at a set time of day. Rilo only speaks up when something happens: you have been on your phone for a long time without a pause, you are close to your limit or over it, you are scrolling late and today does not count yet, or something changed in GoReal (a break ended, a freeze saved your streak, you can afford something new). Notifications show up as a banner at the top of the app, in the **bell** next to the greeting on Today (an orange dot means something is unread), and as a system notification when GoReal is in the background and you allowed it.
@@ -193,13 +198,15 @@ The app is built with [Next.js](https://nextjs.org) and TypeScript. Styles use C
 app/
   layout.tsx            fonts (Newsreader serif for headings, Geist Mono for text), white and black with one orange accent, phone layout, home-screen settings
   page.tsx              decides where to go: onboarding (new user) or the Break screen
-  onboarding/           the 4 onboarding steps
+  onboarding/           the onboarding steps
+  login/, signup/       the sign-in screens (both use components/AuthScreen.tsx)
   (tabs)/               the three main screens (Today, Shop, You), sharing the bottom tab bar
     home/               Break screen: timer ring, Today card, phone-time sheet
     shop/               hats, extras, scenes and titles
     profile/            stats, goals, achievements
     reminders/          notification settings, an example day and a simulator
     phone/              measured phone time (Android): set it up, or see today, the current session and each app
+    account/            your account: saved or not, verify email, log out, delete
   manifest.ts, icon.svg, apple-icon.tsx   settings for "Add to Home Screen"
 android/                the Android app project (Capacitor). Icons are in android/app/src/main/res
   .../PhoneUsagePlugin.java   reads Android's usage access for the picked apps only
@@ -207,7 +214,9 @@ capacitor.config.ts     the Android app's name, id and where the web files are
 scripts/android/        builds the web files for the app and the APK (`npm run android:apk`)
 .github/workflows/      builds the APK for every push, and publishes the website when `main` changes
 public/sw.js            service worker: shows notifications and opens the app when you tap one
-scripts/notifications/  scenario tests for the trigger engine and usage (`npm run test:notifications`)
+scripts/notifications/  scenario tests for the trigger engine, usage, goals, colors and account sync (`npm run test:notifications`)
+scripts/accounts/       creates the test accounts (`npm run accounts:testers`)
+firebase.json, firestore.rules   the emulators' settings, and who may read and write saved progress
 components/
   Mascot.tsx            Rilo, a pixel-art mochi drawn in code, with moods (happy, wave, tired, sleeping, proud, sad), pixel hats and extras
   BreakOverlay.tsx      the black break mode, plus the "You did it!" and "Break ended early" screens
@@ -224,9 +233,14 @@ components/
   AndroidBack.tsx       the phone's back button in the Android app
   AccentTheme.tsx       applies the chosen accent color to the whole app (the layout also sets it before the first paint)
   PhoneTracker.tsx      reads measured phone time on open, on return and every minute (Android app)
+  AuthScreen.tsx        log in, sign up and reset password, with Continue with Google
+  AccountSync.tsx       signs back in when the app opens and keeps the account's copy up to date
   TabBar.tsx, Button.tsx, Sheet.tsx (bottom pop-up), StatPills.tsx (streak and coins)
 lib/
   store.ts              everything the app remembers, and the actions that change it
+  account.ts            accounts: sign up, log in, Google, log out, delete, and syncing progress with Firebase
+  sync-rules.ts         which side wins when the phone and the account differ, and the sign-in error texts (pure)
+  firebase-config.ts    which Firebase project holds the accounts (empty means accounts are off)
   notifications/
     types.ts            kinds, categories, settings, limits (4 nudges a day, 30 minutes apart) and small helpers
     copy.ts             all the notification text and how a variant is picked
@@ -244,14 +258,49 @@ lib/
 ```
 
 ### Where the data lives
-There is no account and no server yet. Everything is saved in the phone's browser storage (`localStorage`). If you clear the browser data or switch phones, your progress starts again.
+Everything is saved in the phone's browser storage (`localStorage`). Without an account, clearing the browser data or switching phones starts your progress again. With an account it is also saved in Firebase, see below.
+
+## Accounts
+
+You can use GoReal without an account. An account keeps your progress safe and brings it to another phone or computer.
+
+**What you can do**
+- **Sign up** with any email and a password (8 characters or more), Gmail or any other, or with **Continue with Google**. GoReal sends a link to verify the email, so a forgotten password can be reset. Using GoReal does not wait for it.
+- **Log in** on another phone, and your streak, coins, goals, shop items and settings come back. Logging in replaces what was on that phone, and the screen says so.
+- **Forgot password?** sends a reset link. It says the same whether or not the email has an account, so nobody can find out who uses GoReal.
+- **Log out** (You, then Account): what is left is saved first, then the phone goes back to the start. Your progress stays in the account.
+- **Delete account**: deletes the account and its saved progress for good.
+
+**How progress is saved.** The whole saved state is one document per account in Firestore (`users/<account id>`). A change is uploaded 1.5 seconds after it happens. When the app opens or comes back to the screen it reads the account's copy, and whichever side changed last wins (`lib/sync-rules.ts`). Three things stay on each phone and are never uploaded: a break that is running right now, one-off messages, and whether the Android app measures phone time. Offline, the account screen says so and the change is uploaded once the phone is back online. The rules in `firestore.rules` only let a signed-in person read and write their own document, in that one shape.
+
+Firebase is only downloaded once someone has signed in on that phone or opens a sign-in screen, so the app opens as fast as before.
+
+**Turning accounts on (once).** Until a Firebase project is filled in, `lib/firebase-config.ts` is empty, accounts are off and the app looks exactly as before.
+1. Go to [console.firebase.google.com](https://console.firebase.google.com), sign in with a Google account and **Create a project** (for example "goreal"). Google Analytics is not needed. The free Spark plan is enough.
+2. **Build, Authentication, Get started.** Under **Sign-in method** turn on **Email/Password** and **Google** (pick a support email).
+3. In Authentication, **Settings, Authorized domains**, add `kkorbaczjr.github.io`.
+4. **Build, Firestore Database, Create database**, in production mode, location `eur3` (Europe). Then open **Rules**, paste the contents of `firestore.rules` and **Publish**.
+5. **Project settings** (the gear), **Your apps**, the web icon `</>`, register an app called "GoReal" (no hosting). Copy the `firebaseConfig` it shows (`apiKey`, `authDomain`, `projectId`, `appId`) into `lib/firebase-config.ts`. These values are public by design; the authorized domains and the rules are what protect accounts.
+
+**Test accounts.** `npm run accounts:testers` creates accounts that are already through onboarding and start with 10 000 coins. Running it again resets their coins to 10 000 and keeps the rest. The passwords come from the command line so they are never in the repository:
+
+```bash
+TESTERS='tester1@goreal.test:<password>:Tester One,tester2@goreal.test:<password>:Tester Two' \
+FIREBASE_API_KEY=<apiKey> FIREBASE_PROJECT_ID=<projectId> npm run accounts:testers
+```
+
+**Trying it on your computer** without a Firebase project: in one terminal `npm run accounts:emulators` (pretend Firebase servers, needs Java), in another `npm run accounts:dev`, then open http://localhost:3000. For test accounts there, use `FIREBASE_EMULATOR=127.0.0.1` instead of the key and project. Google sign-in shows a stand-in Google page where you type any email.
+
+**Good to know**
+- In the Android app (Capacitor) email sign-in works, Google sign-in does not yet (Google does not allow its sign-in page inside an app's web view; it needs a native Google sign-in plugin).
+- GoReal is for ages 12 to 20. In Poland the GDPR needs a parent's consent for under-16s when an app relies on consent to handle their data. Before real users sign up, add a privacy policy and decide how to handle that.
 
 ## What this version cannot do yet
 
 - **It cannot really block other apps.** A web app is not allowed to do that on iPhone or Android. Only a native app can, using Apple's Screen Time tools or Android's accessibility and usage-access permissions, and Apple has to approve it. For now, break mode only lists the off-limits apps, and leaving GoReal ends the break.
 - **Locking the phone also counts as leaving.** A website cannot tell the difference between locking the phone and opening another app. That is why GoReal keeps the screen on during a break. Lay the phone face down and leave GoReal open.
 - **On the website, phone time is typed in by hand.** A website cannot read Screen Time, so you enter your total yourself. You can log it at any time of day, and the last number you enter counts. The Android app can measure it (see above).
-- **Notifications only arrive while GoReal is open or in the background.** On the website they can only react to the phone time you log. In the Android app they use measured phone time, but only while GoReal is open. Closed-app delivery and off-limits-app alerts during a break come next. No accounts or syncing between devices yet.
+- **Notifications only arrive while GoReal is open or in the background.** On the website they can only react to the phone time you log. In the Android app they use measured phone time, but only while GoReal is open. Closed-app delivery and off-limits-app alerts during a break come next.
 
 ## Ideas for later
 Real app blocking in the Android app, friends and challenges, breaks together with a friend, and a weekly "real life" quest (go outside, read 10 pages).

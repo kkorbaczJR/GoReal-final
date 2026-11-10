@@ -205,3 +205,28 @@
 .footer {
   padding-top: 12px;
 }
+
+.haveAccount {
+  align-self: center;
+  margin-top: 6px;
+  padding: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.error {
+  font-size: 14px;
+  line-height: 1.45;
+  color: #c62828;
+}
+
+.accountButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.accountButtons > :first-child {
+  margin-top: 0;
+}
