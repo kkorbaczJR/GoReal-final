@@ -8,7 +8,7 @@ import Button from "@/components/Button";
 import Mascot from "@/components/Mascot";
 import { PixelIcon } from "@/components/PixelIcon";
 import Splash from "@/components/Splash";
-import { continueWithGoogle, onGooglePopupLeft, preloadAccounts } from "@/lib/account";
+import { continueWithGoogle, logOut, onGooglePopupLeft, preloadAccounts, useAccount } from "@/lib/account";
 import { APP_CHOICES } from "@/lib/apps";
 import { formatMinutes } from "@/lib/date";
 import { accountsEnabled } from "@/lib/firebase-config";
@@ -22,12 +22,11 @@ const LIMIT_COPY: Record<number, string> = {
   120: "A gentle start",
 };
 
-/** The last step offers an account, when accounts are on. */
-const STEPS = accountsEnabled ? 5 : 4;
 const ACCOUNT_STEP = 4;
 
 export default function Onboarding() {
   const s = useGoReal();
+  const account = useAccount();
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
@@ -37,6 +36,13 @@ export default function Onboarding() {
   const [googleBusy, setGoogleBusy] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [toSignUp, setToSignUp] = useState(false);
+  const [switching, setSwitching] = useState(false);
+
+  /**
+   * The last step offers an account, unless accounts are off or this phone is still signed in
+   * (after Start over, or signing up before finishing onboarding): that account already keeps the progress.
+   */
+  const steps = accountsEnabled && account.status !== "signedIn" ? 5 : 4;
 
   /** Onboarding is already saved while signing up, so don't jump to Today until that is done (or failed). */
   const onAccountStep = googleBusy || googleError !== null || toSignUp;
@@ -61,7 +67,7 @@ export default function Onboarding() {
 
   const go = (delta: number) => {
     setDir(delta);
-    setStep((v) => Math.min(STEPS - 1, Math.max(0, v + delta)));
+    setStep((v) => Math.min(steps - 1, Math.max(0, v + delta)));
   };
 
   const complete = () => completeOnboarding({ name: name.trim() || "Friend", phoneLimit: limit, blockedApps: apps });
@@ -89,6 +95,14 @@ export default function Onboarding() {
     router.replace(getState().onboarded ? "/home" : "/onboarding");
   };
 
+  /** The login screen sends a signed-in phone straight back here, so sign out first. */
+  const switchAccount = async () => {
+    setSwitching(true);
+    const result = await logOut();
+    setSwitching(false);
+    if (result === null) router.push("/login");
+  };
+
   const canContinue = step === 0 ? name.trim().length > 0 : step === 2 ? apps.length > 0 : true;
 
   return (
@@ -104,11 +118,11 @@ export default function Onboarding() {
             <PixelIcon name="chevronRight" size={24} />
           </span>
         </button>
-        <div className={styles.progress} aria-label={`Step ${step + 1} of ${STEPS}`}>
+        <div className={styles.progress} aria-label={`Step ${step + 1} of ${steps}`}>
           <motion.div
             className={styles.progressFill}
             initial={false}
-            animate={{ width: `${((step + 1) / STEPS) * 100}%` }}
+            animate={{ width: `${Math.min(1, (step + 1) / steps) * 100}%` }}
             transition={{ type: "spring", stiffness: 200, damping: 30 }}
           />
         </div>
@@ -140,10 +154,23 @@ export default function Onboarding() {
                   autoFocus
                   onKeyDown={(e) => e.key === "Enter" && canContinue && go(1)}
                 />
-                {accountsEnabled && (
-                  <button className={styles.haveAccount} onClick={() => router.push("/login")}>
-                    I already have an account
-                  </button>
+                {account.status === "signedIn" ? (
+                  <p className={styles.signedInAs}>
+                    Logged in as <b>{account.email}</b>
+                    <button className={styles.haveAccount} disabled={switching} onClick={switchAccount}>
+                      {switching ? "Logging out..." : "Use another account"}
+                    </button>
+                  </p>
+                ) : (
+                  accountsEnabled && (
+                    <button
+                      className={styles.haveAccount}
+                      disabled={account.status === "loading"}
+                      onClick={() => router.push("/login")}
+                    >
+                      I already have an account
+                    </button>
+                  )
                 )}
               </>
             )}
@@ -258,7 +285,7 @@ export default function Onboarding() {
               Not now
             </Button>
           </div>
-        ) : step < STEPS - 1 ? (
+        ) : step < steps - 1 ? (
           <Button full disabled={!canContinue} onClick={() => go(1)}>
             Continue
           </Button>

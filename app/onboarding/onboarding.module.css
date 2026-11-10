@@ -215,6 +215,31 @@
   color: var(--muted);
 }
 
+.haveAccount:disabled {
+  opacity: 0.4;
+}
+
+.signedInAs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.signedInAs b {
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.signedInAs .haveAccount {
+  margin-top: 0;
+}
+
 .error {
   font-size: 14px;
   line-height: 1.45;
