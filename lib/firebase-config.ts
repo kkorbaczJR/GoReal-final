@@ -7,10 +7,10 @@
  * (`npm run accounts:emulators`), with a made-up `demo-` project that never reaches Google.
  */
 const PROJECT = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  appId: "",
+  apiKey: "AIzaSyAsp7ux6V6eV0t7T9Pa3KugqcAts69lZMQ",
+  authDomain: "goreal-40ba2.firebaseapp.com",
+  projectId: "goreal-40ba2",
+  appId: "1:408689011746:web:b64aab4797ed1ead81ee7b",
 };
 
 export const EMULATOR_HOST = process.env.NEXT_PUBLIC_FIREBASE_EMULATOR ?? "";
