@@ -12,7 +12,8 @@
     "android:apk": "node scripts/android/build.mjs --apk",
     "accounts:emulators": "npx --yes firebase-tools@15.35.0 emulators:start --only auth,firestore --project demo-goreal",
     "accounts:dev": "NEXT_PUBLIC_FIREBASE_EMULATOR=127.0.0.1 next dev -p 3000 -H 0.0.0.0",
-    "accounts:testers": "node scripts/accounts/create-testers.mjs"
+    "accounts:testers": "node scripts/accounts/create-testers.mjs",
+    "pwa:icons": "node scripts/pwa/icons.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",
