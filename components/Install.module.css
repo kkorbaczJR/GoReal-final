@@ -2,7 +2,6 @@
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  margin-top: 28px;
   padding: 16px 16px 12px;
   border-radius: var(--radius-l);
   background: var(--card);

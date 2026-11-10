@@ -46,12 +46,21 @@ Other commands:
 | `npm run accounts:emulators` | Starts pretend Firebase servers on your computer for testing accounts (needs Java) |
 | `npm run accounts:dev` | Runs the app against those pretend servers |
 | `npm run accounts:testers` | Creates test accounts with lots of coins (see "Accounts") |
+| `npm run pwa:icons` | Redraws the app icons in `public/icons` from `app/icon.svg` |
 
 In development mode the break-length picker also has a **1 minute** option, so you can try a whole break without waiting. The published version does not have it.
 
 ## The website
 
-The link at the top is the real app, published automatically with GitHub Pages. Every time something is merged into `main`, `.github/workflows/pages.yml` builds the app as plain files and publishes them, so the site is always the newest version. Progress is saved in each visitor's own browser, and also in their account once they sign up (see "Accounts"). On a phone, "Add to Home Screen" turns it into an app icon.
+The link at the top is the real app, published automatically with GitHub Pages. Every time something is merged into `main`, `.github/workflows/pages.yml` builds the app as plain files and publishes them, so the site is always the newest version. Progress is saved in each visitor's own browser, and also in their account once they sign up (see "Accounts").
+
+### Install and offline
+
+GoReal is a PWA (progressive web app): you can put it on the home screen and it then opens full screen like an app, with its own icon.
+- **Install.** Today shows a "Put GoReal on your home screen" card until it is installed (or you tap Not now); You, **Install app** stays available. Chrome and Edge install it with one tap. On iPhone, and in Android browsers without the one-tap install, a sheet shows the Share or menu steps. Inside Instagram, TikTok and similar apps, which cannot install, it explains how to open the page in the browser first. Once installed, the card and the row disappear.
+- **Offline.** The first visit saves a copy of the whole site on the phone (about 2.6 MB), so from then on GoReal opens and works without internet. Accounts catch up when the connection is back.
+- **Updates.** A new version downloads in the background. A "New version ready" banner offers Refresh (never during a break, since reloading would end it). Tap Later and it applies the next time GoReal is fully closed and opened again.
+- **How it works.** `public/sw.js` is the service worker. After the Pages build, `scripts/pwa/precache.mjs` writes the list of every file and a version made from their contents into `out/sw.js`; a changed version is what tells phones there is an update. In development the list stays empty, so nothing is kept and you always see your latest code. `components/PwaHost.tsx` registers the worker and shows the banner, `lib/install.ts` and `components/Install.tsx` do the install card and steps. The app icons in `public/icons/` come from `app/icon.svg` (`npm run pwa:icons`).
 
 The site lives under `/GoReal-final/` instead of the root of a domain, so its build uses `GOREAL_TARGET=pages` and `NEXT_PUBLIC_BASE_PATH=/GoReal-final` (see `next.config.ts` and `lib/base.ts`). To try that build yourself, run `npx next build` with those two set and serve the `out` folder under that path. GitHub Pages must be set to **GitHub Actions** under Settings, Pages (it already is).
 
@@ -139,6 +148,7 @@ Rilo can wear one hat, one extra and one scene at the same time. Tap an item to 
 - **Achievements**: 12 badges, for example "First break", "Month strong" (30 day streak), "Cool save" (a freeze saved your streak) and "Collector" (own 5 shop items).
 - **Account**: sign up or log in, or, when signed in, your email, whether everything is saved, Log out and Delete account (see "Accounts").
 - **Reminders**: a row that opens the notification settings (see below).
+- **Install app** (until it is installed): put GoReal on the home screen (see "Install and offline").
 - **Phone time** (Android app only): set up or check measured phone time.
 - **Start over** deletes everything on this phone (and in your account, when signed in) and goes back to the onboarding.
 
@@ -207,13 +217,14 @@ app/
     reminders/          notification settings, an example day and a simulator
     phone/              measured phone time (Android): set it up, or see today, the current session and each app
     account/            your account: saved or not, verify email, log out, delete
-  manifest.ts, icon.svg, apple-icon.tsx   settings for "Add to Home Screen"
+  manifest.ts, icon.svg   settings for "Add to Home Screen" (the PNG icons are in public/icons)
 android/                the Android app project (Capacitor). Icons are in android/app/src/main/res
   .../PhoneUsagePlugin.java   reads Android's usage access for the picked apps only
 capacitor.config.ts     the Android app's name, id and where the web files are
 scripts/android/        builds the web files for the app and the APK (`npm run android:apk`)
 .github/workflows/      builds the APK for every push, and publishes the website when `main` changes
-public/sw.js            service worker: shows notifications and opens the app when you tap one
+public/sw.js            service worker: keeps the offline copy, shows notifications and opens the app when you tap one
+scripts/pwa/            the offline file list for the built site, and the app icons (`npm run pwa:icons`)
 scripts/notifications/  scenario tests for the trigger engine, usage, goals, colors and account sync (`npm run test:notifications`)
 scripts/accounts/       creates the test accounts (`npm run accounts:testers`)
 firebase.json, firestore.rules   the emulators' settings, and who may read and write saved progress
@@ -235,12 +246,15 @@ components/
   PhoneTracker.tsx      reads measured phone time on open, on return and every minute (Android app)
   AuthScreen.tsx        log in, sign up and reset password, with Continue with Google
   AccountSync.tsx       signs back in when the app opens and keeps the account's copy up to date
+  PwaHost.tsx           registers the service worker and shows "New version ready"
+  Install.tsx           the "Put GoReal on your home screen" card and the install steps
   TabBar.tsx, Button.tsx, Sheet.tsx (bottom pop-up), StatPills.tsx (streak and coins)
 lib/
   store.ts              everything the app remembers, and the actions that change it
   account.ts            accounts: sign up, log in, Google, log out, delete, and syncing progress with Firebase
   sync-rules.ts         which side wins when the phone and the account differ, and the sign-in error texts (pure)
   firebase-config.ts    which Firebase project holds the accounts (empty means accounts are off)
+  install.ts            how this phone can install GoReal (one tap, Share steps, in-app browser) and the Not now choice
   notifications/
     types.ts            kinds, categories, settings, limits (4 nudges a day, 30 minutes apart) and small helpers
     copy.ts             all the notification text and how a variant is picked

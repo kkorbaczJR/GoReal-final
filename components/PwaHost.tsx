@@ -86,7 +86,7 @@ export default function PwaHost() {
             transition={{ type: "spring", stiffness: 420, damping: 36 }}
           >
             <div className={styles.text}>
-              <strong>New version of GoReal</strong>
+              <strong>New version ready</strong>
               <span>Refresh to get it.</span>
             </div>
             <Button size="small" variant="ghost" className={styles.later} onClick={() => setLater(true)}>

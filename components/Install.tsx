@@ -34,7 +34,7 @@ const STEPS: Partial<Record<InstallWay, { title: string; steps: Step[]; after?: 
     steps: [
       { icon: "menuDots", text: <>This page is open inside another app. Tap its <b>menu</b> (often ... at the top).</> },
       { icon: "share", text: <>Choose <b>Open in browser</b> (or <b>Open in Safari</b>).</> },
-      { icon: "addBox", text: <>Come back to this screen there to add GoReal to your home screen.</> },
+      { icon: "addBox", text: <>Then add GoReal to your home screen from there.</> },
     ],
   },
 };
