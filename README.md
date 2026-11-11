@@ -122,6 +122,7 @@ In the Android app GoReal can measure your phone time instead of you typing it i
 - A big ring shows how long the break will be. Pick 5, 10, 15, 25, 45 or 60 minutes and tap **Start break**.
 - The screen turns black ("break mode"). Rilo sleeps, a countdown runs, and your off-limits apps are listed.
 - **If you leave GoReal for more than 10 seconds, the break ends early** and gives no coins. To give up on purpose, you have to press and hold the button, so it never happens by accident.
+- Opening GoReal in a second browser tab while a break is running does not end it or leave a blank screen. The second tab joins the same break.
 - The app asks the phone to keep the screen on during a break, so the phone does not lock itself.
 - When a finished break makes the day count, a full-screen "day streak!" moment shows a pixel flame, your streak number and the last 7 days.
 - At the top you always see your streak (flame) and coins. Tap the flame, or the **Streak** row in the Today card, to open the full streak screen: a big pixel flame, your streak number, the last 7 days, your best streak and your goal.
@@ -150,7 +151,7 @@ Rilo can wear one hat, one extra and one scene at the same time. Tap an item to 
 - **Reminders**: a row that opens the notification settings (see below).
 - **Install app** (until it is installed): put GoReal on the home screen (see "Install and offline").
 - **Phone time** (Android app only): set up or check measured phone time.
-- **Start over** deletes everything on this phone (and in your account, when signed in) and goes back to the onboarding.
+- **Start over** deletes everything on this phone and goes back to the onboarding. Your account keeps its copy, so logging in brings it back. Delete account (You, Account) removes the account too.
 
 ### 5. Notifications
 Nothing is sent at a set time of day. Rilo only speaks up when something happens: you have been on your phone for a long time without a pause, you are close to your limit or over it, you are scrolling late and today does not count yet, or something changed in GoReal (a break ended, a freeze saved your streak, you can afford something new). Notifications show up as a banner at the top of the app, in the **bell** next to the greeting on Today (an orange dot means something is unread), and as a system notification when GoReal is in the background and you allowed it.
@@ -194,7 +195,7 @@ Phone use only counts the apps you picked in onboarding.
 | Rule | Detail |
 | --- | --- |
 | Coins | Each minute of a **finished** break gives 1 coin, plus a 20% finish bonus (a 25 minute break pays 30). Short and long breaks pay the same per minute. |
-| Welcome gift | Every new user gets **100 coins** once, when onboarding ends. It is given only when onboarding ends (never added on top of existing coins, and "Start over" wipes everything first). It does not trigger a shop tip. |
+| Welcome gift | Every new user gets **100 coins** once, when onboarding ends. It is given only when onboarding ends (never added on top of existing coins, and "Start over" wipes this phone first). It does not trigger a shop tip. |
 | Quitting | A break that ends early gives nothing. |
 | Streak | A day counts if you **stayed under your phone limit** (the time you logged, or measured in the Android app) **or** reached your **daily break goal** (30 minutes unless you change it). Phone time counts once the day is over (it only goes up during a day), the break goal counts the moment you reach it. Today shows "On track" while you are under the limit. |
 | Goals | Every day keeps the goals it started with. A change reaches today only while today is untouched, or when it is stricter and today does not count yet. Otherwise it starts tomorrow. |

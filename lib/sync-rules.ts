@@ -24,9 +24,19 @@ export type SyncStep = "push" | "pull" | "none";
  * - Cloud unchanged since we last saw it: push if we have unsaved changes.
  * - Cloud changed on another device: take it, unless this phone also changed later.
  */
-export function syncStep(meta: SyncMeta | null, uid: string, cloud: CloudInfo): SyncStep {
+/**
+ * `onboarded`: this phone and the account. A phone that has not finished onboarding must never overwrite
+ * an account that already has progress (Start over, or logging in from the first onboarding step).
+ */
+export function syncStep(
+  meta: SyncMeta | null,
+  uid: string,
+  cloud: CloudInfo,
+  onboarded?: { local: boolean; cloud: boolean },
+): SyncStep {
   const known = meta !== null && meta.uid === uid;
   if (!cloud) return "push";
+  if (onboarded && !onboarded.local && onboarded.cloud) return "pull";
   if (!known) return "pull";
   if (cloud.rev === meta.syncedRev) return meta.changedAt === null ? "none" : "push";
   if (meta.changedAt !== null && meta.changedAt > cloud.rev) return "push";
