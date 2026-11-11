@@ -4,12 +4,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { onBack } from "@/lib/back";
 import { formatClock } from "@/lib/date";
-import { LEAVE_GRACE_SECONDS, rewardForBreak } from "@/lib/rules";
+import { LEAVE_GRACE_SECONDS, rewardForBreak, streakStatus } from "@/lib/rules";
 import { finishBreak, markBreakShown, quitBreak, type GoRealState } from "@/lib/store";
 import CountUp from "./CountUp";
 import Button from "./Button";
 import Mascot from "./Mascot";
 import { PixelIcon } from "./PixelIcon";
+import ShareSheet from "./ShareSheet";
 import StreakScreen from "./StreakScreen";
 import TimerRing from "./TimerRing";
 import styles from "./BreakOverlay.module.css";
@@ -48,6 +49,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
   const [tip, setTip] = useState(0);
   const [hold, setHold] = useState(false);
   const [dayJustCounted, setDayJustCounted] = useState(false);
+  const [share, setShare] = useState(false);
   const hiddenAt = useRef<number | null>(null);
   const ended = useRef(false);
 
@@ -245,9 +247,14 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
                 </RewardPill>
               </div>
             </div>
-            <Button full onClick={() => (dayJustCounted ? setOutcome({ kind: "streak" }) : onClose())}>
-              Nice!
-            </Button>
+            <div className={styles.actions}>
+              <Button variant="secondary" full onClick={() => setShare(true)} aria-label="Share your streak">
+                Share
+              </Button>
+              <Button full onClick={() => (dayJustCounted ? setOutcome({ kind: "streak" }) : onClose())}>
+                Nice!
+              </Button>
+            </div>
           </motion.div>
         )}
 
@@ -278,6 +285,12 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
           </motion.div>
         )}
       </AnimatePresence>
+      <ShareSheet
+        open={share}
+        onClose={() => setShare(false)}
+        streak={streakStatus(state.days, state).count}
+        outfit={{ outfit: state.outfit, face: state.face, neck: state.neck, back: state.back }}
+      />
     </motion.div>
   );
 }

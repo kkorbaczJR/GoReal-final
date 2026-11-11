@@ -10,6 +10,7 @@ import Mascot from "@/components/Mascot";
 import Sheet from "@/components/Sheet";
 import { PixelIcon } from "@/components/PixelIcon";
 import RiloStage from "@/components/RiloStage";
+import ShareSheet from "@/components/ShareSheet";
 import StreakScreen from "@/components/StreakScreen";
 import { logOut, useAccount } from "@/lib/account";
 import { achievements } from "@/lib/achievements";
@@ -37,6 +38,7 @@ export default function Profile() {
   const router = useRouter();
   const [confirmReset, setConfirmReset] = useState(false);
   const [showStreak, setShowStreak] = useState(false);
+  const [share, setShare] = useState(false);
   const [android] = useState(canMeasure);
   const account = useAccount();
   const install = useInstall();
@@ -107,7 +109,17 @@ export default function Profile() {
         </div>
       </motion.button>
 
+      <Button variant="secondary" full onClick={() => setShare(true)} aria-label="Share your streak">
+        Share streak
+      </Button>
+
       <AnimatePresence>{showStreak && <StreakScreen onClose={() => setShowStreak(false)} />}</AnimatePresence>
+      <ShareSheet
+        open={share}
+        onClose={() => setShare(false)}
+        streak={streak.count}
+        outfit={{ outfit: s.outfit, face: s.face, neck: s.neck, back: s.back }}
+      />
 
       <section className={styles.stats}>
         {stats.map((st) => (
