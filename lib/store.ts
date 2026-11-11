@@ -22,8 +22,10 @@ import {
   isAccent,
   isOwned,
   type Accent,
+  type Back,
   type Background,
   type Face,
+  type Neck,
   type Outfit,
 } from "./shop";
 import { withPhoneMinutes } from "./usage";
@@ -55,6 +57,8 @@ export type GoRealState = {
   /** What Rilo wears on his head. */
   outfit: Outfit | null;
   face: Face | null;
+  neck: Neck | null;
+  back: Back | null;
   background: Background | null;
   title: string;
   /** The colour of buttons and highlights, orange unless another one was bought in the shop. */
@@ -104,6 +108,8 @@ export function initialState(): GoRealState {
     owned: [],
     outfit: null,
     face: null,
+    neck: null,
+    back: null,
     background: null,
     title: DEFAULT_TITLE,
     accent: DEFAULT_ACCENT,
@@ -424,6 +430,10 @@ export function buyOrEquip(itemId: string): boolean {
         return { ...next, outfit: prev.outfit === item.look && owned ? null : item.look };
       case "face":
         return { ...next, face: prev.face === item.look && owned ? null : item.look };
+      case "neck":
+        return { ...next, neck: prev.neck === item.look && owned ? null : item.look };
+      case "back":
+        return { ...next, back: prev.back === item.look && owned ? null : item.look };
       case "background":
         return { ...next, background: prev.background === item.look && owned ? null : item.look };
       case "title":
