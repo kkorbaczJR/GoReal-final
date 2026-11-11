@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { onBack } from "@/lib/back";
 import { addDays, dayKey } from "@/lib/date";
 import { MAX_FREEZES, dayState, goalsFor, longestStreak, streakStatus } from "@/lib/rules";
@@ -9,6 +9,7 @@ import { getState } from "@/lib/store";
 import Button from "./Button";
 import CountUp from "./CountUp";
 import { PixelIcon } from "./PixelIcon";
+import ShareSheet from "./ShareSheet";
 import styles from "./StreakScreen.module.css";
 
 const short = (m: number) => (m < 60 ? `${m}m` : `${m / 60}h`);
@@ -22,6 +23,7 @@ const ENERGETIC = [0.34, 1.56, 0.64, 1] as const;
 export default function StreakScreen({ onClose, celebrate = false }: { onClose: () => void; celebrate?: boolean }) {
   useEffect(() => onBack(onClose), [onClose]);
   const s = getState();
+  const [share, setShare] = useState(false);
   const { count, todayDone, todayOnTrack } = streakStatus(s.days, s);
   const goals = goalsFor(s.days[dayKey()], s);
   const best = longestStreak(s.days, s);
@@ -126,10 +128,21 @@ export default function StreakScreen({ onClose, celebrate = false }: { onClose: 
             </div>
           </motion.div>
         </div>
-        <Button full onClick={onClose}>
-          Continue
-        </Button>
+        <div className={styles.actions}>
+          <Button variant="secondary" full onClick={() => setShare(true)} aria-label="Share your streak">
+            Share
+          </Button>
+          <Button full onClick={onClose}>
+            Continue
+          </Button>
+        </div>
       </div>
+      <ShareSheet
+        open={share}
+        onClose={() => setShare(false)}
+        streak={count}
+        outfit={{ outfit: s.outfit, face: s.face, neck: s.neck, back: s.back, aura: s.aura, buddy: s.buddy }}
+      />
     </motion.div>
   );
 }
