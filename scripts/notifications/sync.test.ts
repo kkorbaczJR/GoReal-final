@@ -35,6 +35,12 @@ test("the cloud copy was deleted (account reset elsewhere): upload again", () =>
   assert.equal(syncStep(meta(), "me", null), "push");
 });
 
+test("a phone that has not finished onboarding never overwrites an account that has progress", () => {
+  assert.equal(syncStep(meta({ changedAt: Date.now() }), "me", { rev: 50 }, { local: false, cloud: true }), "pull");
+  assert.equal(syncStep(null, "me", { rev: 50 }, { local: false, cloud: true }), "pull");
+  assert.equal(syncStep(meta({ changedAt: Date.now() }), "me", { rev: 50 }, { local: true, cloud: true }), "push");
+});
+
 test("a running break, one-off messages and phone measuring stay on this phone", () => {
   const local = { coins: 5, activeBreak: { startedAt: 1, minutes: 15 }, notice: "left-during-break", phoneTracking: true };
   const up = forCloud(local);

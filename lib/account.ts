@@ -2,7 +2,7 @@
 
 import type { FirebaseApp } from "firebase/app";
 import type { Auth, User } from "firebase/auth";
-import type { Firestore } from "firebase/firestore";
+import type { Firestore } from "firebase/firestore/lite";
 import { useSyncExternalStore } from "react";
 import { EMULATOR_HOST, FIREBASE_CONFIG, accountsEnabled } from "./firebase-config";
 import { getState, replaceState, resetEverything, setLocalChangeHook } from "./store";
@@ -26,7 +26,7 @@ type Firebase = {
   auth: Auth;
   db: Firestore;
   a: typeof import("firebase/auth");
-  f: typeof import("firebase/firestore");
+  f: typeof import("firebase/firestore/lite");
 };
 
 const META_KEY = "goreal:account";
@@ -144,7 +144,11 @@ export function preloadAccounts() {
 
 function load(): Promise<Firebase> {
   loading ??= (async () => {
-    const [appMod, a, f] = await Promise.all([import("firebase/app"), import("firebase/auth"), import("firebase/firestore")]);
+    const [appMod, a, f] = await Promise.all([
+      import("firebase/app"),
+      import("firebase/auth"),
+      import("firebase/firestore/lite"),
+    ]);
     const app = appMod.getApps()[0] ?? appMod.initializeApp(FIREBASE_CONFIG);
     const auth = a.getAuth(app);
     const db = f.getFirestore(app);
@@ -239,7 +243,15 @@ async function runSync() {
     const data = snap.exists() ? snap.data() : null;
     const cloud = data && typeof data.rev === "number" && typeof data.data === "string" ? { rev: data.rev, data: data.data } : null;
     const meta = readMeta();
-    const step = syncStep(meta, user.uid, cloud);
+    let cloudOnboarded = false;
+    if (cloud) {
+      try {
+        cloudOnboarded = !!(JSON.parse(cloud.data) as { onboarded?: boolean }).onboarded;
+      } catch {
+        cloudOnboarded = false;
+      }
+    }
+    const step = syncStep(meta, user.uid, cloud, { local: getState().onboarded, cloud: cloudOnboarded });
     if (step === "pull" && cloud) {
       replaceState(fromCloud(JSON.parse(cloud.data) as Record<string, unknown>, getState()));
       writeMeta({ uid: user.uid, syncedRev: cloud.rev, changedAt: null });
@@ -268,6 +280,8 @@ async function runPush() {
   const user = fb?.auth.currentUser;
   const meta = readMeta();
   if (!fb || !user || !meta || meta.uid !== user.uid) return;
+  // Never upload an unfinished onboarding over an account. New accounts get their first save after onboarding.
+  if (!getState().onboarded) return;
   const rev = Math.max(Date.now(), (meta.syncedRev ?? 0) + 1);
   const changedAt = meta.changedAt;
   try {
@@ -388,10 +402,14 @@ export function hasUnsavedChanges(): boolean {
   return readMeta()?.changedAt != null;
 }
 
-/** Saves what's left, signs out and starts this phone fresh. The progress stays in the account. */
-export async function logOut(): Promise<string | null> {
+/**
+ * Saves what's left, signs out and starts this phone fresh. The progress stays in the account.
+ * `save: false` skips the upload (Start over: this phone is empty and must not overwrite the account).
+ */
+export async function logOut(opts?: { save?: boolean }): Promise<string | null> {
   if (!fb) return null;
-  if (hasUnsavedChanges()) {
+  const save = opts?.save !== false && getState().onboarded;
+  if (save && hasUnsavedChanges()) {
     await Promise.race([push(), new Promise((r) => setTimeout(r, LOGOUT_FLUSH_MS))]);
   }
   try {

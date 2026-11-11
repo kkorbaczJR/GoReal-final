@@ -11,7 +11,7 @@ import Sheet from "@/components/Sheet";
 import { PixelIcon } from "@/components/PixelIcon";
 import RiloStage from "@/components/RiloStage";
 import StreakScreen from "@/components/StreakScreen";
-import { useAccount } from "@/lib/account";
+import { logOut, useAccount } from "@/lib/account";
 import { achievements } from "@/lib/achievements";
 import { addDays, dayKey, formatMinutes, weekStart } from "@/lib/date";
 import { canMeasure } from "@/lib/phone";
@@ -223,14 +223,17 @@ export default function Profile() {
           <h2>Start over?</h2>
           <p className={shared.muted}>
             {account.status === "signedIn"
-              ? "This deletes your coins, streak and shop items, on this phone and in your account."
+              ? "This deletes your coins, streak and shop items on this phone. Your account keeps them, so logging in brings them back."
               : "This deletes your coins, streak and shop items on this phone."}
           </p>
           <Button
             full
             onClick={() => {
-              resetEverything();
-              router.replace("/onboarding");
+              void (async () => {
+                if (account.status === "signedIn") await logOut({ save: false });
+                else resetEverything();
+                router.replace("/onboarding");
+              })();
             }}
           >
             Yes, start over
