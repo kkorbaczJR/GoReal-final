@@ -129,10 +129,11 @@ In the Android app GoReal can measure your phone time instead of you typing it i
 - The **Today** card shows your two ways to keep the streak: break minutes so far, and your phone time. On the website, tap the phone-time row to type in today's total from your phone's Screen Time (iPhone) or Digital Wellbeing (Android). In the Android app with measured phone time it fills itself in, and the row opens the Phone time screen.
 
 ### 3. Shop
-Everything is pixel art, in seven groups:
-- **Hats** (26): beanie, bow, headband, cat ears, flower, party hat, antennae, bunny ears, cap, flower crown, pirate bandana, bucket hat, graduation cap, chef hat, headphones, Santa hat, top hat, captain's cap, Einstein, cowboy hat, viking helmet, gas mask, wizard hat, halo, astronaut helmet, crown. 150 to 4000 coins.
-- **Extras** (11): freckles, band-aid, mustache, shades, red bandana (neck), round glasses, eyepatch, star sticker, bow tie, monocle, scarf. 80 to 700 coins. Neck items can be worn with a hat.
-- **Back** (5): mini backpack, sword, angel wings, demon wings, jetpack. 720 to 2600 coins. Worn behind Rilo, together with a hat.
+Everything is pixel art, in eight groups:
+- **Hats** (27): beanie, bow, headband, cat ears, flower, party hat, antennae, bunny ears, cap, flower crown, pirate bandana, bucket hat, graduation cap, chef hat, headphones, Santa hat, top hat, captain's cap, Einstein, cowboy hat, viking helmet, wizard hat, halo, astronaut helmet, King's Crown, Golden Angel Halo, Crown of Flames. 150 to 10 000 coins.
+- **Extras** (12): freckles, band-aid, mustache, shades, red bandana (neck), round glasses, eyepatch, star sticker, bow tie, monocle, scarf, golden monocle. 80 to 4500 coins. Neck items can be worn with a hat.
+- **Back** (7): mini backpack, sword, angel wings, demon wings, jetpack, royal cape, golden wings. 720 to 9000 coins. Worn behind Rilo, together with a hat.
+- **Aura** (3): flaming aura, galaxy ring (orbits Rilo), UFO companion (a tiny saucer that flies around him). 7000 to 12 000 coins. Worn with a hat and a back item.
 - **Scenes** (12): pixel backgrounds behind Rilo, from graph paper and a picnic blanket to a beach, a pine forest, city lights, a starry night, outer space and "orange pop". 200 to 3000 coins.
 - **Titles** (21): a name shown under Rilo. Fifteen cost 150 to 3000 coins. Rookie is free, and five more unlock for free at 1 hour, 5 hours, about 16 hours, about 41 hours and 100 hours of total breaks.
 - **Colors** (7): the orange of the app can be changed to any color of the rainbow: red, orange (free, the one you start with), yellow, green, blue, indigo and violet. Each of the other six costs 100 coins, and once you own a color you can switch between your colors for free. It changes Rilo and the accent (buttons, switches, the timer ring, progress bars, the streak flame, coins and highlights). The black and white and the app icon stay as they are. Tapping a color in the shop shows it on the whole app first, and it goes back if you do not buy it. Yellow uses dark text on its buttons so they stay readable.
@@ -140,7 +141,9 @@ Everything is pixel art, in seven groups:
 
 Prices are high on purpose. At the default 30 minute goal a day earns about 36 coins, so a cheap item takes a few days and the crown takes months.
 
-Rilo can wear one hat, one extra, a neck item, a back item and one scene at the same time. Tap an item to preview it on Rilo at the top, then buy it, wear it, or take it off.
+Rilo can wear one hat, one extra, a neck item, a back item, one aura or companion and one scene at the same time. Tap an item to preview it on Rilo at the top, then buy it, wear it, or take it off.
+
+A short visual spec for making other pages in this look (type, colour, pixels, cards) lives in [`docs/style.md`](docs/style.md).
 
 ### 4. You (profile)
 - Your Rilo in front of his scene, with your name and title.

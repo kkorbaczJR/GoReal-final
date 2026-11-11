@@ -174,7 +174,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
                 stroke={6}
                 track="rgba(255, 255, 255,0.1)"
               >
-                <Mascot mood="sleeping" size={124} onDark outfit={state.outfit} face={state.face} neck={state.neck} back={state.back} />
+                <Mascot mood="sleeping" size={124} onDark outfit={state.outfit} face={state.face} neck={state.neck} back={state.back} aura={state.aura} buddy={state.buddy} />
                 <div className={styles.clock}>{formatClock(leftMs / 1000)}</div>
               </TimerRing>
 
@@ -233,7 +233,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
           >
             <div />
             <div className={styles.center}>
-              <Mascot mood="proud" size={170} outfit={state.outfit} face={state.face} neck={state.neck} back={state.back} />
+              <Mascot mood="proud" size={170} outfit={state.outfit} face={state.face} neck={state.neck} back={state.back} aura={state.aura} buddy={state.buddy} />
               <h1 className={styles.resultTitle}>You did it!</h1>
               <p className={styles.resultSub}>{outcome.minutes === 1 ? "1 minute" : `${outcome.minutes} minutes`} in the real world.</p>
               <div className={styles.rewards}>
@@ -262,7 +262,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
           >
             <div />
             <div className={styles.center}>
-              <Mascot mood={outcome.reason === "elsewhere" ? "happy" : "sad"} size={160} outfit={state.outfit} face={state.face} neck={state.neck} back={state.back} />
+              <Mascot mood={outcome.reason === "elsewhere" ? "happy" : "sad"} size={160} outfit={state.outfit} face={state.face} neck={state.neck} back={state.back} aura={state.aura} buddy={state.buddy} />
               <h1 className={styles.resultTitle}>{outcome.reason === "elsewhere" ? "Break over" : "Break ended early"}</h1>
               <p className={styles.resultSub}>
                 {outcome.reason === "left"

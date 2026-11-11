@@ -23,12 +23,24 @@ export type Outfit =
   | "santa"
   | "headband"
   | "bucket"
-  | "gasmask"
-  | "astronaut";
+  | "astronaut"
+  | "goldenHalo"
+  | "flameCrown";
 
 export type Neck = "redBandana";
 
-export type Back = "angelWings" | "demonWings" | "backpack" | "jetpack" | "sword";
+export type Back =
+  | "angelWings"
+  | "demonWings"
+  | "backpack"
+  | "jetpack"
+  | "sword"
+  | "royalCape"
+  | "goldenWings";
+
+export type Aura = "flaming" | "galaxy";
+
+export type Buddy = "ufo";
 
 export type Face =
   | "shades"
@@ -40,6 +52,7 @@ export type Face =
   | "freckles"
   | "eyepatch"
   | "monocle"
+  | "goldenMonocle"
   | "star";
 
 export type Background =
@@ -58,13 +71,15 @@ export type Background =
 
 export type Accent = "red" | "orange" | "yellow" | "green" | "blue" | "indigo" | "violet";
 
-export type Category = "hat" | "face" | "background" | "back" | "title" | "color" | "streak";
+export type Category = "hat" | "face" | "background" | "back" | "aura" | "title" | "color" | "streak";
 
 export type ShopItem =
   | { id: string; kind: "hat"; look: Outfit; name: string; price: number }
   | { id: string; kind: "face"; look: Face; name: string; price: number }
   | { id: string; kind: "neck"; look: Neck; name: string; price: number }
   | { id: string; kind: "back"; look: Back; name: string; price: number }
+  | { id: string; kind: "aura"; look: Aura; name: string; price: number }
+  | { id: string; kind: "buddy"; look: Buddy; name: string; price: number }
   | { id: string; kind: "background"; look: Background; name: string; price: number }
   | { id: string; kind: "title"; name: string; price: number; unlockAtMinutes?: number }
   | { id: string; kind: "color"; look: Accent; name: string; price: number }
@@ -136,11 +151,12 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: "hat-einstein", kind: "hat", look: "einstein", name: "Einstein", price: 1200 },
   { id: "hat-cowboy", kind: "hat", look: "cowboy", name: "Cowboy hat", price: 1300 },
   { id: "hat-viking", kind: "hat", look: "viking", name: "Viking helmet", price: 1400 },
-  { id: "hat-gasmask", kind: "hat", look: "gasmask", name: "Gas mask", price: 1650 },
   { id: "hat-wizard", kind: "hat", look: "wizard", name: "Wizard hat", price: 1800 },
   { id: "hat-halo", kind: "hat", look: "halo", name: "Tiny halo", price: 2500 },
   { id: "hat-astronaut", kind: "hat", look: "astronaut", name: "Astronaut helmet", price: 3200 },
-  { id: "outfit-crown", kind: "hat", look: "crown", name: "Crown", price: 4000 },
+  { id: "outfit-crown", kind: "hat", look: "crown", name: "King's Crown", price: 4000 },
+  { id: "hat-golden-halo", kind: "hat", look: "goldenHalo", name: "Golden Angel Halo", price: 5500 },
+  { id: "hat-flame-crown", kind: "hat", look: "flameCrown", name: "Crown of Flames", price: 10000 },
 
   { id: "face-freckles", kind: "face", look: "freckles", name: "Freckles", price: 80 },
   { id: "face-bandaid", kind: "face", look: "bandaid", name: "Band-aid", price: 100 },
@@ -153,12 +169,19 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: "face-bowtie", kind: "face", look: "bowtie", name: "Bow tie", price: 500 },
   { id: "face-monocle", kind: "face", look: "monocle", name: "Monocle", price: 600 },
   { id: "face-scarf", kind: "face", look: "scarf", name: "Warm scarf", price: 700 },
+  { id: "face-golden-monocle", kind: "face", look: "goldenMonocle", name: "Golden Monocle", price: 4500 },
 
   { id: "back-backpack", kind: "back", look: "backpack", name: "Mini backpack", price: 720 },
   { id: "back-sword", kind: "back", look: "sword", name: "Sword", price: 1100 },
   { id: "back-angel", kind: "back", look: "angelWings", name: "Angel wings", price: 1500 },
   { id: "back-demon", kind: "back", look: "demonWings", name: "Demon wings", price: 1700 },
   { id: "back-jetpack", kind: "back", look: "jetpack", name: "Jetpack", price: 2600 },
+  { id: "back-cape", kind: "back", look: "royalCape", name: "Royal Cape", price: 6000 },
+  { id: "back-golden-wings", kind: "back", look: "goldenWings", name: "Golden Wings", price: 9000 },
+
+  { id: "aura-flaming", kind: "aura", look: "flaming", name: "Flaming Aura", price: 7000 },
+  { id: "aura-galaxy", kind: "aura", look: "galaxy", name: "Galaxy Ring", price: 8000 },
+  { id: "buddy-ufo", kind: "buddy", look: "ufo", name: "UFO Companion", price: 12000 },
 
   { id: "bg-grid", kind: "background", look: "grid", name: "Graph paper", price: 200 },
   { id: "bg-checker", kind: "background", look: "checker", name: "Picnic", price: 300 },
