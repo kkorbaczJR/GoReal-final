@@ -2,23 +2,29 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { onBack } from "@/lib/back";
-import { pickShareLine, streakLabel } from "@/lib/shareCopy";
+import { streakLabel } from "@/lib/shareCopy";
 import { generateShareImage, shareImage, type ShareFormat, type ShareOutfit } from "@/lib/shareCard";
+import type { ShareDetails } from "@/lib/shareStreak";
 import Button from "./Button";
 import styles from "./ShareSheet.module.css";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  streak: number;
+  details: ShareDetails;
   outfit: ShareOutfit;
 };
 
-type Draft = { id: number; line: string; format: ShareFormat };
+type Draft = { id: number; format: ShareFormat };
 type Drawn = { key: string; blob: Blob; url: string };
 
+function pictureKey(details: ShareDetails) {
+  const week = details.week.map((day) => `${day.label}${day.mark}${day.today ? "t" : ""}`).join("");
+  return `${details.count}|${details.line}|${details.bestLabel}|${details.limitLabel}|${details.freezeLabel}|${week}`;
+}
+
 /** Preview of the streak card, then the device share sheet or a download. */
-export default function ShareSheet({ open, onClose, streak, outfit }: Props) {
+export default function ShareSheet({ open, onClose, details, outfit }: Props) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<string | null>(null);
@@ -28,10 +34,19 @@ export default function ShareSheet({ open, onClose, streak, outfit }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
+  const cardKey = pictureKey(details);
+  const [picture, setPicture] = useState(details);
+  const [pictureKeySeen, setPictureKeySeen] = useState(cardKey);
+  if (cardKey !== pictureKeySeen) {
+    setPictureKeySeen(cardKey);
+    setPicture(details);
+  }
+
   if (open !== seenOpen) {
     setSeenOpen(open);
     if (open) {
-      setDraft({ id: (draft?.id ?? 0) + 1, line: pickShareLine(), format: "story" });
+      setDraft({ id: (draft?.id ?? 0) + 1, format: "story" });
+      setPicture(details);
       setDrawn(null);
       setError(null);
       setToast(null);
@@ -56,10 +71,9 @@ export default function ShareSheet({ open, onClose, streak, outfit }: Props) {
     // flushSync cannot run inside this effect, so the draw starts on the next turn.
     const timer = window.setTimeout(() => {
       generateShareImage({
-        streak,
+        details: picture,
         outfit: { outfit: hat, face, neck, back, aura, buddy },
         format: draft.format,
-        line: draft.line,
       })
         .then((blob) => {
           if (cancel) return;
@@ -77,7 +91,7 @@ export default function ShareSheet({ open, onClose, streak, outfit }: Props) {
       cancel = true;
       window.clearTimeout(timer);
     };
-  }, [draft, streak, hat, face, neck, back, aura, buddy]);
+  }, [draft, picture, hat, face, neck, back, aura, buddy]);
 
   useEffect(() => {
     return () => {
@@ -131,7 +145,7 @@ export default function ShareSheet({ open, onClose, streak, outfit }: Props) {
   const share = async () => {
     if (!ready) return;
     setToast(null);
-    const result = await shareImage(ready.blob, `${streakLabel(streak)}. ${draft.line}`);
+    const result = await shareImage(ready.blob, `${streakLabel(picture.count)}. ${picture.line}`);
     if (result.kind === "cancelled") return;
     if (result.kind === "shared") {
       onClose();
@@ -167,7 +181,7 @@ export default function ShareSheet({ open, onClose, streak, outfit }: Props) {
         {ready ? (
           // The card is a blob we just drew. next/image cannot load that.
           // eslint-disable-next-line @next/next/no-img-element
-          <img className={styles.preview} src={ready.url} alt={`${streakLabel(streak)}. ${draft.line}`} />
+          <img className={styles.preview} src={ready.url} alt={`${streakLabel(picture.count)}. ${picture.line}`} />
         ) : (
           <div className={styles.placeholder}>{error ?? "Drawing your card..."}</div>
         )}
