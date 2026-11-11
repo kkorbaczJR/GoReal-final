@@ -28,11 +28,18 @@
   padding: 3px;
   border-radius: var(--radius-m);
   background: var(--soft);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tab {
   position: relative;
-  flex: 1;
+  flex: 1 0 auto;
+  min-width: 56px;
   height: 58px;
   border-radius: 13px;
   font-size: 12px;
@@ -69,7 +76,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
   margin-bottom: 4px;
 }
 

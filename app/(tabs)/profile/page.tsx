@@ -65,6 +65,8 @@ export default function Profile() {
           mood={streak.todayDone ? "proud" : "happy"}
           outfit={s.outfit}
           face={s.face}
+          neck={s.neck}
+          back={s.back}
           background={s.background}
           size={116}
           height={170}
