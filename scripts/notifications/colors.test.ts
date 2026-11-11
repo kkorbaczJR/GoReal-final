@@ -97,7 +97,6 @@ test("new hats, the neck bandana and back items are in the shop", () => {
     ["hat-santa", "hat"],
     ["hat-headband", "hat"],
     ["hat-bucket", "hat"],
-    ["hat-gasmask", "hat"],
     ["hat-astronaut", "hat"],
     ["neck-bandana", "neck"],
     ["back-angel", "back"],
@@ -105,9 +104,21 @@ test("new hats, the neck bandana and back items are in the shop", () => {
     ["back-backpack", "back"],
     ["back-jetpack", "back"],
     ["back-sword", "back"],
+    ["outfit-crown", "hat"],
+    ["hat-golden-halo", "hat"],
+    ["hat-flame-crown", "hat"],
+    ["face-golden-monocle", "face"],
+    ["back-cape", "back"],
+    ["back-golden-wings", "back"],
+    ["aura-flaming", "aura"],
+    ["aura-galaxy", "aura"],
+    ["buddy-ufo", "buddy"],
   ] as const) {
     assert.equal(id(n)?.kind, kind, n);
   }
-  assert.equal(SHOP_ITEMS.filter((i) => i.kind === "hat").length, 26);
-  assert.equal(SHOP_ITEMS.filter((i) => i.kind === "back").length, 5);
+  assert.equal(itemById("outfit-crown")?.name, "King's Crown");
+  assert.equal(itemById("buddy-ufo")?.price, 12000);
+  assert.equal(itemById("hat-gasmask"), undefined);
+  assert.equal(SHOP_ITEMS.filter((i) => i.kind === "hat").length, 27);
+  assert.equal(SHOP_ITEMS.filter((i) => i.kind === "back").length, 7);
 });

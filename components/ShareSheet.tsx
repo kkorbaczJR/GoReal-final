@@ -44,6 +44,8 @@ export default function ShareSheet({ open, onClose, streak, outfit }: Props) {
   const face = outfit.face;
   const neck = outfit.neck;
   const back = outfit.back;
+  const aura = outfit.aura;
+  const buddy = outfit.buddy;
   const key = draft ? `${draft.id}:${draft.format}` : "";
   const ready = drawn && drawn.key === key ? drawn : null;
 
@@ -55,7 +57,7 @@ export default function ShareSheet({ open, onClose, streak, outfit }: Props) {
     const timer = window.setTimeout(() => {
       generateShareImage({
         streak,
-        outfit: { outfit: hat, face, neck, back },
+        outfit: { outfit: hat, face, neck, back, aura, buddy },
         format: draft.format,
         line: draft.line,
       })
@@ -75,7 +77,7 @@ export default function ShareSheet({ open, onClose, streak, outfit }: Props) {
       cancel = true;
       window.clearTimeout(timer);
     };
-  }, [draft, streak, hat, face, neck, back]);
+  }, [draft, streak, hat, face, neck, back, aura, buddy]);
 
   useEffect(() => {
     return () => {

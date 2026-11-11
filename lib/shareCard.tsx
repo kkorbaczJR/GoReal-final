@@ -4,7 +4,7 @@ import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import Mascot from "@/components/Mascot";
-import type { Back, Face, Neck, Outfit } from "@/lib/shop";
+import type { Aura, Back, Buddy, Face, Neck, Outfit } from "@/lib/shop";
 import { APP_URL, pickShareLine, streakLabel } from "@/lib/shareCopy";
 
 export type ShareFormat = "story" | "square";
@@ -15,6 +15,8 @@ export type ShareOutfit = {
   face: Face | null;
   neck: Neck | null;
   back: Back | null;
+  aura: Aura | null;
+  buddy: Buddy | null;
 };
 
 const STORY = { w: 1080, h: 1920, title: 84, wellY: 210, wellH: 920, number: 148, label: 36, caption: 40, url: 28 };
@@ -60,6 +62,8 @@ function captureRilo(outfit: ShareOutfit): string {
           face: outfit.face,
           neck: outfit.neck,
           back: outfit.back,
+          aura: outfit.aura,
+          buddy: outfit.buddy,
         }),
       );
     });

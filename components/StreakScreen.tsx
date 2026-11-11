@@ -141,7 +141,7 @@ export default function StreakScreen({ onClose, celebrate = false }: { onClose: 
         open={share}
         onClose={() => setShare(false)}
         streak={count}
-        outfit={{ outfit: s.outfit, face: s.face, neck: s.neck, back: s.back }}
+        outfit={{ outfit: s.outfit, face: s.face, neck: s.neck, back: s.back, aura: s.aura, buddy: s.buddy }}
       />
     </motion.div>
   );

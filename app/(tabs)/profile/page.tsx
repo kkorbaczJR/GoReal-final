@@ -69,9 +69,11 @@ export default function Profile() {
           face={s.face}
           neck={s.neck}
           back={s.back}
+          aura={s.aura}
+          buddy={s.buddy}
           background={s.background}
           size={116}
-          height={170}
+          height={190}
         />
         <h1 className={styles.name}>{s.name}</h1>
         <span className={styles.title}>{titleName(s.title)}</span>
@@ -118,7 +120,7 @@ export default function Profile() {
         open={share}
         onClose={() => setShare(false)}
         streak={streak.count}
-        outfit={{ outfit: s.outfit, face: s.face, neck: s.neck, back: s.back }}
+        outfit={{ outfit: s.outfit, face: s.face, neck: s.neck, back: s.back, aura: s.aura, buddy: s.buddy }}
       />
 
       <section className={styles.stats}>

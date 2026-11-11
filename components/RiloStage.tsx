@@ -1,4 +1,4 @@
-import type { Back, Background, Face, Neck, Outfit } from "@/lib/shop";
+import type { Aura, Back, Background, Buddy, Face, Neck, Outfit } from "@/lib/shop";
 import Mascot, { type Mood } from "./Mascot";
 import PixelScene from "./PixelScene";
 import styles from "./RiloStage.module.css";
@@ -9,6 +9,8 @@ export default function RiloStage({
   face,
   neck,
   back,
+  aura,
+  buddy,
   background,
   mood = "happy",
   size = 130,
@@ -19,6 +21,8 @@ export default function RiloStage({
   face: Face | null;
   neck?: Neck | null;
   back?: Back | null;
+  aura?: Aura | null;
+  buddy?: Buddy | null;
   background: Background | null;
   mood?: Mood;
   size?: number;
@@ -29,7 +33,7 @@ export default function RiloStage({
     <div className={`${styles.stage} ${background ? "" : styles.plain}`} style={{ height }}>
       {background && <PixelScene scene={background} className={styles.scene} />}
       <div className={styles.rilo}>
-        <Mascot mood={mood} size={size} outfit={outfit} face={face} neck={neck} back={back} still={still} />
+        <Mascot mood={mood} size={size} outfit={outfit} face={face} neck={neck} back={back} aura={aura} buddy={buddy} still={still} />
       </div>
     </div>
   );
