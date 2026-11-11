@@ -28,7 +28,10 @@ import {
 } from "./shop";
 import { withPhoneMinutes } from "./usage";
 
-/** Everything GoReal remembers. It lives in the phone's browser storage, no account needed. */
+/**
+ * Everything GoReal remembers. It lives in the phone's browser storage, no account needed. With an account
+ * it is also saved there (see `lib/account.ts`).
+ */
 export type GoRealState = {
   version: 1;
   onboarded: boolean;
@@ -74,6 +77,13 @@ export type GoRealState = {
 };
 
 const STORAGE_KEY = "goreal:v1";
+/**
+ * While a break is on screen, its window writes the time here every second. Another GoReal window that opens
+ * meanwhile (a second tab, the installed app next to the browser) sees it and leaves the break running
+ * instead of counting it as left.
+ */
+const BREAK_SHOWN_KEY = "goreal:break-shown";
+const BREAK_SHOWN_FRESH_MS = 4000;
 
 export function initialState(): GoRealState {
   return {
@@ -154,7 +164,7 @@ function settleDay(s: GoRealState, now = new Date()): GoRealState {
 /** Runs once when the app opens: a break that was left open counts as quitting. */
 function settleOnOpen(s: GoRealState): GoRealState {
   let next = s;
-  if (next.activeBreak) {
+  if (next.activeBreak && !breakShownElsewhere()) {
     next = { ...next, activeBreak: null, quitBreaks: next.quitBreaks + 1, notice: "left-during-break" };
   }
   return settleDay(next);
@@ -177,18 +187,46 @@ function migrate(raw: Record<string, unknown>): Partial<GoRealState> {
   return next;
 }
 
-function load(): GoRealState {
-  let loaded = initialState();
+/** The saved state, or null when there is none or storage is broken or blocked. */
+function readSaved(): GoRealState | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) loaded = { ...loaded, ...migrate(JSON.parse(raw)) };
+    return raw ? { ...initialState(), ...migrate(JSON.parse(raw)) } : null;
   } catch {
-    // Broken or blocked storage: start fresh.
+    return null;
   }
+}
+
+/** When the app opens: a break left running means the app was closed during it. */
+function load(): GoRealState {
+  const loaded = readSaved() ?? initialState();
   if (state === null) waitingForPhone = loaded.phoneTracking && canMeasure();
   const settled = settleOnOpen(loaded);
   if (settled !== loaded) persist(settled);
   return settled;
+}
+
+/**
+ * What another GoReal window just saved. Never counts as opening the app: that would end this window's own
+ * break (and leave its break screen empty).
+ */
+function reloadFromOtherWindow(): GoRealState {
+  return settleDay(readSaved() ?? initialState());
+}
+
+function breakShownElsewhere(): boolean {
+  try {
+    return Date.now() - Number(localStorage.getItem(BREAK_SHOWN_KEY) ?? 0) < BREAK_SHOWN_FRESH_MS;
+  } catch {
+    return false;
+  }
+}
+
+/** The break screen calls this every second while it is visible. */
+export function markBreakShown() {
+  try {
+    localStorage.setItem(BREAK_SHOWN_KEY, String(Date.now()));
+  } catch {}
 }
 
 function persist(s: GoRealState) {
@@ -208,7 +246,7 @@ function subscribe(listener: () => void) {
   listeners.add(listener);
   const onStorage = (e: StorageEvent) => {
     if (e.key === STORAGE_KEY) {
-      state = load();
+      state = reloadFromOtherWindow();
       listener();
     }
   };
@@ -241,9 +279,34 @@ export function getState(): GoRealState {
   return getSnapshot();
 }
 
+let onLocalChange: (() => void) | null = null;
+
+/** Called after every change made on this phone (not after `replaceState`), so it can be saved to the account. */
+export function setLocalChangeHook(hook: (() => void) | null) {
+  onLocalChange = hook;
+}
+
 export function update(fn: (s: GoRealState) => GoRealState) {
-  state = fn(getSnapshot());
+  const prev = getSnapshot();
+  state = fn(prev);
   persist(state);
+  listeners.forEach((l) => l());
+  if (state !== prev) onLocalChange?.();
+}
+
+/** Wipe this phone. Does not tell the account (Start over logs out first when signed in). */
+export function resetEverything() {
+  const hook = onLocalChange;
+  onLocalChange = null;
+  update(() => initialState());
+  onLocalChange = hook;
+}
+
+/** Progress downloaded from the account replaces what is on this phone. */
+export function replaceState(saved: Record<string, unknown>) {
+  const next = settleDay({ ...initialState(), ...migrate(saved) });
+  state = next;
+  persist(next);
   listeners.forEach((l) => l());
 }
 
@@ -269,6 +332,7 @@ export function refreshDay() {
 }
 
 export function startBreak(minutes: number) {
+  markBreakShown();
   update((s) => ({ ...s, activeBreak: { startedAt: Date.now(), minutes } }));
 }
 
@@ -278,15 +342,18 @@ export function finishBreak() {
   const { minutes } = s.activeBreak;
   const reward = rewardForBreak(minutes, true);
   const key = dayKey();
-  update((prev) => ({
-    ...prev,
-    activeBreak: null,
-    coins: prev.coins + reward.coins,
-    totalBreakMinutes: prev.totalBreakMinutes + minutes,
-    completedBreaks: prev.completedBreaks + 1,
-    longestBreak: Math.max(prev.longestBreak, minutes),
-    days: { ...prev.days, [key]: { ...dayFor(prev, key), breakMinutes: dayFor(prev, key).breakMinutes + minutes } },
-  }));
+  update((prev) => {
+    if (!prev.activeBreak) return prev;
+    return {
+      ...prev,
+      activeBreak: null,
+      coins: prev.coins + reward.coins,
+      totalBreakMinutes: prev.totalBreakMinutes + minutes,
+      completedBreaks: prev.completedBreaks + 1,
+      longestBreak: Math.max(prev.longestBreak, minutes),
+      days: { ...prev.days, [key]: { ...dayFor(prev, key), breakMinutes: dayFor(prev, key).breakMinutes + minutes } },
+    };
+  });
   return reward;
 }
 
@@ -414,8 +481,4 @@ export function markShown(id: string) {
 
 export function clearInbox() {
   update((s) => ({ ...s, notif: { ...s.notif, inbox: [] } }));
-}
-
-export function resetEverything() {
-  update(() => initialState());
 }

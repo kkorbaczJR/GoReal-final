@@ -59,8 +59,8 @@ export async function showSystem(n: Notif): Promise<boolean> {
   const options: NotificationOptions = {
     body: n.body,
     tag: n.id,
-    icon: `${BASE_PATH}/apple-icon`,
-    badge: `${BASE_PATH}/apple-icon`,
+    icon: `${BASE_PATH}/icons/icon-192.png`,
+    badge: `${BASE_PATH}/icons/icon-192.png`,
     data: { id: n.id, action: n.action },
   };
   try {

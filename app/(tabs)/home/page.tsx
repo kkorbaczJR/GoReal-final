@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import BreakOverlay from "@/components/BreakOverlay";
 import Button from "@/components/Button";
+import { InstallCard } from "@/components/Install";
 import Mascot from "@/components/Mascot";
 import NotificationBell from "@/components/NotificationBell";
 import { PixelIcon } from "@/components/PixelIcon";
@@ -48,6 +49,14 @@ export default function Home() {
   );
 
   const streak = streakStatus(s.days, s);
+
+  // A break still running when this screen opens: it was started in another GoReal window (or this one
+  // reloaded a moment ago). Show it instead of starting another. Set during render (React's
+  // "adjusting state when a prop changes") so the result screen can stay after the break is saved.
+  if (s.activeBreak && !overlay) {
+    setOverlay({ doneBefore: streak.todayDone });
+  }
+
   const today = s.days[dayKey()] ?? { breakMinutes: 0 };
   const goals = goalsFor(today, s);
   const breakProgress = Math.min(1, today.breakMinutes / goals.breakGoal);
@@ -213,6 +222,8 @@ export default function Home() {
           </button>
         </div>
       </section>
+
+      <InstallCard />
 
       <PhoneTimeSheet
         open={phoneSheet}

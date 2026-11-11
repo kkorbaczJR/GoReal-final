@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { onBack } from "@/lib/back";
 import { formatClock } from "@/lib/date";
-import { LEAVE_GRACE_SECONDS } from "@/lib/rules";
-import { finishBreak, quitBreak, type GoRealState } from "@/lib/store";
+import { LEAVE_GRACE_SECONDS, rewardForBreak } from "@/lib/rules";
+import { finishBreak, markBreakShown, quitBreak, type GoRealState } from "@/lib/store";
 import CountUp from "./CountUp";
 import Button from "./Button";
 import Mascot from "./Mascot";
@@ -26,7 +26,7 @@ const TIPS = [
 type Outcome =
   | { kind: "running" }
   | { kind: "done"; coins: number; minutes: number }
-  | { kind: "quit"; reason: "gave-up" | "left" }
+  | { kind: "quit"; reason: "gave-up" | "left" | "elsewhere" }
   | { kind: "streak" };
 
 type Props = {
@@ -40,36 +40,48 @@ type Props = {
 
 /** Full-screen "locked" mode shown while a break runs, plus the result screens. */
 export default function BreakOverlay({ state, onClose, streakDoneBefore, streakDoneAfter }: Props) {
-  const active = state.activeBreak;
+  // Freeze the break this screen is timing. The store may clear it (another window, or finishBreak
+  // itself) before React has switched this screen to "You did it" — without this, the overlay goes blank.
+  const [brk] = useState(() => state.activeBreak);
   const [outcome, setOutcome] = useState<Outcome>({ kind: "running" });
   const [now, setNow] = useState(() => Date.now());
   const [tip, setTip] = useState(0);
   const [hold, setHold] = useState(false);
   const [dayJustCounted, setDayJustCounted] = useState(false);
   const hiddenAt = useRef<number | null>(null);
+  const ended = useRef(false);
+
+  const end = (next: Outcome) => {
+    if (ended.current) return;
+    ended.current = true;
+    setOutcome(next);
+  };
 
   // Back does nothing here: a break ends with its own buttons, not by accident.
   useEffect(() => onBack(() => {}), []);
 
-  const endsAt = active ? active.startedAt + active.minutes * 60_000 : 0;
-  const totalMs = active ? active.minutes * 60_000 : 1;
+  const endsAt = brk ? brk.startedAt + brk.minutes * 60_000 : 0;
+  const totalMs = brk ? brk.minutes * 60_000 : 1;
   const leftMs = Math.max(0, endsAt - now);
 
-  // Tick the clock and finish when time is up.
+  // Tick the clock and finish when time is up. Coins are computed here so a second tick, or the store
+  // already having cleared the break, cannot show "+0".
   useEffect(() => {
-    if (outcome.kind !== "running" || !active) return;
+    if (outcome.kind !== "running" || !brk) return;
     const id = setInterval(() => {
       const t = Date.now();
       setNow(t);
-      if (t >= endsAt && hiddenAt.current === null) {
-        const minutes = active.minutes;
-        const reward = finishBreak();
+      if (t >= endsAt && hiddenAt.current === null && !ended.current) {
+        const minutes = brk.minutes;
+        const coins = rewardForBreak(minutes, true).coins;
+        ended.current = true;
+        finishBreak();
         setDayJustCounted(!streakDoneBefore && streakDoneAfter());
-        setOutcome({ kind: "done", minutes, ...reward });
+        setOutcome({ kind: "done", minutes, coins });
       }
     }, 250);
     return () => clearInterval(id);
-  }, [outcome.kind, active, endsAt, streakDoneBefore, streakDoneAfter]);
+  }, [outcome.kind, brk, endsAt, streakDoneBefore, streakDoneAfter]);
 
   // Leaving the app breaks the session (a web app cannot block other apps, so this is how we "lock").
   useEffect(() => {
@@ -81,6 +93,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
         const away = (Date.now() - hiddenAt.current) / 1000;
         hiddenAt.current = null;
         if (away > LEAVE_GRACE_SECONDS) {
+          ended.current = true;
           quitBreak();
           setOutcome({ kind: "quit", reason: "left" });
         }
@@ -90,16 +103,34 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [outcome.kind]);
 
-  // Keep the screen awake so the phone does not auto-lock (which would look like leaving).
+  // Tell other GoReal windows this break is on screen, so opening one does not end it.
   useEffect(() => {
-    if (outcome.kind !== "running") return;
+    if (outcome.kind !== "running" || !brk) return;
+    const beat = () => {
+      if (document.visibilityState === "visible") markBreakShown();
+    };
+    beat();
+    const id = setInterval(beat, 1000);
+    return () => clearInterval(id);
+  }, [outcome.kind, brk]);
+
+  // Another window ended it. Skip if this window just finished it (finishBreak clears the store first).
+  useEffect(() => {
+    if (ended.current || outcome.kind !== "running") return;
+    if (!state.activeBreak) end({ kind: "quit", reason: "elsewhere" });
+  }, [state.activeBreak, outcome.kind]);
+
+  // Keep the screen awake so the phone does not auto-lock (which would look like leaving).
+  const awake = outcome.kind === "running";
+  useEffect(() => {
+    if (!awake) return;
     let lock: { release: () => Promise<void> } | null = null;
     const nav = navigator as Navigator & { wakeLock?: { request: (t: "screen") => Promise<{ release: () => Promise<void> }> } };
     nav.wakeLock?.request("screen").then((l) => (lock = l)).catch(() => {});
     return () => {
       lock?.release().catch(() => {});
     };
-  }, [outcome.kind]);
+  }, [awake]);
 
   useEffect(() => {
     const id = setInterval(() => setTip((t) => (t + 1) % TIPS.length), 12_000);
@@ -110,12 +141,15 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
   useEffect(() => {
     if (!hold) return;
     const id = setTimeout(() => {
+      ended.current = true;
       quitBreak();
       setOutcome({ kind: "quit", reason: "gave-up" });
       setHold(false);
     }, 1500);
     return () => clearTimeout(id);
   }, [hold]);
+
+  if (!brk && outcome.kind === "running") return null;
 
   return (
     <motion.div
@@ -126,7 +160,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
       transition={{ duration: 0.35 }}
     >
       <AnimatePresence mode="wait">
-        {outcome.kind === "running" && active && (
+        {outcome.kind === "running" && brk && (
           <motion.div key="run" className={styles.content} exit={{ opacity: 0, y: -20 }}>
             <div className={styles.lockRow}>
               <PixelIcon name="lock" size={12} />
@@ -228,16 +262,18 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
           >
             <div />
             <div className={styles.center}>
-              <Mascot mood="sad" size={160} outfit={state.outfit} face={state.face} />
-              <h1 className={styles.resultTitle}>Break ended early</h1>
+              <Mascot mood={outcome.reason === "elsewhere" ? "happy" : "sad"} size={160} outfit={state.outfit} face={state.face} />
+              <h1 className={styles.resultTitle}>{outcome.reason === "elsewhere" ? "Break over" : "Break ended early"}</h1>
               <p className={styles.resultSub}>
                 {outcome.reason === "left"
                   ? "You left the app, so Rilo woke up. No coins this time."
-                  : "No coins this time. Shorter breaks are fine too!"}
+                  : outcome.reason === "elsewhere"
+                    ? "This break ended in another GoReal window."
+                    : "No coins this time. Shorter breaks are fine too!"}
               </p>
             </div>
             <Button full onClick={onClose}>
-              Try again
+              {outcome.reason === "elsewhere" ? "Okay" : "Try again"}
             </Button>
           </motion.div>
         )}

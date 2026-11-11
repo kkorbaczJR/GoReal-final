@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Button from "@/components/Button";
 import CountUp from "@/components/CountUp";
+import { useInstall } from "@/components/Install";
 import Mascot from "@/components/Mascot";
 import Sheet from "@/components/Sheet";
 import { PixelIcon } from "@/components/PixelIcon";
 import RiloStage from "@/components/RiloStage";
 import StreakScreen from "@/components/StreakScreen";
+import { logOut, useAccount } from "@/lib/account";
 import { achievements } from "@/lib/achievements";
 import { addDays, dayKey, formatMinutes, weekStart } from "@/lib/date";
 import { canMeasure } from "@/lib/phone";
@@ -36,6 +38,8 @@ export default function Profile() {
   const [confirmReset, setConfirmReset] = useState(false);
   const [showStreak, setShowStreak] = useState(false);
   const [android] = useState(canMeasure);
+  const account = useAccount();
+  const install = useInstall();
 
   const streak = streakStatus(s.days, s);
   const best = longestStreak(s.days, s);
@@ -115,6 +119,16 @@ export default function Profile() {
       </section>
 
       <div className={shared.group}>
+        {account.status !== "off" && (
+          <button className={shared.groupRow} onClick={() => router.push("/account")}>
+            <PixelIcon name="face" size={24} />
+            <span className={styles.rowLabel}>Account</span>
+            <span className={`${styles.rowValue} ${styles.rowEmail}`}>
+              {account.status === "signedIn" ? account.email : account.status === "loading" ? "" : "Sign up"}
+            </span>
+            <PixelIcon name="chevronRight" size={12} className={styles.rowChev} />
+          </button>
+        )}
         <button className={shared.groupRow} onClick={() => router.push("/reminders")}>
           <PixelIcon name="bell" size={24} />
           <span className={styles.rowLabel}>Reminders</span>
@@ -131,7 +145,16 @@ export default function Profile() {
             <PixelIcon name="chevronRight" size={12} className={styles.rowChev} />
           </button>
         )}
+        {install.canInstall && (
+          <button className={shared.groupRow} onClick={install.start}>
+            <PixelIcon name="install" size={24} />
+            <span className={styles.rowLabel}>Install app</span>
+            <span className={styles.rowValue}>Home screen</span>
+            <PixelIcon name="chevronRight" size={12} className={styles.rowChev} />
+          </button>
+        )}
       </div>
+      {install.ui}
 
       <section className={shared.card}>
         <h2 className={shared.sectionTitle}>My goal</h2>
@@ -198,12 +221,19 @@ export default function Profile() {
         <div className={styles.resetBody}>
           <Mascot mood="sad" size={100} />
           <h2>Start over?</h2>
-          <p className={shared.muted}>This deletes your coins, streak and shop items on this phone.</p>
+          <p className={shared.muted}>
+            {account.status === "signedIn"
+              ? "This deletes your coins, streak and shop items on this phone. Your account keeps them, so logging in brings them back."
+              : "This deletes your coins, streak and shop items on this phone."}
+          </p>
           <Button
             full
             onClick={() => {
-              resetEverything();
-              router.replace("/onboarding");
+              void (async () => {
+                if (account.status === "signedIn") await logOut({ save: false });
+                else resetEverything();
+                router.replace("/onboarding");
+              })();
             }}
           >
             Yes, start over

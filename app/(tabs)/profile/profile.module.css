@@ -283,6 +283,13 @@
   color: var(--muted);
 }
 
+.rowEmail {
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .rowChev {
   color: var(--faint);
 }
