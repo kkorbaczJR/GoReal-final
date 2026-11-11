@@ -97,7 +97,6 @@ test("new hats, the neck bandana and back items are in the shop", () => {
     ["hat-santa", "hat"],
     ["hat-headband", "hat"],
     ["hat-bucket", "hat"],
-    ["hat-gasmask", "hat"],
     ["hat-astronaut", "hat"],
     ["neck-bandana", "neck"],
     ["back-angel", "back"],
@@ -119,6 +118,7 @@ test("new hats, the neck bandana and back items are in the shop", () => {
   }
   assert.equal(itemById("outfit-crown")?.name, "King's Crown");
   assert.equal(itemById("buddy-ufo")?.price, 12000);
-  assert.equal(SHOP_ITEMS.filter((i) => i.kind === "hat").length, 28);
+  assert.equal(itemById("hat-gasmask"), undefined);
+  assert.equal(SHOP_ITEMS.filter((i) => i.kind === "hat").length, 27);
   assert.equal(SHOP_ITEMS.filter((i) => i.kind === "back").length, 7);
 });

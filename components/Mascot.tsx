@@ -44,10 +44,6 @@ const MINT = "#2dd4bf";
 const MINT_DARK = "#0f766e";
 const KHAKI = "#c4a574";
 const KHAKI_DARK = "#8c6d3f";
-const OLIVE = "#5c6b3a";
-const OLIVE_DARK = "#3f4a28";
-const LENS = "#14532d";
-const LENS_GLOW = "#4ade80";
 const SILVER = "#c5cdd6";
 const STEEL = "#64748b";
 const CYAN = "#22d3ee";
@@ -298,30 +294,6 @@ const OUTFITS: Record<Outfit, Px[]> = {
     [4, -1, CREAM], [11, -1, CREAM],
     ...run(0, -1, 16, KHAKI_DARK),
     ...run(1, -2, 17, KHAKI),
-  ],
-  gasmask: [
-    ...run(2, 0, 15, OLIVE_DARK),
-    ...run(3, 1, 14, OLIVE),
-    ...run(4, 1, 14, OLIVE),
-    ...run(5, 1, 14, OLIVE_DARK),
-    ...run(6, 2, 13, OLIVE),
-    ...run(7, 3, 12, OLIVE_DARK),
-    ...run(8, 5, 10, OLIVE),
-    ...run(3, 3, 6, LENS),
-    ...run(4, 2, 7, LENS),
-    ...run(5, 2, 7, LENS),
-    ...run(6, 3, 6, LENS),
-    [3, 4, LENS_GLOW], [4, 5, LENS], [5, 4, LENS_GLOW],
-    ...run(3, 9, 12, LENS),
-    ...run(4, 8, 13, LENS),
-    ...run(5, 8, 13, LENS),
-    ...run(6, 9, 12, LENS),
-    [10, 4, LENS_GLOW], [11, 5, LENS], [12, 4, LENS_GLOW],
-    ...run(7, 6, 9, OLIVE_DARK),
-    ...run(9, 6, 9, OLIVE),
-    ...run(10, 5, 10, OLIVE_DARK),
-    ...run(11, 6, 9, OLIVE),
-    [7, 11, OLIVE], [8, 12, OLIVE_DARK],
   ],
   astronaut: [
     ...run(-3, 5, 10, SILVER),
@@ -709,17 +681,15 @@ export default function Mascot({
   }, [aura]);
   const ufoPx = useMemo(() => (buddy === "ufo" ? pack(UFO) : []), [buddy]);
 
-  const hideFace = outfit === "gasmask";
-  const hideBlush = hideFace || outfit === "astronaut";
+  const hideBlush = outfit === "astronaut";
   const eyes =
-    hideFace || face === "shades"
+    face === "shades"
       ? []
       : face === "eyepatch"
         ? EYES[mood].filter(([x]) => x > 7)
         : EYES[mood];
-  const mouth = hideFace
-    ? []
-    : outfit === "einstein"
+  const mouth =
+    outfit === "einstein"
       ? []
       : face === "mustache"
         ? MOUTHS[mood].filter(([, y]) => y > 8)

@@ -191,10 +191,12 @@ function migrate(raw: Record<string, unknown>): Partial<GoRealState> {
   next.notif = mergeNotifState(copy.notif);
   if (next.onboarded && !next.startedOn) next.startedOn = Object.keys(next.days ?? {}).sort()[0] ?? dayKey();
   if (typeof next.freezes === "number") next.freezes = Math.min(MAX_FREEZES, Math.max(0, Math.floor(next.freezes)));
+  if (Array.isArray(next.owned)) next.owned = next.owned.filter((id) => id !== "hat-gasmask");
   const ownedIds = Array.isArray(next.owned) ? next.owned : [];
   if (!isAccent(next.accent) || (next.accent !== DEFAULT_ACCENT && !ownedIds.includes(`color-${next.accent}`))) {
     delete next.accent;
   }
+  if ((next.outfit as string) === "gasmask") next.outfit = null;
   if ((next.outfit as string) === "shades") return { ...next, outfit: null, face: "shades" };
   return next;
 }

@@ -23,7 +23,6 @@ export type Outfit =
   | "santa"
   | "headband"
   | "bucket"
-  | "gasmask"
   | "astronaut"
   | "goldenHalo"
   | "flameCrown";
@@ -152,7 +151,6 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: "hat-einstein", kind: "hat", look: "einstein", name: "Einstein", price: 1200 },
   { id: "hat-cowboy", kind: "hat", look: "cowboy", name: "Cowboy hat", price: 1300 },
   { id: "hat-viking", kind: "hat", look: "viking", name: "Viking helmet", price: 1400 },
-  { id: "hat-gasmask", kind: "hat", look: "gasmask", name: "Gas mask", price: 1650 },
   { id: "hat-wizard", kind: "hat", look: "wizard", name: "Wizard hat", price: 1800 },
   { id: "hat-halo", kind: "hat", look: "halo", name: "Tiny halo", price: 2500 },
   { id: "hat-astronaut", kind: "hat", look: "astronaut", name: "Astronaut helmet", price: 3200 },

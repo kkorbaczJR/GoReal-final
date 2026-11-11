@@ -130,7 +130,7 @@ In the Android app GoReal can measure your phone time instead of you typing it i
 
 ### 3. Shop
 Everything is pixel art, in eight groups:
-- **Hats** (28): beanie, bow, headband, cat ears, flower, party hat, antennae, bunny ears, cap, flower crown, pirate bandana, bucket hat, graduation cap, chef hat, headphones, Santa hat, top hat, captain's cap, Einstein, cowboy hat, viking helmet, gas mask, wizard hat, halo, astronaut helmet, King's Crown, Golden Angel Halo, Crown of Flames. 150 to 10 000 coins.
+- **Hats** (27): beanie, bow, headband, cat ears, flower, party hat, antennae, bunny ears, cap, flower crown, pirate bandana, bucket hat, graduation cap, chef hat, headphones, Santa hat, top hat, captain's cap, Einstein, cowboy hat, viking helmet, wizard hat, halo, astronaut helmet, King's Crown, Golden Angel Halo, Crown of Flames. 150 to 10 000 coins.
 - **Extras** (12): freckles, band-aid, mustache, shades, red bandana (neck), round glasses, eyepatch, star sticker, bow tie, monocle, scarf, golden monocle. 80 to 4500 coins. Neck items can be worn with a hat.
 - **Back** (7): mini backpack, sword, angel wings, demon wings, jetpack, royal cape, golden wings. 720 to 9000 coins. Worn behind Rilo, together with a hat.
 - **Aura** (3): flaming aura, galaxy ring (orbits Rilo), UFO companion (a tiny saucer that flies around him). 7000 to 12 000 coins. Worn with a hat and a back item.
