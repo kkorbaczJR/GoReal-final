@@ -18,6 +18,7 @@ import styles from "./shop.module.css";
 const CATEGORIES: { id: Category; label: string; icon: PixelIconName }[] = [
   { id: "hat", label: "Hats", icon: "hat" },
   { id: "face", label: "Extras", icon: "glasses" },
+  { id: "back", label: "Back", icon: "wings" },
   { id: "background", label: "Scenes", icon: "picture" },
   { id: "title", label: "Titles", icon: "badge" },
   { id: "color", label: "Colors", icon: "palette" },
@@ -30,6 +31,10 @@ function isWearing(item: ShopItem, s: GoRealState) {
       return s.outfit === item.look;
     case "face":
       return s.face === item.look;
+    case "neck":
+      return s.neck === item.look;
+    case "back":
+      return s.back === item.look;
     case "background":
       return s.background === item.look;
     case "title":
@@ -54,6 +59,8 @@ export default function Shop() {
   const preview = {
     outfit: selected?.kind === "hat" ? selected.look : s.outfit,
     face: selected?.kind === "face" ? selected.look : s.face,
+    neck: selected?.kind === "neck" ? selected.look : s.neck,
+    back: selected?.kind === "back" ? selected.look : s.back,
     background: selected?.kind === "background" ? selected.look : s.background,
     title: selected?.kind === "title" ? selected.id : s.title,
   };
@@ -66,7 +73,9 @@ export default function Shop() {
     return () => applyAccent(s.accent);
   }, [previewAccent, s.accent]);
 
-  const items = SHOP_ITEMS.filter((i) => i.kind === category);
+  const items = SHOP_ITEMS.filter((i) =>
+    category === "face" ? i.kind === "face" || i.kind === "neck" : i.kind === category,
+  );
   const owned = (item: ShopItem) => isOwned(item, s.owned, s.totalBreakMinutes);
   const wearing = (item: ShopItem) => isWearing(item, s);
 
@@ -143,7 +152,15 @@ export default function Shop() {
       </div>
 
       <section className={styles.preview}>
-        <RiloStage outfit={preview.outfit} face={preview.face} background={preview.background} size={130} height={190} />
+        <RiloStage
+          outfit={preview.outfit}
+          face={preview.face}
+          neck={preview.neck}
+          back={preview.back}
+          background={preview.background}
+          size={130}
+          height={190}
+        />
         <AnimatePresence mode="wait">
           <motion.span
             key={preview.title}
@@ -231,6 +248,8 @@ export default function Shop() {
                         size={78}
                         outfit={item.kind === "hat" ? item.look : null}
                         face={item.kind === "face" ? item.look : null}
+                        neck={item.kind === "neck" ? item.look : null}
+                        back={item.kind === "back" ? item.look : null}
                       />
                     )}
                   </span>

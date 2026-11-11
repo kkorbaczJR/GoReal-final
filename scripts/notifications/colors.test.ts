@@ -89,3 +89,25 @@ test("isAccent only accepts the seven names", () => {
   for (const name of RAINBOW) assert.equal(isAccent(name), true);
   for (const bad of ["pink", "", null, undefined, 3, "toString", "__proto__"]) assert.equal(isAccent(bad), false);
 });
+
+test("new hats, the neck bandana and back items are in the shop", () => {
+  const id = (n: string) => itemById(n);
+  for (const [n, kind] of [
+    ["hat-flower-crown", "hat"],
+    ["hat-santa", "hat"],
+    ["hat-headband", "hat"],
+    ["hat-bucket", "hat"],
+    ["hat-gasmask", "hat"],
+    ["hat-astronaut", "hat"],
+    ["neck-bandana", "neck"],
+    ["back-angel", "back"],
+    ["back-demon", "back"],
+    ["back-backpack", "back"],
+    ["back-jetpack", "back"],
+    ["back-sword", "back"],
+  ] as const) {
+    assert.equal(id(n)?.kind, kind, n);
+  }
+  assert.equal(SHOP_ITEMS.filter((i) => i.kind === "hat").length, 26);
+  assert.equal(SHOP_ITEMS.filter((i) => i.kind === "back").length, 5);
+});

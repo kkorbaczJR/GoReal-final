@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useMemo } from "react";
-import type { Face, Outfit } from "@/lib/shop";
+import type { Back, Face, Neck, Outfit } from "@/lib/shop";
 
 export type Mood = "happy" | "wave" | "tired" | "sleeping" | "proud" | "sad";
 
@@ -10,6 +10,8 @@ type Props = {
   mood?: Mood;
   outfit?: Outfit | null;
   face?: Face | null;
+  neck?: Neck | null;
+  back?: Back | null;
   size?: number;
   /** Rilo on a dark background (break mode): the floating z's turn light. */
   onDark?: boolean;
@@ -29,6 +31,58 @@ const HAIR_DARK = "#8d8d8d";
 const TAN = "#ffd2bd";
 const FRECKLE = "var(--accent-deep, #9c2c00)";
 const CAP_BASE = "#444444";
+const RED = "#e11d2e";
+const RED_DARK = "#9f1235";
+const PINK = "#ff6b9d";
+const PINK_DEEP = "#e84a86";
+const YELLOW = "#facc15";
+const LEAF = "#22c55e";
+const MAGENTA = "#c026d3";
+const MINT = "#2dd4bf";
+const MINT_DARK = "#0f766e";
+const KHAKI = "#c4a574";
+const KHAKI_DARK = "#8c6d3f";
+const OLIVE = "#5c6b3a";
+const OLIVE_DARK = "#3f4a28";
+const LENS = "#14532d";
+const LENS_GLOW = "#4ade80";
+const SILVER = "#c5cdd6";
+const STEEL = "#64748b";
+const CYAN = "#22d3ee";
+const CYAN_DEEP = "#0e7490";
+const GOLD = "#eab308";
+const WING = "#fff8e7";
+const WING_MID = "#ffe4b3";
+const WING_TIP = "#f0c27a";
+const DEMON = "#9f1239";
+const DEMON_EDGE = "#4a0519";
+const DEMON_MEM = "#6b21a8";
+const TEAL = "#14b8a6";
+const TEAL_DARK = "#0f766e";
+const TEAL_LIGHT = "#5eead4";
+const FLAME = "#38bdf8";
+const FLAME_MID = "#fb923c";
+const FLAME_HOT = "#fef08a";
+const BROWN = "#92400e";
+const BERRY = "#be123c";
+const NAVY = "#1e3a5f";
+
+function flower(cx: number, cy: number, petal: string, center: string): Px[] {
+  return [
+    [cx, cy - 2, petal],
+    [cx - 1, cy - 1, petal],
+    [cx, cy - 1, petal],
+    [cx + 1, cy - 1, petal],
+    [cx - 2, cy, petal],
+    [cx - 1, cy, petal],
+    [cx + 1, cy, petal],
+    [cx + 2, cy, petal],
+    [cx - 1, cy + 1, petal],
+    [cx, cy + 1, petal],
+    [cx + 1, cy + 1, petal],
+    [cx, cy, center],
+  ];
+}
 
 type Px = [x: number, y: number, color: string];
 
@@ -189,6 +243,222 @@ const OUTFITS: Record<Outfit, Px[]> = {
     [9, -1, CREAM], [10, -2, CREAM], [10, -3, CREAM], [11, -4, CREAM],
     ...run(-6, 11, 12, CLAY), ...run(-5, 11, 12, CLAY),
   ],
+  flowerCrown: [
+    ...run(0, 1, 14, LEAF),
+    [2, -1, LEAF], [5, -1, LEAF], [10, -1, LEAF], [13, -1, LEAF],
+    ...flower(3, -2, PINK, YELLOW),
+    ...flower(8, -3, YELLOW, PINK_DEEP),
+    ...flower(13, -2, MAGENTA, YELLOW),
+  ],
+  santa: [
+    ...run(-7, 12, 14, CREAM),
+    ...run(-6, 11, 14, CREAM),
+    [11, -6, RED],
+    ...run(-5, 9, 13, RED),
+    ...run(-4, 7, 12, RED),
+    ...run(-3, 5, 12, RED),
+    [12, -4, RED_DARK], [5, -3, RED_DARK],
+    ...run(-2, 4, 12, RED),
+    ...run(-1, 3, 13, RED),
+    ...run(0, 1, 14, CREAM),
+    ...run(1, 1, 14, CREAM),
+    [3, 0, LEAF], [4, 0, LEAF], [5, 0, BERRY], [6, 0, LEAF],
+  ],
+  headband: [
+    ...run(0, 1, 14, MINT_DARK),
+    ...run(1, 1, 14, MINT),
+    [2, 1, CREAM], [6, 1, CREAM], [10, 1, CREAM],
+    [14, -2, PINK], [15, -2, PINK], [16, -1, PINK], [13, -1, PINK],
+    [14, -1, PINK_DEEP], [15, -1, PINK_DEEP], [15, 0, PINK], [16, 0, PINK],
+    [14, 0, PINK], [13, 0, PINK], [14, 1, PINK], [15, 1, PINK], [16, 1, PINK],
+    [15, 2, PINK_DEEP], [16, 2, PINK],
+  ],
+  bucket: [
+    ...run(-4, 6, 9, KHAKI_DARK),
+    ...run(-3, 4, 11, KHAKI),
+    ...run(-2, 3, 12, KHAKI),
+    ...run(-1, 3, 12, KHAKI),
+    [7, -2, KHAKI_DARK], [8, -2, KHAKI_DARK],
+    [4, -1, CREAM], [11, -1, CREAM],
+    ...run(0, -1, 16, KHAKI_DARK),
+    ...run(1, -2, 17, KHAKI),
+  ],
+  gasmask: [
+    ...run(2, 0, 15, OLIVE_DARK),
+    ...run(3, 1, 14, OLIVE),
+    ...run(4, 1, 14, OLIVE),
+    ...run(5, 1, 14, OLIVE_DARK),
+    ...run(6, 2, 13, OLIVE),
+    ...run(7, 3, 12, OLIVE_DARK),
+    ...run(8, 5, 10, OLIVE),
+    ...run(3, 3, 6, LENS),
+    ...run(4, 2, 7, LENS),
+    ...run(5, 2, 7, LENS),
+    ...run(6, 3, 6, LENS),
+    [3, 4, LENS_GLOW], [4, 5, LENS], [5, 4, LENS_GLOW],
+    ...run(3, 9, 12, LENS),
+    ...run(4, 8, 13, LENS),
+    ...run(5, 8, 13, LENS),
+    ...run(6, 9, 12, LENS),
+    [10, 4, LENS_GLOW], [11, 5, LENS], [12, 4, LENS_GLOW],
+    ...run(7, 6, 9, OLIVE_DARK),
+    ...run(9, 6, 9, OLIVE),
+    ...run(10, 5, 10, OLIVE_DARK),
+    ...run(11, 6, 9, OLIVE),
+    [7, 11, OLIVE], [8, 12, OLIVE_DARK],
+  ],
+  astronaut: [
+    ...run(-3, 5, 10, SILVER),
+    ...run(-2, 3, 12, SILVER),
+    ...run(-1, 2, 13, STEEL),
+    ...run(0, 1, 14, SILVER),
+    [0, 1, SILVER], [15, 1, SILVER],
+    [0, 2, STEEL], [15, 2, STEEL],
+    [0, 9, SILVER], [15, 9, SILVER],
+    [0, 10, STEEL], [15, 10, STEEL],
+    ...run(10, 1, 14, SILVER),
+    ...run(11, 2, 13, STEEL),
+    ...run(12, 4, 11, SILVER),
+    [14, 3, NAVY], [14, 4, NAVY], [13, 4, YELLOW],
+  ],
+};
+
+const ASTRONAUT_VISOR: Px[] = [
+  ...run(2, 2, 13, CYAN_DEEP),
+  ...run(3, 2, 13, CYAN),
+  ...run(4, 2, 13, CYAN),
+  ...run(5, 2, 13, CYAN_DEEP),
+  ...run(6, 2, 13, CYAN_DEEP),
+  ...run(7, 2, 13, CYAN_DEEP),
+  ...run(8, 3, 12, NAVY),
+  [3, 3, CREAM], [4, 3, CREAM], [3, 4, CREAM],
+  [12, 4, "#67e8f9"],
+];
+
+const NECKS: Record<Neck, Px[]> = {
+  redBandana: [
+    ...run(11, 1, 14, RED),
+    ...run(12, 2, 13, RED_DARK),
+    [3, 11, CREAM], [7, 11, CREAM], [11, 11, CREAM],
+    [4, 12, CREAM], [10, 12, CREAM],
+    [6, 12, RED], [7, 13, RED], [8, 13, RED_DARK], [9, 12, RED],
+    [-1, 11, RED], [-2, 12, RED], [-1, 13, RED], [0, 13, RED_DARK], [-2, 14, RED], [0, 12, CREAM],
+  ],
+};
+
+const BACKS_BEHIND: Record<Back, Px[]> = {
+  angelWings: [
+    ...run(-1, -5, -3, WING),
+    ...run(0, -6, -2, WING),
+    ...run(1, -6, -1, WING),
+    ...run(2, -6, 0, WING_MID),
+    ...run(3, -5, 0, WING),
+    ...run(4, -4, -1, WING),
+    ...run(5, -4, -1, WING_MID),
+    ...run(6, -3, -1, WING_TIP),
+    ...run(7, -3, -1, WING_TIP),
+    [-6, 1, WING], [-5, 3, WING_MID],
+    ...run(-1, 18, 20, WING),
+    ...run(0, 17, 21, WING),
+    ...run(1, 16, 21, WING),
+    ...run(2, 15, 21, WING_MID),
+    ...run(3, 15, 20, WING),
+    ...run(4, 16, 19, WING),
+    ...run(5, 16, 19, WING_MID),
+    ...run(6, 16, 18, WING_TIP),
+    ...run(7, 16, 18, WING_TIP),
+    [21, 1, WING], [20, 3, WING_MID],
+  ],
+  demonWings: [
+    [-3, -2, DEMON_EDGE], [-4, -1, DEMON], [-5, -2, DEMON], [-6, -1, DEMON_EDGE],
+    [-5, 0, DEMON_MEM], [-6, 1, DEMON], [-4, 1, DEMON_MEM],
+    ...run(2, -6, -2, DEMON),
+    ...run(3, -6, -1, DEMON_MEM),
+    ...run(4, -6, -1, DEMON),
+    ...run(5, -5, -1, DEMON_MEM),
+    ...run(6, -5, -2, DEMON),
+    ...run(7, -6, -2, DEMON_EDGE),
+    ...run(8, -4, -2, DEMON),
+    [-6, 5, DEMON_MEM], [-5, 7, DEMON_EDGE],
+    [18, -2, DEMON_EDGE], [19, -1, DEMON], [20, -2, DEMON], [21, -1, DEMON_EDGE],
+    [20, 0, DEMON_MEM], [21, 1, DEMON], [19, 1, DEMON_MEM],
+    ...run(2, 17, 21, DEMON),
+    ...run(3, 16, 21, DEMON_MEM),
+    ...run(4, 16, 21, DEMON),
+    ...run(5, 16, 20, DEMON_MEM),
+    ...run(6, 17, 20, DEMON),
+    ...run(7, 17, 21, DEMON_EDGE),
+    ...run(8, 17, 19, DEMON),
+    [21, 5, DEMON_MEM], [20, 7, DEMON_EDGE],
+  ],
+  backpack: [
+    ...run(7, -3, 0, TEAL_DARK),
+    ...run(8, -3, 0, TEAL),
+    ...run(9, -3, 0, TEAL),
+    ...run(10, -3, -1, TEAL_DARK),
+    ...run(11, -2, -1, TEAL),
+    [-2, 9, TEAL_LIGHT],
+    ...run(7, 15, 18, TEAL_DARK),
+    ...run(8, 15, 19, TEAL),
+    ...run(9, 15, 19, TEAL),
+    ...run(10, 16, 19, TEAL_DARK),
+    ...run(11, 16, 18, TEAL),
+    [17, 9, YELLOW], [18, 10, YELLOW], [17, 11, TEAL_LIGHT],
+  ],
+  jetpack: [
+    ...run(5, -3, -1, STEEL),
+    ...run(6, -3, -1, SILVER),
+    ...run(7, -3, -1, SILVER),
+    ...run(8, -3, -1, STEEL),
+    ...run(9, -3, -1, NAVY),
+    ...run(10, -3, -1, STEEL),
+    [-2, 6, RED],
+    ...run(11, -3, 0, FLAME_MID),
+    ...run(12, -3, 0, FLAME_HOT),
+    ...run(13, -2, 0, FLAME),
+    [-1, 14, FLAME_MID], [-2, 15, FLAME], [0, 14, FLAME],
+    ...run(5, 16, 18, STEEL),
+    ...run(6, 16, 18, SILVER),
+    ...run(7, 16, 18, SILVER),
+    ...run(8, 16, 18, STEEL),
+    ...run(9, 16, 18, NAVY),
+    ...run(10, 16, 18, STEEL),
+    [17, 6, RED],
+    ...run(11, 15, 18, FLAME_MID),
+    ...run(12, 15, 18, FLAME_HOT),
+    ...run(13, 15, 17, FLAME),
+    [16, 14, FLAME_MID], [18, 14, FLAME], [17, 15, FLAME],
+  ],
+  sword: [
+    ...run(-5, -4, -3, SILVER),
+    ...run(-4, -4, -3, SILVER),
+    ...run(-3, -4, -3, CREAM),
+    ...run(-2, -4, -3, SILVER),
+    ...run(-1, -4, -3, SILVER),
+    ...run(0, -4, -3, SILVER),
+    ...run(1, -4, -3, STEEL),
+    ...run(2, -4, -3, SILVER),
+    ...run(3, -4, -3, SILVER),
+    ...run(4, -4, -2, GOLD),
+    [-5, 4, GOLD], [-1, 4, GOLD],
+    ...run(5, -3, -2, BROWN),
+    ...run(6, -3, -2, BROWN),
+    ...run(7, -3, -2, BROWN),
+    ...run(8, -3, -2, GOLD),
+  ],
+};
+
+const BACKS_FRONT: Record<Back, Px[]> = {
+  angelWings: [],
+  demonWings: [],
+  backpack: [
+    [1, 6, TEAL_DARK], [1, 8, TEAL], [1, 10, TEAL_DARK],
+    [14, 6, TEAL_DARK], [14, 8, TEAL], [14, 10, TEAL_DARK],
+  ],
+  jetpack: [
+    [1, 8, STEEL], [14, 8, STEEL],
+  ],
+  sword: [],
 };
 
 const FACES: Record<Face, Px[]> = {
@@ -285,30 +555,49 @@ function Pixels({ px }: { px: Px[] }) {
 const steps = (n: number) => (t: number) => Math.round(t * n) / n;
 
 /** Rilo: a small pixel mochi who lives in your phone. */
+function pack(pixels: Px[]): Px[] {
+  const dedup = new Map<string, Px>();
+  for (const p of pixels) dedup.set(`${p[0]},${p[1]}`, p);
+  const unique = [...dedup.values()];
+  return [...outline(unique), ...unique];
+}
+
 export default function Mascot({
   mood = "happy",
   outfit = null,
   face = null,
+  neck = null,
+  back = null,
   size = 160,
   onDark = false,
   still = false,
 }: Props) {
   const base = useMemo(() => {
-    const layer = [...BODY, ...(outfit ? OUTFITS[outfit] : []), ...(face ? FACES[face] : [])];
-    const dedup = new Map<string, Px>();
-    for (const p of layer) dedup.set(`${p[0]},${p[1]}`, p);
-    const pixels = [...dedup.values()];
-    return [...outline(pixels), ...pixels];
-  }, [outfit, face]);
+    return pack([
+      ...BODY,
+      ...(outfit ? OUTFITS[outfit] : []),
+      ...(neck ? NECKS[neck] : []),
+      ...(face ? FACES[face] : []),
+      ...(back ? BACKS_FRONT[back] : []),
+    ]);
+  }, [outfit, neck, face, back]);
+  const behind = useMemo(() => (back ? pack(BACKS_BEHIND[back]) : []), [back]);
 
+  const hideFace = outfit === "gasmask";
+  const hideBlush = hideFace || outfit === "astronaut";
   const eyes =
-    face === "shades"
+    hideFace || face === "shades"
       ? []
       : face === "eyepatch"
         ? EYES[mood].filter(([x]) => x > 7)
         : EYES[mood];
-  const mouth =
-    outfit === "einstein" ? [] : face === "mustache" ? MOUTHS[mood].filter(([, y]) => y > 8) : MOUTHS[mood];
+  const mouth = hideFace
+    ? []
+    : outfit === "einstein"
+      ? []
+      : face === "mustache"
+        ? MOUTHS[mood].filter(([, y]) => y > 8)
+        : MOUTHS[mood];
 
   const idle =
     mood === "sleeping"
@@ -325,7 +614,7 @@ export default function Mascot({
     <motion.svg
       width={size}
       height={size}
-      viewBox="-4 -7 26 26"
+      viewBox="-7 -8 31 28"
       shapeRendering="crispEdges"
       role="img"
       aria-label={`Rilo, ${mood}`}
@@ -337,17 +626,21 @@ export default function Mascot({
       <rect x={1} y={15} width={14} height={1} fill={onDark ? "#000" : INK} opacity={onDark ? 0.35 : 0.08} />
 
       <motion.g animate={still ? undefined : idle}>
+        {behind.length > 0 && <Pixels px={behind} />}
         <Pixels px={base} />
-        <Pixels
-          px={
-            face === "glasses"
-              ? BLUSH_PX.filter(([x]) => x === 2 || x === 13)
-              : face === "star" || face === "monocle"
-                ? BLUSH_PX.filter(([x]) => x < 8)
-                : BLUSH_PX
-          }
-        />
+        {!hideBlush && (
+          <Pixels
+            px={
+              face === "glasses"
+                ? BLUSH_PX.filter(([x]) => x === 2 || x === 13)
+                : face === "star" || face === "monocle"
+                  ? BLUSH_PX.filter(([x]) => x < 8)
+                  : BLUSH_PX
+            }
+          />
+        )}
 
+        {outfit === "astronaut" && <Pixels px={pack(ASTRONAUT_VISOR)} />}
         {mood === "happy" || mood === "wave" ? (
           <motion.g
             style={{ originY: "6px" }}

@@ -18,7 +18,17 @@ export type Outfit =
   | "cowboy"
   | "graduation"
   | "captain"
-  | "antennae";
+  | "antennae"
+  | "flowerCrown"
+  | "santa"
+  | "headband"
+  | "bucket"
+  | "gasmask"
+  | "astronaut";
+
+export type Neck = "redBandana";
+
+export type Back = "angelWings" | "demonWings" | "backpack" | "jetpack" | "sword";
 
 export type Face =
   | "shades"
@@ -48,11 +58,13 @@ export type Background =
 
 export type Accent = "red" | "orange" | "yellow" | "green" | "blue" | "indigo" | "violet";
 
-export type Category = "hat" | "face" | "background" | "title" | "color" | "streak";
+export type Category = "hat" | "face" | "background" | "back" | "title" | "color" | "streak";
 
 export type ShopItem =
   | { id: string; kind: "hat"; look: Outfit; name: string; price: number }
   | { id: string; kind: "face"; look: Face; name: string; price: number }
+  | { id: string; kind: "neck"; look: Neck; name: string; price: number }
+  | { id: string; kind: "back"; look: Back; name: string; price: number }
   | { id: string; kind: "background"; look: Background; name: string; price: number }
   | { id: string; kind: "title"; name: string; price: number; unlockAtMinutes?: number }
   | { id: string; kind: "color"; look: Accent; name: string; price: number }
@@ -105,35 +117,48 @@ export const FREEZE_PRICE = 250;
 export const SHOP_ITEMS: ShopItem[] = [
   { id: "outfit-beanie", kind: "hat", look: "beanie", name: "Cozy beanie", price: 150 },
   { id: "hat-bow", kind: "hat", look: "bow", name: "Big bow", price: 180 },
+  { id: "hat-headband", kind: "hat", look: "headband", name: "Headband", price: 220 },
   { id: "hat-cat", kind: "hat", look: "cat", name: "Cat ears", price: 250 },
   { id: "outfit-flower", kind: "hat", look: "flower", name: "Little flower", price: 300 },
   { id: "hat-party", kind: "hat", look: "party", name: "Party hat", price: 350 },
   { id: "hat-antennae", kind: "hat", look: "antennae", name: "Antennae", price: 400 },
   { id: "hat-bunny", kind: "hat", look: "bunny", name: "Bunny ears", price: 450 },
   { id: "outfit-cap", kind: "hat", look: "cap", name: "Sports cap", price: 500 },
+  { id: "hat-flower-crown", kind: "hat", look: "flowerCrown", name: "Flower crown", price: 520 },
   { id: "hat-bandana", kind: "hat", look: "bandana", name: "Pirate bandana", price: 600 },
+  { id: "hat-bucket", kind: "hat", look: "bucket", name: "Bucket hat", price: 650 },
   { id: "hat-graduation", kind: "hat", look: "graduation", name: "Graduation cap", price: 700 },
   { id: "hat-chef", kind: "hat", look: "chef", name: "Chef hat", price: 750 },
   { id: "outfit-headphones", kind: "hat", look: "headphones", name: "Headphones", price: 800 },
+  { id: "hat-santa", kind: "hat", look: "santa", name: "Santa hat", price: 850 },
   { id: "hat-tophat", kind: "hat", look: "tophat", name: "Top hat", price: 900 },
   { id: "hat-captain", kind: "hat", look: "captain", name: "Captain's cap", price: 1000 },
   { id: "hat-einstein", kind: "hat", look: "einstein", name: "Einstein", price: 1200 },
   { id: "hat-cowboy", kind: "hat", look: "cowboy", name: "Cowboy hat", price: 1300 },
   { id: "hat-viking", kind: "hat", look: "viking", name: "Viking helmet", price: 1400 },
+  { id: "hat-gasmask", kind: "hat", look: "gasmask", name: "Gas mask", price: 1650 },
   { id: "hat-wizard", kind: "hat", look: "wizard", name: "Wizard hat", price: 1800 },
   { id: "hat-halo", kind: "hat", look: "halo", name: "Tiny halo", price: 2500 },
+  { id: "hat-astronaut", kind: "hat", look: "astronaut", name: "Astronaut helmet", price: 3200 },
   { id: "outfit-crown", kind: "hat", look: "crown", name: "Crown", price: 4000 },
 
   { id: "face-freckles", kind: "face", look: "freckles", name: "Freckles", price: 80 },
   { id: "face-bandaid", kind: "face", look: "bandaid", name: "Band-aid", price: 100 },
   { id: "face-mustache", kind: "face", look: "mustache", name: "Mustache", price: 200 },
   { id: "outfit-shades", kind: "face", look: "shades", name: "Cool shades", price: 300 },
+  { id: "neck-bandana", kind: "neck", look: "redBandana", name: "Red bandana", price: 320 },
   { id: "face-glasses", kind: "face", look: "glasses", name: "Round glasses", price: 350 },
   { id: "face-eyepatch", kind: "face", look: "eyepatch", name: "Eyepatch", price: 400 },
   { id: "face-star", kind: "face", look: "star", name: "Star sticker", price: 450 },
   { id: "face-bowtie", kind: "face", look: "bowtie", name: "Bow tie", price: 500 },
   { id: "face-monocle", kind: "face", look: "monocle", name: "Monocle", price: 600 },
   { id: "face-scarf", kind: "face", look: "scarf", name: "Warm scarf", price: 700 },
+
+  { id: "back-backpack", kind: "back", look: "backpack", name: "Mini backpack", price: 720 },
+  { id: "back-sword", kind: "back", look: "sword", name: "Sword", price: 1100 },
+  { id: "back-angel", kind: "back", look: "angelWings", name: "Angel wings", price: 1500 },
+  { id: "back-demon", kind: "back", look: "demonWings", name: "Demon wings", price: 1700 },
+  { id: "back-jetpack", kind: "back", look: "jetpack", name: "Jetpack", price: 2600 },
 
   { id: "bg-grid", kind: "background", look: "grid", name: "Graph paper", price: 200 },
   { id: "bg-checker", kind: "background", look: "checker", name: "Picnic", price: 300 },
