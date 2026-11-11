@@ -17,6 +17,8 @@ type Props = {
   onDark?: boolean;
   /** Turn off idle motion (for small thumbnails). */
   still?: boolean;
+  /** A still frame for the share image: no entrance, no idle, no blink. */
+  snapshot?: boolean;
 };
 
 /** Rilo is the app's accent color (orange unless another color was picked in the shop). */
@@ -571,7 +573,9 @@ export default function Mascot({
   size = 160,
   onDark = false,
   still = false,
+  snapshot = false,
 }: Props) {
+  const frozen = still || snapshot;
   const base = useMemo(() => {
     return pack([
       ...BODY,
@@ -618,14 +622,14 @@ export default function Mascot({
       shapeRendering="crispEdges"
       role="img"
       aria-label={`Rilo, ${mood}`}
-      initial={{ scale: 0.85, opacity: 0 }}
+      initial={snapshot ? false : { scale: 0.85, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      transition={snapshot ? { duration: 0 } : { type: "spring", stiffness: 300, damping: 20 }}
       style={{ overflow: "visible" }}
     >
       <rect x={1} y={15} width={14} height={1} fill={onDark ? "#000" : INK} opacity={onDark ? 0.35 : 0.08} />
 
-      <motion.g animate={still ? undefined : idle}>
+      <motion.g animate={frozen ? undefined : idle}>
         {behind.length > 0 && <Pixels px={behind} />}
         <Pixels px={base} />
         {!hideBlush && (
@@ -644,7 +648,7 @@ export default function Mascot({
         {mood === "happy" || mood === "wave" ? (
           <motion.g
             style={{ originY: "6px" }}
-            animate={still ? undefined : { scaleY: [1, 1, 0.5, 1, 1] }}
+            animate={frozen ? undefined : { scaleY: [1, 1, 0.5, 1, 1] }}
             transition={{ duration: 4, repeat: Infinity, times: [0, 0.92, 0.94, 0.96, 1], ease: steps(1) }}
           >
             <Pixels px={eyes} />
@@ -655,7 +659,7 @@ export default function Mascot({
         <Pixels px={mouth} />
       </motion.g>
 
-      {mood === "sleeping" &&
+      {!snapshot && mood === "sleeping" &&
         [0, 1].map((i) => (
           <motion.g
             key={i}
@@ -667,7 +671,7 @@ export default function Mascot({
           </motion.g>
         ))}
 
-      {mood === "proud" &&
+      {!snapshot && mood === "proud" &&
         [
           [-3, 0],
           [17, -2],

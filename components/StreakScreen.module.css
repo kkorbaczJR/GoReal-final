@@ -141,3 +141,10 @@
   font-size: 11px;
   color: var(--muted);
 }
+
+.actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

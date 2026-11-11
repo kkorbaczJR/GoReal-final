@@ -1,0 +1,99 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 17, 17, 0.4);
+}
+
+.sheet {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  max-height: 100dvh;
+  overflow: auto;
+  background: var(--bg);
+  color: var(--ink);
+  border-radius: var(--radius-l) var(--radius-l) 0 0;
+  padding: 18px 18px calc(16px + var(--safe-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.title {
+  font-size: 28px;
+  text-align: center;
+}
+
+.toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  background: var(--soft);
+  border-radius: var(--radius-pill);
+}
+
+.toggle button {
+  height: 36px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.toggle button[aria-pressed="true"] {
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.preview {
+  width: 100%;
+  max-height: min(52vh, 520px);
+  object-fit: contain;
+  background: var(--soft);
+  border-radius: var(--radius-m);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  background: var(--soft);
+  border-radius: var(--radius-m);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.error,
+.toast {
+  text-align: center;
+  font-size: 14px;
+}
+
+.error {
+  color: var(--accent-deep);
+}
+
+.toast {
+  color: var(--ink);
+}
