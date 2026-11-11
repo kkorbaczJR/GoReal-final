@@ -4,7 +4,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { onBack } from "@/lib/back";
 import { formatClock } from "@/lib/date";
-import { LEAVE_GRACE_SECONDS, rewardForBreak, streakStatus } from "@/lib/rules";
+import { LEAVE_GRACE_SECONDS, rewardForBreak } from "@/lib/rules";
+import { shareDetails } from "@/lib/shareStreak";
 import { finishBreak, markBreakShown, quitBreak, type GoRealState } from "@/lib/store";
 import CountUp from "./CountUp";
 import Button from "./Button";
@@ -288,7 +289,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
       <ShareSheet
         open={share}
         onClose={() => setShare(false)}
-        streak={streakStatus(state.days, state).count}
+        details={shareDetails(state)}
         outfit={{ outfit: state.outfit, face: state.face, neck: state.neck, back: state.back, aura: state.aura, buddy: state.buddy }}
       />
     </motion.div>

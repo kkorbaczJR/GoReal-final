@@ -5,7 +5,8 @@ import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import Mascot from "@/components/Mascot";
 import type { Aura, Back, Buddy, Face, Neck, Outfit } from "@/lib/shop";
-import { APP_URL, pickShareLine, streakLabel } from "@/lib/shareCopy";
+import { APP_URL, streakLabel } from "@/lib/shareCopy";
+import type { ShareDetails } from "@/lib/shareStreak";
 
 export type ShareFormat = "story" | "square";
 
@@ -19,8 +20,98 @@ export type ShareOutfit = {
   buddy: Buddy | null;
 };
 
-const STORY = { w: 1080, h: 1920, title: 84, wellY: 210, wellH: 920, number: 148, label: 36, caption: 40, url: 28 };
-const SQUARE = { w: 1080, h: 1080, title: 64, wellY: 132, wellH: 500, number: 92, label: 28, caption: 32, url: 24 };
+type Spec = {
+  w: number;
+  h: number;
+  margin: number;
+  wellH: number;
+  /** How tall Rilo is inside the peach well. Kept well under the well so the colour shows around him. */
+  riloH: number;
+  flame: number;
+  number: number;
+  label: number;
+  padX: number;
+  padY: number;
+  dayLabel: number;
+  dot: number;
+  message: number;
+  fact: number;
+  factLabel: number;
+  url: number;
+  radius: number;
+};
+
+const STORY: Spec = {
+  w: 1080,
+  h: 1920,
+  margin: 72,
+  wellH: 500,
+  riloH: 210,
+  flame: 13,
+  number: 180,
+  label: 44,
+  padX: 36,
+  padY: 36,
+  dayLabel: 28,
+  dot: 86,
+  message: 32,
+  fact: 42,
+  factLabel: 24,
+  url: 26,
+  radius: 48,
+};
+
+const SQUARE: Spec = {
+  w: 1080,
+  h: 1080,
+  margin: 52,
+  wellH: 240,
+  riloH: 118,
+  flame: 7,
+  number: 96,
+  label: 28,
+  padX: 24,
+  padY: 22,
+  dayLabel: 20,
+  dot: 52,
+  message: 22,
+  fact: 28,
+  factLabel: 16,
+  url: 20,
+  radius: 36,
+};
+
+/** Same 12×12 check as the streak screen. `#` is the current colour. */
+const CHECK = [
+  "............",
+  "............",
+  ".........##.",
+  "........##..",
+  ".......##...",
+  ".##...##....",
+  "..##.##.....",
+  "...###......",
+  "....#.......",
+  "............",
+  "............",
+  "............",
+];
+
+/** Same 12×12 snowflake as a frozen day on the streak screen. */
+const SNOW = [
+  ".....##.....",
+  "..#..##..#..",
+  "...#.##.#...",
+  "....####....",
+  ".....##.....",
+  "############",
+  "############",
+  ".....##.....",
+  "....####....",
+  "...#.##.#...",
+  "..#..##..#..",
+  ".....##.....",
+];
 
 /** Same 12×12 flame as the streak screen. `o` is the accent, `w` is white. */
 const FLAME = [
@@ -144,9 +235,11 @@ async function loadFonts(): Promise<{ serif: string; mono: string }> {
   serifProbe.remove();
   monoProbe.remove();
   await Promise.all([
-    document.fonts.load(`500 84px ${serif}`).catch(() => undefined),
-    document.fonts.load(`italic 500 40px ${serif}`).catch(() => undefined),
-    document.fonts.load(`600 36px ${mono}`).catch(() => undefined),
+    document.fonts.load(`500 180px ${serif}`).catch(() => undefined),
+    document.fonts.load(`500 42px ${serif}`).catch(() => undefined),
+    document.fonts.load(`700 44px ${mono}`).catch(() => undefined),
+    document.fonts.load(`600 28px ${mono}`).catch(() => undefined),
+    document.fonts.load(`500 32px ${mono}`).catch(() => undefined),
     document.fonts.ready,
   ]);
   return { serif, mono };
@@ -183,98 +276,217 @@ function drawFlame(ctx: CanvasRenderingContext2D, x: number, y: number, pixel: n
   });
 }
 
-type Spec = typeof STORY;
+function drawMark(ctx: CanvasRenderingContext2D, rows: string[], x: number, y: number, pixel: number, color: string) {
+  ctx.fillStyle = color;
+  rows.forEach((row, ry) => {
+    [...row].forEach((cell, cx) => {
+      if (cell !== "#") return;
+      ctx.fillRect(x + cx * pixel, y + ry * pixel, pixel + 0.4, pixel + 0.4);
+    });
+  });
+}
+
+function fillRound(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, radius: number) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, radius);
+  ctx.fill();
+}
 
 function paint(
   ctx: CanvasRenderingContext2D,
   spec: Spec,
   rilo: HTMLImageElement,
-  streak: number,
-  caption: string,
+  details: ShareDetails,
   serif: string,
   mono: string,
 ) {
   const ink = token("--ink", "#111111");
-  const ink2 = token("--ink-2", "#333333");
   const muted = token("--muted", "#6e6e6e");
+  const faint = token("--faint", "#a8a8a8");
   const soft = token("--soft", "#f4f4f4");
   const line = token("--line", "#ebebeb");
+  const card = token("--card", "#ffffff");
   const accent = token("--accent", "#fc4c02");
-  const days = Math.max(0, Math.floor(streak));
+  const accentText = token("--accent-text", accent);
+  const peach = token("--accent-soft", "#fff0e8");
+  const onAccent = token("--on-accent", "#ffffff");
+  const days = Math.max(0, Math.floor(details.count));
+  const streakWord = days === 0 ? "day streak" : "day streak!";
+
+  const inner = spec.w - spec.margin * 2;
+  const textW = inner - spec.padX * 2;
+  ctx.font = `500 ${spec.message}px ${mono}`;
+  const messageLines = wrap(ctx, details.line, textW);
+  const messageH = messageLines.length * spec.message * 1.45;
+  const weekH = spec.dayLabel + Math.round(spec.dot * 0.22) + spec.dot;
+  const factLabelLines = 2;
+  const factsH = spec.fact + 10 + factLabelLines * (spec.factLabel + 4);
+  const cardH = spec.padY + weekH + 22 + 1 + 20 + messageH + 20 + 1 + 20 + factsH + spec.padY;
+
+  const flameH = 12 * spec.flame;
+  const numberH = spec.number * 0.9;
+  const gapAfterWell = Math.round(spec.wellH * 0.08);
+  const stackH = spec.wellH + gapAfterWell + flameH + 10 + numberH + 8 + spec.label + 28 + cardH;
+  const urlBand = spec.url + spec.margin;
+  const top = Math.max(spec.margin * 0.6, (spec.h - urlBand - stackH) / 2);
 
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, spec.w, spec.h);
 
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = ink;
-  ctx.font = `500 ${spec.title}px ${serif}`;
-  ctx.fillText("GoReal", spec.w / 2, spec.wellY - 78);
+  let y = top;
+  ctx.fillStyle = peach;
+  fillRound(ctx, spec.margin, y, inner, spec.wellH, spec.radius);
 
-  const wellX = 84;
-  const wellW = spec.w - wellX * 2;
+  const fit = Math.min(spec.riloH / rilo.naturalHeight, (inner * 0.46) / rilo.naturalWidth);
+  const rw = rilo.naturalWidth * fit;
+  const rh = rilo.naturalHeight * fit;
+  const rx = spec.margin + (inner - rw) / 2;
+  const ry = y + (spec.wellH - rh) / 2;
+  ctx.fillStyle = "rgba(17, 17, 17, 0.08)";
   ctx.beginPath();
-  ctx.roundRect(wellX, spec.wellY, wellW, spec.wellH, 56);
-  ctx.fillStyle = soft;
+  ctx.ellipse(rx + rw / 2, ry + rh - rh * 0.02, rw * 0.22, Math.max(6, rh * 0.035), 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.lineWidth = 3;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(rilo, rx, ry, rw, rh);
+
+  y += spec.wellH + gapAfterWell;
+  const flameW = 12 * spec.flame;
+  drawFlame(ctx, (spec.w - flameW) / 2, y, spec.flame, accent, days === 0);
+
+  y += flameH + 10;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.fillStyle = ink;
+  ctx.font = `500 ${spec.number}px ${serif}`;
+  ctx.fillText(String(days), spec.w / 2, y);
+
+  y += numberH + 8;
+  ctx.fillStyle = days === 0 ? faint : accentText;
+  ctx.font = `700 ${spec.label}px ${mono}`;
+  ctx.fillText(streakWord, spec.w / 2, y);
+
+  y += spec.label + 28;
+  ctx.fillStyle = card;
+  fillRound(ctx, spec.margin, y, inner, cardH, spec.radius);
+  ctx.lineWidth = 2;
   ctx.strokeStyle = line;
   ctx.stroke();
 
-  const pad = 36;
-  const scale = Math.min((wellW - pad * 2) / rilo.naturalWidth, (spec.wellH - pad * 2) / rilo.naturalHeight);
-  const dw = rilo.naturalWidth * scale;
-  const dh = rilo.naturalHeight * scale;
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(rilo, wellX + (wellW - dw) / 2, spec.wellY + (spec.wellH - dh) / 2, dw, dh);
+  const weekTop = y + spec.padY;
+  const slot = inner / details.week.length;
+  details.week.forEach((day, i) => {
+    const cx = spec.margin + slot * i + slot / 2;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = day.today ? ink : faint;
+    ctx.font = `600 ${spec.dayLabel}px ${mono}`;
+    ctx.fillText(day.label, cx, weekTop);
 
-  const pixel = Math.round(spec.number / 14);
-  const flameW = 12 * pixel;
-  const flameH = 12 * pixel;
-  ctx.font = `500 ${spec.number}px ${serif}`;
-  const number = String(days);
-  const numberW = ctx.measureText(number).width;
-  const rowW = flameW + 28 + numberW;
-  const rowY = spec.wellY + spec.wellH + (spec === STORY ? 150 : 100);
-  const rowX = (spec.w - rowW) / 2;
-  drawFlame(ctx, rowX, rowY - flameH / 2, pixel, accent, days === 0);
-  ctx.fillStyle = ink;
-  ctx.textAlign = "left";
-  ctx.fillText(number, rowX + flameW + 28, rowY);
+    const dotTop = weekTop + spec.dayLabel + Math.round(spec.dot * 0.22);
+    const radius = spec.dot / 2;
+    ctx.beginPath();
+    ctx.arc(cx, dotTop + radius, radius, 0, Math.PI * 2);
+    if (day.mark === "done") {
+      ctx.fillStyle = accent;
+      ctx.fill();
+    } else if (day.mark === "frozen") {
+      ctx.fillStyle = card;
+      ctx.fill();
+      ctx.lineWidth = Math.max(2, spec.dot * 0.045);
+      ctx.strokeStyle = ink;
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = soft;
+      ctx.fill();
+      if (day.today) {
+        ctx.lineWidth = Math.max(3, spec.dot * 0.06);
+        ctx.strokeStyle = ink;
+        ctx.stroke();
+      }
+    }
+    if (day.mark === "done" || day.mark === "frozen") {
+      const glyph = day.mark === "done" ? 24 : 22;
+      const pixel = Math.max(2, Math.round((spec.dot * glyph) / 34 / 12));
+      const gw = 12 * pixel;
+      drawMark(
+        ctx,
+        day.mark === "done" ? CHECK : SNOW,
+        cx - gw / 2,
+        dotTop + radius - gw / 2,
+        pixel,
+        day.mark === "done" ? onAccent : ink,
+      );
+    }
+  });
 
-  ctx.textAlign = "center";
-  ctx.fillStyle = days === 0 ? muted : accent;
-  ctx.font = `600 ${spec.label}px ${mono}`;
-  const labelY = rowY + flameH / 2 + spec.label / 2 + 22;
-  ctx.fillText("day streak", spec.w / 2, labelY);
+  let cy = weekTop + weekH + 22;
+  ctx.beginPath();
+  ctx.moveTo(spec.margin + spec.padX, cy);
+  ctx.lineTo(spec.margin + spec.padX + textW, cy);
+  ctx.strokeStyle = line;
+  ctx.lineWidth = 2;
+  ctx.stroke();
 
-  ctx.fillStyle = ink2;
-  ctx.font = `italic 500 ${spec.caption}px ${serif}`;
-  const lines = wrap(ctx, caption, spec.w - 180);
-  const captionTop = labelY + spec.label / 2 + spec.caption;
-  lines.forEach((text, i) => ctx.fillText(text, spec.w / 2, captionTop + i * (spec.caption + 10)));
-
+  cy += 20;
   ctx.fillStyle = muted;
+  ctx.font = `500 ${spec.message}px ${mono}`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  messageLines.forEach((text, i) => ctx.fillText(text, spec.w / 2, cy + i * spec.message * 1.45));
+
+  cy += messageH + 20;
+  ctx.beginPath();
+  ctx.moveTo(spec.margin + spec.padX, cy);
+  ctx.lineTo(spec.margin + spec.padX + textW, cy);
+  ctx.stroke();
+
+  cy += 20;
+  const facts: [string, string[]][] = [
+    [details.bestLabel, ["Best streak"]],
+    [details.limitLabel, ["Breaks or phone", "limit"]],
+    [details.freezeLabel, ["Streak freezes"]],
+  ];
+  const col = textW / 3;
+  facts.forEach(([value, labels], i) => {
+    const x = spec.margin + spec.padX + col * i + col / 2;
+    if (i > 0) {
+      ctx.beginPath();
+      ctx.moveTo(spec.margin + spec.padX + col * i, cy);
+      ctx.lineTo(spec.margin + spec.padX + col * i, cy + factsH);
+      ctx.strokeStyle = line;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.fillStyle = ink;
+    ctx.font = `500 ${spec.fact}px ${serif}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillText(value, x, cy);
+    ctx.fillStyle = muted;
+    ctx.font = `500 ${spec.factLabel}px ${mono}`;
+    labels.forEach((label, li) => ctx.fillText(label, x, cy + spec.fact + 10 + li * (spec.factLabel + 4)));
+  });
+
+  ctx.fillStyle = faint;
   ctx.font = `500 ${spec.url}px ${mono}`;
-  ctx.fillText("kkorbaczjr.github.io/GoReal-final", spec.w / 2, spec.h - 78);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("kkorbaczjr.github.io/GoReal-final", spec.w / 2, spec.h - spec.margin * 0.7);
 }
 
 /**
- * Draw the share card at full resolution (1080 wide), whatever the screen's pixel density is.
- * `line` is optional so a format toggle can keep the same caption.
+ * Draw the streak screen at full resolution (1080 wide), whatever the screen's pixel density is.
+ * Rilo sits smaller on the accent's soft colour. The week, sentence and facts match the modal.
  */
 export async function generateShareImage({
-  streak,
+  details,
   outfit,
   format,
-  line,
 }: {
-  streak: number;
+  details: ShareDetails;
   outfit: ShareOutfit;
   format: ShareFormat;
-  line?: string;
 }): Promise<Blob> {
-  const caption = line ?? pickShareLine();
   const [fonts, rilo] = await Promise.all([loadFonts(), loadSvg(captureRilo(outfit))]);
   const spec = format === "square" ? SQUARE : STORY;
   const canvas = document.createElement("canvas");
@@ -282,7 +494,7 @@ export async function generateShareImage({
   canvas.height = spec.h;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not draw");
-  paint(ctx, spec, rilo, streak, caption, fonts.serif, fonts.mono);
+  paint(ctx, spec, rilo, details, fonts.serif, fonts.mono);
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
   if (!blob) throw new Error("Could not draw");
   return blob;

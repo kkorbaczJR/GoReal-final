@@ -9,7 +9,7 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 mkdir -p "$tmp/lib/notifications"
-cp "$root"/lib/{apps,date,rules,shop,usage,sync-rules,shareCopy}.ts "$tmp/lib/"
+cp "$root"/lib/{apps,date,rules,shop,usage,sync-rules,shareCopy,shareStreak}.ts "$tmp/lib/"
 cp "$root"/lib/notifications/{types,copy,triggers}.ts "$tmp/lib/notifications/"
 sed -i -E 's#(from "\.{1,2}/[A-Za-z/-]+)"#\1.ts"#' "$tmp"/lib/*.ts "$tmp"/lib/notifications/*.ts
 cp "$here"/{triggers,goals,colors,usage,sync,share}.test.ts "$tmp/"
