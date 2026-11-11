@@ -22,8 +22,10 @@ import {
   isAccent,
   isOwned,
   type Accent,
+  type Aura,
   type Back,
   type Background,
+  type Buddy,
   type Face,
   type Neck,
   type Outfit,
@@ -59,6 +61,8 @@ export type GoRealState = {
   face: Face | null;
   neck: Neck | null;
   back: Back | null;
+  aura: Aura | null;
+  buddy: Buddy | null;
   background: Background | null;
   title: string;
   /** The colour of buttons and highlights, orange unless another one was bought in the shop. */
@@ -110,6 +114,8 @@ export function initialState(): GoRealState {
     face: null,
     neck: null,
     back: null,
+    aura: null,
+    buddy: null,
     background: null,
     title: DEFAULT_TITLE,
     accent: DEFAULT_ACCENT,
@@ -434,6 +440,10 @@ export function buyOrEquip(itemId: string): boolean {
         return { ...next, neck: prev.neck === item.look && owned ? null : item.look };
       case "back":
         return { ...next, back: prev.back === item.look && owned ? null : item.look };
+      case "aura":
+        return { ...next, aura: prev.aura === item.look && owned ? null : item.look };
+      case "buddy":
+        return { ...next, buddy: prev.buddy === item.look && owned ? null : item.look };
       case "background":
         return { ...next, background: prev.background === item.look && owned ? null : item.look };
       case "title":

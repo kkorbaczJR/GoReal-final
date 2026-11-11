@@ -19,6 +19,7 @@ const CATEGORIES: { id: Category; label: string; icon: PixelIconName }[] = [
   { id: "hat", label: "Hats", icon: "hat" },
   { id: "face", label: "Extras", icon: "glasses" },
   { id: "back", label: "Back", icon: "wings" },
+  { id: "aura", label: "Aura", icon: "sparkle" },
   { id: "background", label: "Scenes", icon: "picture" },
   { id: "title", label: "Titles", icon: "badge" },
   { id: "color", label: "Colors", icon: "palette" },
@@ -35,6 +36,10 @@ function isWearing(item: ShopItem, s: GoRealState) {
       return s.neck === item.look;
     case "back":
       return s.back === item.look;
+    case "aura":
+      return s.aura === item.look;
+    case "buddy":
+      return s.buddy === item.look;
     case "background":
       return s.background === item.look;
     case "title":
@@ -61,6 +66,8 @@ export default function Shop() {
     face: selected?.kind === "face" ? selected.look : s.face,
     neck: selected?.kind === "neck" ? selected.look : s.neck,
     back: selected?.kind === "back" ? selected.look : s.back,
+    aura: selected?.kind === "aura" ? selected.look : s.aura,
+    buddy: selected?.kind === "buddy" ? selected.look : s.buddy,
     background: selected?.kind === "background" ? selected.look : s.background,
     title: selected?.kind === "title" ? selected.id : s.title,
   };
@@ -73,9 +80,11 @@ export default function Shop() {
     return () => applyAccent(s.accent);
   }, [previewAccent, s.accent]);
 
-  const items = SHOP_ITEMS.filter((i) =>
-    category === "face" ? i.kind === "face" || i.kind === "neck" : i.kind === category,
-  );
+  const items = SHOP_ITEMS.filter((i) => {
+    if (category === "face") return i.kind === "face" || i.kind === "neck";
+    if (category === "aura") return i.kind === "aura" || i.kind === "buddy";
+    return i.kind === category;
+  });
   const owned = (item: ShopItem) => isOwned(item, s.owned, s.totalBreakMinutes);
   const wearing = (item: ShopItem) => isWearing(item, s);
 
@@ -157,9 +166,11 @@ export default function Shop() {
           face={preview.face}
           neck={preview.neck}
           back={preview.back}
+          aura={preview.aura}
+          buddy={preview.buddy}
           background={preview.background}
           size={130}
-          height={190}
+          height={210}
         />
         <AnimatePresence mode="wait">
           <motion.span
@@ -244,12 +255,14 @@ export default function Shop() {
                       <PixelScene scene={item.look} className={styles.thumbScene} />
                     ) : (
                       <Mascot
-                        still
+                        still={item.kind !== "buddy"}
                         size={78}
                         outfit={item.kind === "hat" ? item.look : null}
                         face={item.kind === "face" ? item.look : null}
                         neck={item.kind === "neck" ? item.look : null}
                         back={item.kind === "back" ? item.look : null}
+                        aura={item.kind === "aura" ? item.look : null}
+                        buddy={item.kind === "buddy" ? item.look : null}
                       />
                     )}
                   </span>

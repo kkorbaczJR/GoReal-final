@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useMemo } from "react";
-import type { Back, Face, Neck, Outfit } from "@/lib/shop";
+import type { Aura, Back, Buddy, Face, Neck, Outfit } from "@/lib/shop";
 
 export type Mood = "happy" | "wave" | "tired" | "sleeping" | "proud" | "sad";
 
@@ -12,6 +12,8 @@ type Props = {
   face?: Face | null;
   neck?: Neck | null;
   back?: Back | null;
+  aura?: Aura | null;
+  buddy?: Buddy | null;
   size?: number;
   /** Rilo on a dark background (break mode): the floating z's turn light. */
   onDark?: boolean;
@@ -51,6 +53,16 @@ const STEEL = "#64748b";
 const CYAN = "#22d3ee";
 const CYAN_DEEP = "#0e7490";
 const GOLD = "#eab308";
+const GOLD_DEEP = "#a16207";
+const GOLD_LIGHT = "#fde68a";
+const FIRE = "#f97316";
+const FIRE_DEEP = "#c2410c";
+const FIRE_HOT = "#fef08a";
+const CAPE = "#6b21a8";
+const CAPE_DEEP = "#3b0764";
+const COSMIC = "#6d28d9";
+const STAR = "#c4b5fd";
+const NEBULA = "#22d3ee";
 const WING = "#fff8e7";
 const WING_MID = "#ffe4b3";
 const WING_TIP = "#f0c27a";
@@ -144,8 +156,12 @@ const OUTFITS: Record<Outfit, Px[]> = {
     [12, -4, CREAM], [14, -4, CREAM], [12, -2, CREAM], [14, -2, CREAM], [13, -3, CLAY],
   ],
   crown: [
-    [4, -4, CREAM], [7, -4, CREAM], [8, -4, CREAM], [11, -4, CREAM],
-    ...run(-3, 4, 11, CREAM), ...run(-2, 4, 11, CREAM), ...run(-1, 4, 11, CREAM), [7, -2, CLAY], [8, -2, CLAY],
+    [3, -5, GOLD], [7, -6, GOLD_LIGHT], [8, -6, GOLD_LIGHT], [12, -5, GOLD],
+    [4, -4, GOLD], [7, -5, GOLD], [8, -5, GOLD], [11, -4, GOLD],
+    ...run(-3, 3, 12, GOLD),
+    ...run(-2, 3, 12, GOLD_DEEP),
+    ...run(-1, 2, 13, GOLD),
+    [5, -3, RED], [10, -3, RED], [7, -2, RED], [8, -2, GOLD_LIGHT],
   ],
   party: [
     [7, -6, CLAY], [8, -6, CLAY], ...run(-5, 7, 8, CREAM), ...run(-4, 6, 9, CLAY),
@@ -321,6 +337,20 @@ const OUTFITS: Record<Outfit, Px[]> = {
     ...run(12, 4, 11, SILVER),
     [14, 3, NAVY], [14, 4, NAVY], [13, 4, YELLOW],
   ],
+  goldenHalo: [
+    ...run(-7, 5, 10, GOLD_LIGHT),
+    ...run(-6, 4, 11, GOLD),
+    [3, -6, GOLD_DEEP], [12, -6, GOLD_DEEP],
+    [7, -8, GOLD_LIGHT], [8, -7, GOLD],
+  ],
+  flameCrown: [
+    ...run(-1, 3, 12, GOLD),
+    ...run(0, 2, 13, GOLD_DEEP),
+    [4, -3, FIRE], [5, -5, FIRE], [5, -6, FIRE_HOT], [5, -4, FIRE_DEEP], [6, -3, FIRE],
+    [7, -4, FIRE], [7, -6, FIRE_HOT], [8, -7, FIRE_HOT], [8, -5, FIRE], [8, -4, FIRE_DEEP],
+    [9, -4, FIRE], [10, -6, FIRE], [10, -5, FIRE_HOT], [11, -4, FIRE_DEEP], [12, -3, FIRE],
+    [7, -2, GOLD], [8, -2, GOLD_LIGHT],
+  ],
 };
 
 const ASTRONAUT_VISOR: Px[] = [
@@ -446,6 +476,48 @@ const BACKS_BEHIND: Record<Back, Px[]> = {
     ...run(7, -3, -2, BROWN),
     ...run(8, -3, -2, GOLD),
   ],
+  royalCape: [
+    ...run(4, -2, 0, CAPE_DEEP),
+    ...run(5, -3, 1, CAPE),
+    ...run(6, -4, 1, CAPE),
+    ...run(7, -5, 2, CAPE_DEEP),
+    ...run(8, -5, 2, CAPE),
+    ...run(9, -6, 3, CAPE),
+    ...run(10, -6, 3, CAPE_DEEP),
+    ...run(11, -5, 2, CAPE),
+    ...run(12, -4, 1, GOLD),
+    ...run(4, 15, 17, CAPE_DEEP),
+    ...run(5, 14, 18, CAPE),
+    ...run(6, 14, 18, CAPE),
+    ...run(7, 13, 19, CAPE_DEEP),
+    ...run(8, 13, 20, CAPE),
+    ...run(9, 12, 20, CAPE),
+    ...run(10, 13, 20, CAPE_DEEP),
+    ...run(11, 14, 19, CAPE),
+    ...run(12, 15, 18, GOLD),
+  ],
+  goldenWings: [
+    ...run(-1, -5, -3, GOLD_LIGHT),
+    ...run(0, -6, -2, GOLD),
+    ...run(1, -6, -1, GOLD),
+    ...run(2, -6, 0, GOLD_DEEP),
+    ...run(3, -5, 0, GOLD),
+    ...run(4, -4, -1, GOLD_LIGHT),
+    ...run(5, -4, -1, GOLD),
+    ...run(6, -3, -1, GOLD_DEEP),
+    ...run(7, -3, -1, GOLD_LIGHT),
+    [-6, 1, GOLD], [-5, 3, GOLD_DEEP],
+    ...run(-1, 18, 20, GOLD_LIGHT),
+    ...run(0, 17, 21, GOLD),
+    ...run(1, 16, 21, GOLD),
+    ...run(2, 15, 21, GOLD_DEEP),
+    ...run(3, 15, 20, GOLD),
+    ...run(4, 16, 19, GOLD_LIGHT),
+    ...run(5, 16, 19, GOLD),
+    ...run(6, 16, 18, GOLD_DEEP),
+    ...run(7, 16, 18, GOLD_LIGHT),
+    [21, 1, GOLD], [20, 3, GOLD_DEEP],
+  ],
 };
 
 const BACKS_FRONT: Record<Back, Px[]> = {
@@ -459,6 +531,10 @@ const BACKS_FRONT: Record<Back, Px[]> = {
     [1, 8, STEEL], [14, 8, STEEL],
   ],
   sword: [],
+  royalCape: [
+    [7, 12, GOLD], [8, 12, GOLD_LIGHT],
+  ],
+  goldenWings: [],
 };
 
 const FACES: Record<Face, Px[]> = {
@@ -494,6 +570,12 @@ const FACES: Record<Face, Px[]> = {
     [9, 5, INK], [9, 6, INK], [9, 7, INK], [13, 5, INK], [13, 6, INK], [13, 7, INK],
     [14, 8, GRAY], [14, 9, GRAY], [14, 10, GRAY], [13, 11, GRAY],
   ],
+  goldenMonocle: [
+    ...run(4, 10, 12, GOLD), ...run(8, 10, 12, GOLD),
+    [9, 5, GOLD], [9, 6, GOLD], [9, 7, GOLD], [13, 5, GOLD], [13, 6, GOLD], [13, 7, GOLD],
+    [10, 6, GOLD_LIGHT], [11, 6, CREAM],
+    [14, 8, GOLD_DEEP], [14, 9, GOLD], [14, 10, GOLD_DEEP], [13, 11, GOLD], [12, 12, GOLD_LIGHT],
+  ],
   star: [
     [12, 7, CREAM],
     [11, 8, CREAM], [12, 8, CREAM], [13, 8, CREAM],
@@ -525,6 +607,43 @@ MOUTHS.wave = MOUTHS.happy;
 
 const BLUSH_PX: Px[] = [...run(8, 2, 3, BLUSH), ...run(8, 12, 13, BLUSH)];
 const Z: [number, number][] = [[0, 0], [1, 0], [2, 0], [3, 0], [2, 1], [1, 2], [0, 3], [1, 3], [2, 3], [3, 3]];
+
+const AURAS: Record<Aura, Px[]> = {
+  flaming: [
+    [-2, 1, FIRE_DEEP], [-3, 2, FIRE], [-2, 3, FIRE_HOT], [-3, 4, FIRE], [-2, 5, FIRE_DEEP],
+    [-3, 6, FIRE], [-2, 7, FIRE_HOT], [-3, 8, FIRE], [-2, 9, FIRE_DEEP], [-3, 10, FIRE], [-2, 11, FIRE_HOT],
+    [17, 1, FIRE], [18, 2, FIRE_HOT], [17, 3, FIRE_DEEP], [18, 4, FIRE], [17, 5, FIRE_HOT],
+    [18, 6, FIRE], [17, 7, FIRE_DEEP], [18, 8, FIRE_HOT], [17, 9, FIRE], [18, 10, FIRE_DEEP], [17, 11, FIRE],
+    [1, 13, FIRE], [3, 14, FIRE_HOT], [5, 13, FIRE_DEEP], [7, 14, FIRE], [9, 13, FIRE_HOT], [11, 14, FIRE], [13, 13, FIRE_DEEP],
+    [3, -2, FIRE], [6, -3, FIRE_HOT], [8, -4, FIRE], [10, -3, FIRE_DEEP], [12, -2, FIRE],
+  ],
+  galaxy: [
+    [-4, 2, COSMIC], [-5, 5, STAR], [-4, 8, NEBULA], [-3, 11, COSMIC],
+    [19, 2, STAR], [20, 5, NEBULA], [19, 8, COSMIC], [18, 11, STAR],
+    [1, -3, NEBULA], [5, -4, STAR], [10, -4, COSMIC], [14, -3, STAR],
+    [2, 14, COSMIC], [7, 15, STAR], [12, 14, NEBULA],
+    [8, -5, GOLD_LIGHT], [16, 1, STAR], [0, 6, NEBULA],
+  ],
+};
+
+const UFO: Px[] = [
+  [1, -2, CYAN_DEEP], [2, -3, CYAN], [3, -3, CYAN], [4, -2, CYAN_DEEP],
+  [2, -2, CREAM], [3, -2, CYAN],
+  ...run(0, 0, 5, STEEL),
+  ...run(1, -1, 6, SILVER),
+  [1, 0, YELLOW], [3, 0, RED], [5, 0, YELLOW],
+];
+
+const UFO_PATH = [
+  { x: 14, y: -11 },
+  { x: 19, y: -5 },
+  { x: 18, y: 3 },
+  { x: 10, y: 8 },
+  { x: 1, y: 4 },
+  { x: -5, y: -3 },
+  { x: 1, y: -10 },
+  { x: 8, y: -13 },
+];
 
 /** Pixels around a shape that get the dark outline. */
 function outline(pixels: Px[]): Px[] {
@@ -568,6 +687,8 @@ export default function Mascot({
   face = null,
   neck = null,
   back = null,
+  aura = null,
+  buddy = null,
   size = 160,
   onDark = false,
   still = false,
@@ -582,6 +703,11 @@ export default function Mascot({
     ]);
   }, [outfit, neck, face, back]);
   const behind = useMemo(() => (back ? pack(BACKS_BEHIND[back]) : []), [back]);
+  const auraPx = useMemo(() => {
+    if (!aura) return [];
+    return aura === "galaxy" ? pack(AURAS.galaxy) : AURAS.flaming;
+  }, [aura]);
+  const ufoPx = useMemo(() => (buddy === "ufo" ? pack(UFO) : []), [buddy]);
 
   const hideFace = outfit === "gasmask";
   const hideBlush = hideFace || outfit === "astronaut";
@@ -614,7 +740,7 @@ export default function Mascot({
     <motion.svg
       width={size}
       height={size}
-      viewBox="-7 -8 31 28"
+      viewBox="-10 -14 37 34"
       shapeRendering="crispEdges"
       role="img"
       aria-label={`Rilo, ${mood}`}
@@ -627,13 +753,30 @@ export default function Mascot({
 
       <motion.g animate={still ? undefined : idle}>
         {behind.length > 0 && <Pixels px={behind} />}
+        {aura === "flaming" && (
+          <motion.g
+            animate={still ? undefined : { opacity: [1, 0.55, 1] }}
+            transition={{ duration: 0.7, repeat: Infinity, ease: steps(2) }}
+          >
+            <Pixels px={auraPx} />
+          </motion.g>
+        )}
+        {aura === "galaxy" && (
+          <motion.g
+            style={{ transformOrigin: "8px 6px" }}
+            animate={still ? undefined : { rotate: [0, 45, 90, 135, 180, 225, 270, 315, 360] }}
+            transition={{ duration: 6.4, repeat: Infinity, ease: steps(8) }}
+          >
+            <Pixels px={auraPx} />
+          </motion.g>
+        )}
         <Pixels px={base} />
         {!hideBlush && (
           <Pixels
             px={
               face === "glasses"
                 ? BLUSH_PX.filter(([x]) => x === 2 || x === 13)
-                : face === "star" || face === "monocle"
+                : face === "star" || face === "monocle" || face === "goldenMonocle"
                   ? BLUSH_PX.filter(([x]) => x < 8)
                   : BLUSH_PX
             }
@@ -654,6 +797,23 @@ export default function Mascot({
         )}
         <Pixels px={mouth} />
       </motion.g>
+
+      {ufoPx.length > 0 && (
+        <motion.g
+          initial={false}
+          animate={
+            still
+              ? { x: UFO_PATH[0].x, y: UFO_PATH[0].y }
+              : {
+                  x: UFO_PATH.map((p) => p.x),
+                  y: UFO_PATH.map((p) => p.y),
+                  transition: { duration: 5.6, repeat: Infinity, ease: steps(8) },
+                }
+          }
+        >
+          <Pixels px={ufoPx} />
+        </motion.g>
+      )}
 
       {mood === "sleeping" &&
         [0, 1].map((i) => (

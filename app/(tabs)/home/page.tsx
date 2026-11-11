@@ -110,7 +110,7 @@ export default function Home() {
 
       <section className={styles.timer}>
         <TimerRing progress={minutes / 60} size={260} stroke={8}>
-          <Mascot mood={mood} size={116} outfit={s.outfit} face={s.face} neck={s.neck} back={s.back} />
+          <Mascot mood={mood} size={116} outfit={s.outfit} face={s.face} neck={s.neck} back={s.back} aura={s.aura} buddy={s.buddy} />
           <div className={styles.minutes}>
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.span
