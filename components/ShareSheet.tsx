@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { onBack } from "@/lib/back";
-import { streakLabel } from "@/lib/shareCopy";
+import { useCopy } from "@/lib/i18n";
 import { generateShareImage, shareImage, type ShareFormat, type ShareOutfit } from "@/lib/shareCard";
 import type { ShareDetails } from "@/lib/shareStreak";
 import Button from "./Button";
@@ -25,6 +25,7 @@ function pictureKey(details: ShareDetails) {
 
 /** Preview of the streak card, then the device share sheet or a download. */
 export default function ShareSheet({ open, onClose, details, outfit }: Props) {
+  const { c } = useCopy();
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<string | null>(null);
@@ -84,14 +85,14 @@ export default function ShareSheet({ open, onClose, details, outfit }: Props) {
           setError(null);
         })
         .catch(() => {
-          if (!cancel) setError("Couldn't make that image. Try again.");
+          if (!cancel) setError(c.drawFail);
         });
     }, 0);
     return () => {
       cancel = true;
       window.clearTimeout(timer);
     };
-  }, [draft, picture, hat, face, neck, back, aura, buddy]);
+  }, [draft, picture, hat, face, neck, back, aura, buddy, c.drawFail]);
 
   useEffect(() => {
     return () => {
@@ -145,13 +146,13 @@ export default function ShareSheet({ open, onClose, details, outfit }: Props) {
   const share = async () => {
     if (!ready) return;
     setToast(null);
-    const result = await shareImage(ready.blob, `${streakLabel(picture.count)}. ${picture.line}`);
+    const result = await shareImage(ready.blob, `${c.streakCaption(picture.count)}. ${picture.line}`);
     if (result.kind === "cancelled") return;
     if (result.kind === "shared") {
       onClose();
       return;
     }
-    setToast(result.copied ? "Link copied" : "Image saved");
+    setToast(result.copied ? c.linkCopied : c.imageSaved);
     window.setTimeout(() => setToast(null), 1800);
   };
 
@@ -160,37 +161,37 @@ export default function ShareSheet({ open, onClose, details, outfit }: Props) {
       <div className={styles.backdrop} onClick={onClose} />
       <div ref={dialogRef} className={styles.sheet} role="dialog" aria-modal="true" aria-labelledby={titleId}>
         <h2 id={titleId} className={styles.title}>
-          Share your streak
+          {c.shareStreak}
         </h2>
-        <div className={styles.toggle} role="group" aria-label="Image shape">
+        <div className={styles.toggle} role="group" aria-label={c.imageShape}>
           <button
             type="button"
             aria-pressed={draft.format === "story"}
             onClick={() => setDraft({ ...draft, format: "story" })}
           >
-            Story
+            {c.story}
           </button>
           <button
             type="button"
             aria-pressed={draft.format === "square"}
             onClick={() => setDraft({ ...draft, format: "square" })}
           >
-            Square
+            {c.square}
           </button>
         </div>
         {ready ? (
           // The card is a blob we just drew. next/image cannot load that.
           // eslint-disable-next-line @next/next/no-img-element
-          <img className={styles.preview} src={ready.url} alt={`${streakLabel(picture.count)}. ${picture.line}`} />
+          <img className={styles.preview} src={ready.url} alt={`${c.streakCaption(picture.count)}. ${picture.line}`} />
         ) : (
-          <div className={styles.placeholder}>{error ?? "Drawing your card..."}</div>
+          <div className={styles.placeholder}>{error ?? c.drawing}</div>
         )}
         <div className={styles.actions}>
-          <Button full onClick={share} disabled={!ready} aria-label="Share streak image">
-            Share
+          <Button full onClick={share} disabled={!ready} aria-label={c.shareImage}>
+            {c.share}
           </Button>
           <Button variant="secondary" full onClick={onClose}>
-            Close
+            {c.close}
           </Button>
         </div>
         {toast && (

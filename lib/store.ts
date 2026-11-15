@@ -13,6 +13,7 @@ import {
   type NotifPrefs,
   type NotifState,
 } from "./notifications/types";
+import { freezesLeft, isLang, missedDays, type Lang } from "./lang";
 import { canMeasure } from "./phone";
 import {
   DEFAULT_ACCENT,
@@ -67,6 +68,8 @@ export type GoRealState = {
   title: string;
   /** The colour of buttons and highlights, orange unless another one was bought in the shop. */
   accent: Accent;
+  /** English or Polish. The whole app follows this. */
+  lang: Lang;
 
   /** Streak freezes in stock (0 to 2). One is spent automatically for each missed day. */
   freezes: number;
@@ -112,6 +115,7 @@ export function initialState(): GoRealState {
     background: null,
     title: DEFAULT_TITLE,
     accent: DEFAULT_ACCENT,
+    lang: "en",
     freezes: 0,
     freezesUsed: 0,
     freezeNotice: null,
@@ -155,8 +159,8 @@ function settleDay(s: GoRealState, now = new Date()): GoRealState {
         "freezeUsed",
         {
           streak: frozen.saved,
-          daysWord: frozen.used === 1 ? "a day" : `${frozen.used} days`,
-          leftText: frozen.freezes === 0 ? "That was your last one." : `You have ${frozen.freezes} left.`,
+          daysWord: missedDays(next.lang, frozen.used),
+          leftText: freezesLeft(next.lang, frozen.freezes),
         },
         now,
       );
@@ -180,6 +184,7 @@ function migrate(raw: Record<string, unknown>): Partial<GoRealState> {
   if (!isAccent(next.accent) || (next.accent !== DEFAULT_ACCENT && !ownedIds.includes(`color-${next.accent}`))) {
     delete next.accent;
   }
+  if (!isLang(next.lang)) delete next.lang;
   if ((next.outfit as string) === "gasmask") next.outfit = null;
   if ((next.outfit as string) === "shades") return { ...next, outfit: null, face: "shades" };
   return next;
@@ -278,7 +283,7 @@ export function update(fn: (s: GoRealState) => GoRealState) {
 export function resetEverything() {
   const hook = onLocalChange;
   onLocalChange = null;
-  update(() => initialState());
+  update((s) => ({ ...initialState(), lang: s.lang }));
   onLocalChange = hook;
 }
 
@@ -426,6 +431,10 @@ export function buyOrEquip(itemId: string): boolean {
 /** Past days keep their goals. Today follows the change when that cannot be gamed (see `changeGoals`). */
 export function setGoals(goals: { phoneLimit?: number; breakGoal?: number }) {
   update((s) => ({ ...s, days: changeGoals(s.days, s, goals, new Date()), ...goals }));
+}
+
+export function setLang(lang: Lang) {
+  update((s) => ({ ...s, lang }));
 }
 
 /* ---------- notifications ---------- */

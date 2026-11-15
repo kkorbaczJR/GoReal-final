@@ -117,9 +117,15 @@
   font-weight: 500;
 }
 
+.goalText > span:first-child {
+  min-width: 0;
+}
+
 .value {
   color: var(--muted);
   font-weight: 400;
+  white-space: nowrap;
+  flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
 

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Button from "@/components/Button";
+import Flag from "@/components/Flags";
 import CountUp from "@/components/CountUp";
 import { useInstall } from "@/components/Install";
 import Mascot from "@/components/Mascot";
@@ -25,16 +26,17 @@ import {
   longestStreak,
   streakStatus,
 } from "@/lib/rules";
+import { useCopy, weekLetters } from "@/lib/i18n";
 import { shareDetails } from "@/lib/shareStreak";
 import { titleName } from "@/lib/shop";
 import { resetEverything, setGoals, useGoReal } from "@/lib/store";
 import shared from "../tabs.module.css";
 import styles from "./profile.module.css";
 
-const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
-
 export default function Profile() {
   const s = useGoReal()!;
+  const { lang, c, setLang } = useCopy();
+  const weekdays = weekLetters(lang, true);
   const todayGoals = goalsFor(s.days[dayKey()], s);
   const router = useRouter();
   const [confirmReset, setConfirmReset] = useState(false);
@@ -51,14 +53,13 @@ export default function Profile() {
   const monday = weekStart();
   const today = dayKey();
 
-  const days = (n: number) => `${n} ${n === 1 ? "day" : "days"}`;
   const stats: { label: string; value: number | string; format?: (n: number) => string }[] = [
-    { label: "Off-screen", value: s.totalBreakMinutes, format: formatMinutes },
-    { label: "Streak", value: streak.count, format: days },
-    { label: "Longest streak", value: best, format: days },
-    { label: "Breaks done", value: s.completedBreaks },
-    { label: "Longest break", value: s.longestBreak, format: formatMinutes },
-    { label: "Shop items", value: s.owned.length },
+    { label: c.offScreen, value: s.totalBreakMinutes, format: (n) => formatMinutes(n, lang) },
+    { label: c.streak, value: streak.count, format: (n) => c.days(n) },
+    { label: c.longestStreak, value: best, format: (n) => c.days(n) },
+    { label: c.breaksDone, value: s.completedBreaks },
+    { label: c.longestBreak, value: s.longestBreak, format: (n) => formatMinutes(n, lang) },
+    { label: c.shopItems, value: s.owned.length },
   ];
 
   return (
@@ -77,16 +78,16 @@ export default function Profile() {
           height={190}
         />
         <h1 className={styles.name}>{s.name}</h1>
-        <span className={styles.title}>{titleName(s.title)}</span>
+        <span className={styles.title}>{titleName(s.title, lang)}</span>
       </section>
 
       <motion.button whileTap={{ scale: 0.98 }} className={`${shared.card} ${styles.weekCard}`} onClick={() => setShowStreak(true)}>
         <div className={styles.weekHead}>
-          <h2 className={shared.sectionTitle}>This week</h2>
+          <h2 className={shared.sectionTitle}>{c.thisWeek}</h2>
           <PixelIcon name="chevronRight" size={12} className={styles.chev} />
         </div>
         <div className={styles.week}>
-          {WEEKDAYS.map((d, i) => {
+          {weekdays.map((d, i) => {
             const key = dayKey(addDays(monday, i));
             const isToday = key === today;
             const state = dayState(s.days[key], s, isToday);
@@ -112,15 +113,15 @@ export default function Profile() {
         </div>
       </motion.button>
 
-      <Button variant="secondary" full onClick={() => setShare(true)} aria-label="Share your streak">
-        Share streak
+      <Button variant="secondary" full onClick={() => setShare(true)} aria-label={c.shareStreakLabel}>
+        {c.shareStreak}
       </Button>
 
       <AnimatePresence>{showStreak && <StreakScreen onClose={() => setShowStreak(false)} />}</AnimatePresence>
       <ShareSheet
         open={share}
         onClose={() => setShare(false)}
-        details={shareDetails(s)}
+        details={shareDetails(s, false, new Date(), lang)}
         outfit={{ outfit: s.outfit, face: s.face, neck: s.neck, back: s.back, aura: s.aura, buddy: s.buddy }}
       />
 
@@ -136,37 +137,48 @@ export default function Profile() {
       </section>
 
       <div className={shared.group}>
+        <div className={shared.groupRow}>
+          <span className={styles.rowLabel}>{c.language}</span>
+          <div className={styles.lang} role="group" aria-label={c.language}>
+            <button type="button" aria-pressed={lang === "en"} onClick={() => setLang("en")}>
+              <Flag code="en" /> en
+            </button>
+            <button type="button" aria-pressed={lang === "pl"} onClick={() => setLang("pl")}>
+              <Flag code="pl" /> pl
+            </button>
+          </div>
+        </div>
         {account.status !== "off" && (
           <button className={shared.groupRow} onClick={() => router.push("/account")}>
             <PixelIcon name="face" size={24} />
-            <span className={styles.rowLabel}>Account</span>
+            <span className={styles.rowLabel}>{c.account}</span>
             <span className={`${styles.rowValue} ${styles.rowEmail}`}>
-              {account.status === "signedIn" ? account.email : account.status === "loading" ? "" : "Sign up"}
+              {account.status === "signedIn" ? account.email : account.status === "loading" ? "" : c.signUp}
             </span>
             <PixelIcon name="chevronRight" size={12} className={styles.rowChev} />
           </button>
         )}
         <button className={shared.groupRow} onClick={() => router.push("/reminders")}>
           <PixelIcon name="bell" size={24} />
-          <span className={styles.rowLabel}>Reminders</span>
+          <span className={styles.rowLabel}>{c.reminders}</span>
           <span className={styles.rowValue}>
-            {s.notif.prefs.enabled ? "On" : "Off"}
+            {s.notif.prefs.enabled ? c.on : c.off}
           </span>
           <PixelIcon name="chevronRight" size={12} className={styles.rowChev} />
         </button>
         {android && (
           <button className={shared.groupRow} onClick={() => router.push("/phone")}>
             <PixelIcon name="phone" size={24} />
-            <span className={styles.rowLabel}>Phone time</span>
-            <span className={styles.rowValue}>{s.phoneTracking ? "Measured" : "Set up"}</span>
+            <span className={styles.rowLabel}>{c.phoneTime}</span>
+            <span className={styles.rowValue}>{s.phoneTracking ? c.measured : c.setUp}</span>
             <PixelIcon name="chevronRight" size={12} className={styles.rowChev} />
           </button>
         )}
         {install.canInstall && (
           <button className={shared.groupRow} onClick={install.start}>
             <PixelIcon name="install" size={24} />
-            <span className={styles.rowLabel}>Install app</span>
-            <span className={styles.rowValue}>Home screen</span>
+            <span className={styles.rowLabel}>{c.installApp}</span>
+            <span className={styles.rowValue}>{c.homeScreen}</span>
             <PixelIcon name="chevronRight" size={12} className={styles.rowChev} />
           </button>
         )}
@@ -174,31 +186,29 @@ export default function Profile() {
       {install.ui}
 
       <section className={shared.card}>
-        <h2 className={shared.sectionTitle}>My goal</h2>
-        <p className={styles.goalHint}>
-          A day counts for your streak if you stay under your phone limit <b>or</b> finish your break goal. A change
-          applies to today right away unless it would make today easier after you already made progress.
-        </p>
+        <h2 className={shared.sectionTitle}>{c.myGoal}</h2>
+        <p className={styles.goalHint}>{c.goalHint}</p>
         <Segmented
-          label="Phone limit per day"
+          label={c.phoneLimit}
           options={PHONE_LIMIT_OPTIONS}
           value={s.phoneLimit}
           onChange={(v) => setGoals({ phoneLimit: v })}
+          lang={lang}
         />
         <Segmented
-          label="Break goal per day"
+          label={c.breakGoal}
           options={BREAK_GOAL_OPTIONS}
           value={s.breakGoal}
           onChange={(v) => setGoals({ breakGoal: v })}
+          lang={lang}
         />
         {goalsWaitForTomorrow(s.days, s) && (
           <p className={styles.goalWait}>
-            Today still runs on {formatMinutes(todayGoals.phoneLimit)} of phone time and a {formatMinutes(todayGoals.breakGoal)}{" "}
-            break goal. Your new goals start tomorrow.
+            {c.goalsWait(formatMinutes(todayGoals.phoneLimit, lang), formatMinutes(todayGoals.breakGoal, lang))}
           </p>
         )}
         <div className={styles.apps}>
-          <span className={styles.segLabel}>Apps off limits during breaks</span>
+          <span className={styles.segLabel}>{c.appsOff}</span>
           <div className={styles.chips}>
             {s.blockedApps.map((a) => (
               <span key={a} className={styles.chip}>{a}</span>
@@ -209,7 +219,7 @@ export default function Profile() {
 
       <section>
         <h2 className={shared.sectionTitle}>
-          Achievements <span className={shared.muted}>{unlocked}/{list.length}</span>
+          {c.achievements} <span className={shared.muted}>{unlocked}/{list.length}</span>
         </h2>
         <div className={styles.badges}>
           {list.map((a, i) => (
@@ -223,25 +233,23 @@ export default function Profile() {
               <span className={styles.badgeIcon}>
                 {a.unlocked ? <PixelIcon name="star" size={36} /> : <PixelIcon name="lock" size={24} dim />}
               </span>
-              <span className={styles.badgeName}>{a.name}</span>
-              <span className={styles.badgeHint}>{a.hint}</span>
+              <span className={styles.badgeName}>{c.badge[a.id]?.[0] ?? a.name}</span>
+              <span className={styles.badgeHint}>{c.badge[a.id]?.[1] ?? a.hint}</span>
             </motion.div>
           ))}
         </div>
       </section>
 
       <Button variant="ghost" size="medium" onClick={() => setConfirmReset(true)}>
-        Start over
+        {c.startOver}
       </Button>
 
       <Sheet open={confirmReset} onClose={() => setConfirmReset(false)}>
         <div className={styles.resetBody}>
           <Mascot mood="sad" size={100} />
-          <h2>Start over?</h2>
+          <h2>{c.startOverAsk}</h2>
           <p className={shared.muted}>
-            {account.status === "signedIn"
-              ? "This deletes your coins, streak and shop items on this phone. Your account keeps them, so logging in brings them back."
-              : "This deletes your coins, streak and shop items on this phone."}
+            {account.status === "signedIn" ? c.startOverAccount : c.startOverLocal}
           </p>
           <Button
             full
@@ -253,10 +261,10 @@ export default function Profile() {
               })();
             }}
           >
-            Yes, start over
+            {c.yesStartOver}
           </Button>
           <Button full variant="secondary" onClick={() => setConfirmReset(false)}>
-            Keep my progress
+            {c.keepProgress}
           </Button>
         </div>
       </Sheet>
@@ -269,11 +277,13 @@ function Segmented({
   options,
   value,
   onChange,
+  lang,
 }: {
   label: string;
   options: number[];
   value: number;
   onChange: (v: number) => void;
+  lang: "en" | "pl";
 }) {
   return (
     <div className={styles.seg}>
@@ -288,7 +298,7 @@ function Segmented({
                 transition={{ type: "spring", stiffness: 500, damping: 35 }}
               />
             )}
-            <span className={styles.segText}>{formatMinutes(o)}</span>
+            <span className={styles.segText}>{formatMinutes(o, lang)}</span>
           </button>
         ))}
       </div>

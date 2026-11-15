@@ -311,7 +311,7 @@ function paint(
   const peach = token("--accent-soft", "#fff0e8");
   const onAccent = token("--on-accent", "#ffffff");
   const days = Math.max(0, Math.floor(details.count));
-  const streakWord = days === 0 ? "day streak" : "day streak!";
+  const streakWord = details.streakWord;
 
   const inner = spec.w - spec.margin * 2;
   const textW = inner - spec.padX * 2;
@@ -442,9 +442,9 @@ function paint(
 
   cy += 20;
   const facts: [string, string[]][] = [
-    [details.bestLabel, ["Best streak"]],
-    [details.limitLabel, ["Breaks or phone", "limit"]],
-    [details.freezeLabel, ["Streak freezes"]],
+    [details.bestLabel, details.factLabels[0]],
+    [details.limitLabel, details.factLabels[1]],
+    [details.freezeLabel, details.factLabels[2]],
   ];
   const col = textW / 3;
   facts.forEach(([value, labels], i) => {

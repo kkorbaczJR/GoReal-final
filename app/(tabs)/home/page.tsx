@@ -14,6 +14,7 @@ import StatPills from "@/components/StatPills";
 import StreakScreen from "@/components/StreakScreen";
 import TimerRing from "@/components/TimerRing";
 import { dayKey, formatMinutes } from "@/lib/date";
+import { useCopy } from "@/lib/i18n";
 import { consumeOpenStreak, onOpenStreak } from "@/lib/intents";
 import { canMeasure } from "@/lib/phone";
 import { BREAK_LENGTH_OPTIONS, MAX_FREEZES, dayQualifies, goalsFor, rewardForBreak, streakStatus } from "@/lib/rules";
@@ -24,15 +25,9 @@ import styles from "./home.module.css";
 const LENGTHS =
   process.env.NODE_ENV === "development" ? [1, ...BREAK_LENGTH_OPTIONS] : BREAK_LENGTH_OPTIONS;
 
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
-}
-
 export default function Home() {
   const s = useGoReal()!;
+  const { lang, c } = useCopy();
   const router = useRouter();
   const [minutes, setMinutes] = useState(15);
   const [overlay, setOverlay] = useState<{ doneBefore: boolean } | null>(null);
@@ -78,7 +73,7 @@ export default function Home() {
     <main className={shared.page}>
       <div className={shared.top}>
         <span className={shared.date}>
-          {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+          {new Date().toLocaleDateString(c.dateLocale, { weekday: "long", day: "numeric", month: "long" })}
         </span>
         <StatPills
           streak={streak.count}
@@ -90,7 +85,7 @@ export default function Home() {
 
       <div className={styles.greetRow}>
         <h1 className={shared.heading}>
-          {greeting()}, {s.name}
+          {c.greeting(new Date().getHours())}, {s.name}
         </h1>
         <NotificationBell />
       </div>
@@ -103,7 +98,7 @@ export default function Home() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
           >
-            Your {streak.lostStreak}-day streak ended. One break today starts a new one.
+            {c.lostStreak(streak.lostStreak)}
           </motion.p>
         )}
       </AnimatePresence>
@@ -123,11 +118,11 @@ export default function Home() {
                 {minutes}
               </motion.span>
             </AnimatePresence>
-            <small>min</small>
+            <small>{c.min}</small>
           </div>
         </TimerRing>
 
-        <div className={styles.lengths} role="radiogroup" aria-label="Break length">
+        <div className={styles.lengths} role="radiogroup" aria-label={c.breakLength}>
           {LENGTHS.map((m) => (
             <button
               key={m}
@@ -149,18 +144,18 @@ export default function Home() {
         </div>
 
         <Button full variant="accent" onClick={begin}>
-          Start break
+          {c.startBreak}
         </Button>
         <p className={styles.earn}>
-          Finish it to earn {rewardForBreak(minutes, true).coins} coins
+          {c.earn(rewardForBreak(minutes, true).coins)}
         </p>
       </section>
 
       <section>
         <div className={styles.todayHead}>
-          <h2 className={shared.sectionTitle} style={{ marginBottom: 0 }}>Today</h2>
+          <h2 className={shared.sectionTitle} style={{ marginBottom: 0 }}>{c.today}</h2>
           <span className={`${styles.badge} ${streak.todayDone || streak.todayOnTrack ? styles.badgeOn : ""}`}>
-            {streak.todayDone ? "Day counted" : streak.todayOnTrack ? "On track" : "One of these counts"}
+            {streak.todayDone ? c.dayCounted : streak.todayOnTrack ? c.onTrack : c.oneCounts}
           </span>
         </div>
 
@@ -168,19 +163,19 @@ export default function Home() {
           <button className={shared.groupRow} onClick={() => setShowStreak(true)}>
             <div className={styles.streakRow}>
               <PixelIcon name="flame" size={24} dim={!streak.todayDone} />
-              <span>Streak</span>
+              <span>{c.streak}</span>
             </div>
             <span className={styles.value}>
-              {streak.count} {streak.count === 1 ? "day" : "days"}
+              {c.days(streak.count)}
             </span>
             <PixelIcon name="chevronRight" size={12} className={styles.chev} />
           </button>
 
           <div className={`${shared.groupRow} ${styles.goalRow}`}>
             <div className={styles.goalText}>
-              <span>Break time</span>
+              <span>{c.breakTime}</span>
               <span className={styles.value}>
-                {today.breakMinutes} of {formatMinutes(goals.breakGoal)}
+                {c.ofAmount(String(today.breakMinutes), formatMinutes(goals.breakGoal, lang))}
               </span>
             </div>
             <div className={styles.bar}>
@@ -198,13 +193,13 @@ export default function Home() {
             onClick={() => (measured ? router.push("/phone") : setPhoneSheet(true))}
           >
             <div className={styles.goalText}>
-              <span>Phone time under {formatMinutes(goals.phoneLimit)}</span>
+              <span>{c.phoneUnder(formatMinutes(goals.phoneLimit, lang))}</span>
               <span className={styles.value}>
                 {measured
-                  ? formatMinutes(today.phoneMinutes ?? 0)
+                  ? formatMinutes(today.phoneMinutes ?? 0, lang)
                   : today.phoneMinutes === undefined
-                    ? "Log"
-                    : formatMinutes(today.phoneMinutes)}
+                    ? c.log
+                    : formatMinutes(today.phoneMinutes, lang)}
               </span>
             </div>
             <PixelIcon name="chevronRight" size={12} className={styles.chev} />
@@ -213,10 +208,10 @@ export default function Home() {
           <button className={shared.groupRow} onClick={() => router.push("/shop")}>
             <div className={styles.streakRow}>
               <PixelIcon name="snowflake" size={24} dim={s.freezes === 0} />
-              <span>Streak freezes</span>
+              <span>{c.streakFreezes}</span>
             </div>
             <span className={styles.value}>
-              {s.freezes} of {MAX_FREEZES}
+              {c.ofNum(s.freezes, MAX_FREEZES)}
             </span>
             <PixelIcon name="chevronRight" size={12} className={styles.chev} />
           </button>
@@ -243,10 +238,10 @@ export default function Home() {
       <Sheet open={s.notice === "left-during-break"} onClose={clearNotice}>
         <div className={styles.noticeBody}>
           <Mascot mood="sad" size={110} />
-          <h2>Your last break ended</h2>
-          <p className={shared.muted}>GoReal was closed during a break, so it did not count. Try a shorter one?</p>
+          <h2>{c.lastBreakTitle}</h2>
+          <p className={shared.muted}>{c.lastBreakBody}</p>
           <Button full onClick={clearNotice}>
-            Okay
+            {c.okay}
           </Button>
         </div>
       </Sheet>
@@ -256,17 +251,13 @@ export default function Home() {
           <div className={styles.noticeBody}>
             <PixelIcon name="snowflake" size={72} />
             <h2>
-              {s.freezeNotice.days === 1 ? "A freeze saved your streak" : `${s.freezeNotice.days} freezes saved your streak`}
+              {c.freezeSavedTitle(s.freezeNotice.days)}
             </h2>
             <p className={shared.muted}>
-              You missed {s.freezeNotice.days === 1 ? "a day" : `${s.freezeNotice.days} days`}, so your{" "}
-              {s.freezeNotice.streak}-day streak is still alive.{" "}
-              {s.freezeNotice.left === 0
-                ? "That was your last freeze. You can get more in the shop."
-                : `You have ${s.freezeNotice.left} left.`}
+              {c.freezeSavedBody(s.freezeNotice.days, s.freezeNotice.streak, s.freezeNotice.left)}
             </p>
             <Button full onClick={clearFreezeNotice}>
-              Nice
+              {c.nice}
             </Button>
           </div>
         )}
@@ -302,6 +293,7 @@ function PhoneTimeSheet({
   /** In the Android app: go set up measured phone time instead. */
   onMeasure?: () => void;
 }) {
+  const { lang, c } = useCopy();
   const [value, setValue] = useState(initial);
   const [lastOpen, setLastOpen] = useState(open);
   if (open !== lastOpen) {
@@ -313,21 +305,19 @@ function PhoneTimeSheet({
   return (
     <Sheet open={open} onClose={onClose}>
       <div className={styles.noticeBody}>
-        <h2>Phone time today</h2>
-        <p className={shared.muted}>
-          Check Screen Time (iPhone) or Digital Wellbeing (Android) and enter your total.
-        </p>
+        <h2>{c.phoneToday}</h2>
+        <p className={shared.muted}>{c.phoneHint}</p>
         <div className={styles.stepper}>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={() => setValue((v) => Math.max(0, v - 15))} aria-label="Less">
+          <motion.button whileTap={{ scale: 0.9 }} onClick={() => setValue((v) => Math.max(0, v - 15))} aria-label={c.less}>
             <PixelIcon name="minus" size={24} />
           </motion.button>
           <div className={styles.stepValue}>
-            <span>{formatMinutes(value)}</span>
+            <span>{formatMinutes(value, lang)}</span>
             <small className={under ? styles.under : styles.over}>
-              {under ? "Under your limit" : `Over your ${formatMinutes(limit)} limit`}
+              {under ? c.underLimit : c.overLimit(formatMinutes(limit, lang))}
             </small>
           </div>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={() => setValue((v) => Math.min(720, v + 15))} aria-label="More">
+          <motion.button whileTap={{ scale: 0.9 }} onClick={() => setValue((v) => Math.min(720, v + 15))} aria-label={c.more}>
             <PixelIcon name="plus" size={24} />
           </motion.button>
         </div>
@@ -338,11 +328,11 @@ function PhoneTimeSheet({
             onClose();
           }}
         >
-          Save
+          {c.save}
         </Button>
         {onMeasure && (
           <Button full variant="ghost" size="medium" onClick={onMeasure}>
-            Let GoReal measure it
+            {c.letMeasure}
           </Button>
         )}
       </div>

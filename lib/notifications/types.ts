@@ -131,8 +131,9 @@ export function formatClockTime(ms: number): string {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-export function quietLabel(q: QuietHours | null): string {
-  return q ? `${formatHour(q.start)} to ${formatHour(q.end)}` : "Off";
+export function quietLabel(q: QuietHours | null, lang: "en" | "pl" = "en"): string {
+  if (!q) return lang === "pl" ? "Wyłączone" : "Off";
+  return lang === "pl" ? `${formatHour(q.start)}–${formatHour(q.end)}` : `${formatHour(q.start)} to ${formatHour(q.end)}`;
 }
 
 /** Fills gaps in a saved notification state (older saves have none), keeping everything valid. */
@@ -179,15 +180,16 @@ export function withDelivered(notif: NotifState, n: Notif, shown: boolean): Noti
 }
 
 /** "now", "12 min ago", "3 h ago", "Yesterday 17:00" or the date. For the inbox. */
-export function formatWhen(at: number, now: number): string {
+export function formatWhen(at: number, now: number, lang: "en" | "pl" = "en"): string {
   const minutes = Math.round((now - at) / 60_000);
-  if (minutes < 1) return "now";
-  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 1) return lang === "pl" ? "teraz" : "now";
+  if (minutes < 60) return lang === "pl" ? `${minutes} min temu` : `${minutes} min ago`;
   const a = new Date(at);
   const b = new Date(now);
   const startOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
   const dayDiff = Math.round((startOf(b) - startOf(a)) / 86_400_000);
-  if (dayDiff === 0) return `${Math.floor(minutes / 60)} h ago`;
-  if (dayDiff === 1) return `Yesterday ${formatClockTime(at)}`;
+  const hours = Math.floor(minutes / 60);
+  if (dayDiff === 0) return lang === "pl" ? `${hours} godz. temu` : `${hours} h ago`;
+  if (dayDiff === 1) return lang === "pl" ? `Wczoraj ${formatClockTime(at)}` : `Yesterday ${formatClockTime(at)}`;
   return `${a.getDate()}/${a.getMonth() + 1} ${formatClockTime(at)}`;
 }
