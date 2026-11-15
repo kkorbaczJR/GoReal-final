@@ -39,6 +39,16 @@ export function minutesWord(lang: Lang, n: number): string {
   return count(lang, n, "minute", "minutes", "minuta", "minuty", "minut");
 }
 
+/** How a break notification says the time remaining. Never a clock time. */
+export function minutesLeft(lang: Lang, n: number): string {
+  const m = Math.max(0, Math.trunc(n));
+  if (lang !== "pl") return m === 1 ? "1 minute left" : `${m} minutes left`;
+  const form = pluralForm("pl", m);
+  if (form === "one") return `została ${m} minuta`;
+  if (form === "few") return `zostały ${m} minuty`;
+  return `zostało ${m} minut`;
+}
+
 export function coinsWord(lang: Lang, n: number): string {
   return count(lang, n, "coin", "coins", "moneta", "monety", "monet");
 }

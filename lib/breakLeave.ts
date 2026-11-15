@@ -12,8 +12,15 @@ export function awayOutcome(input: {
   native: BreakLook | null;
   /** The page was hidden and came back. False when GoReal is opening from scratch. */
   cameBack: boolean;
-  /** A phone's browser cannot tell locking the phone from opening another app. */
+  /** A phone's browser, not the Android app. */
   phoneBrowser: boolean;
+  /**
+   * Seconds the screen stayed on while GoReal was hidden.
+   * 0 when the screen was locked, or when this browser cannot see the lock.
+   */
+  unlockedSeconds?: number;
+  /** This browser can tell a locked screen from one that stayed on. */
+  canSeeScreen?: boolean;
 }): "continue" | "left" {
   if (input.awaySeconds <= input.graceSeconds) return "continue";
   if (input.native) {
@@ -22,7 +29,13 @@ export function awayOutcome(input: {
     if (!input.cameBack) return "continue";
     return input.native.screenOff ? "continue" : "left";
   }
-  if (input.phoneBrowser || !input.cameBack) return "continue";
+  if (!input.cameBack) return "continue";
+  if (input.phoneBrowser) {
+    // Without a screen-lock signal, locking and switching apps look the same. Keep the break,
+    // so turning the phone off still works. With the signal, only time the screen stayed on counts.
+    if (!input.canSeeScreen) return "continue";
+    return (input.unlockedSeconds ?? 0) > input.graceSeconds ? "left" : "continue";
+  }
   return "left";
 }
 

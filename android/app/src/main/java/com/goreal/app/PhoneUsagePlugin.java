@@ -99,11 +99,16 @@ public class PhoneUsagePlugin extends Plugin {
         call.resolve(result);
     }
 
-    /** Longest stretch a launchable app other than GoReal was in front, ignoring time with the screen off. */
+    /**
+     * Longest stretch a launchable app other than GoReal was in front, ignoring time with the screen off.
+     * The other app comes to the front a moment before GoReal notices it was hidden, so the search
+     * starts slightly earlier. Only time after `since` counts.
+     */
     private boolean anotherAppLongerThan(long since, long graceMs) {
         UsageStatsManager usm = (UsageStatsManager) getContext().getSystemService(Context.USAGE_STATS_SERVICE);
         if (usm == null) return false;
-        UsageEvents events = usm.queryEvents(since, System.currentTimeMillis());
+        long from = Math.max(0, since - 5_000L);
+        UsageEvents events = usm.queryEvents(from, System.currentTimeMillis());
         if (events == null) return false;
         UsageEvents.Event event = new UsageEvents.Event();
         String self = getContext().getPackageName();
@@ -116,7 +121,7 @@ public class PhoneUsagePlugin extends Plugin {
             int type = event.getEventType();
             long time = event.getTimeStamp();
             if (type == SCREEN_OFF || type == SHUTDOWN) {
-                if (otherStart >= 0) longest = Math.max(longest, time - otherStart);
+                longest = Math.max(longest, stretch(otherStart, time, since));
                 otherStart = -1;
                 screenOff = true;
                 continue;
@@ -126,12 +131,18 @@ public class PhoneUsagePlugin extends Plugin {
                 continue;
             }
             if (type != RESUMED || screenOff) continue;
-            if (otherStart >= 0) longest = Math.max(longest, time - otherStart);
+            longest = Math.max(longest, stretch(otherStart, time, since));
             String pkg = event.getPackageName();
             otherStart = pkg != null && isLaunchableApp(pkg, self) ? time : -1;
         }
-        if (otherStart >= 0) longest = Math.max(longest, now - otherStart);
+        longest = Math.max(longest, stretch(otherStart, now, since));
         return longest > graceMs;
+    }
+
+    /** Time `start`..`end` that falls after `countedFrom`. Screen-off stretches are not passed in. */
+    private long stretch(long start, long end, long countedFrom) {
+        if (start < 0) return 0;
+        return Math.max(0, end - Math.max(start, countedFrom));
     }
 
     /** Apps a person can open. The lock screen and the shade are not among them. */
