@@ -13,11 +13,13 @@ import Sheet from "@/components/Sheet";
 import StatPills from "@/components/StatPills";
 import StreakScreen from "@/components/StreakScreen";
 import TimerRing from "@/components/TimerRing";
+import { isPhoneBrowser } from "@/lib/breakLeave";
 import { dayKey, formatMinutes } from "@/lib/date";
 import { useCopy } from "@/lib/i18n";
 import { consumeOpenStreak, onOpenStreak } from "@/lib/intents";
 import { canMeasure } from "@/lib/phone";
 import { BREAK_LENGTH_OPTIONS, MAX_FREEZES, dayQualifies, goalsFor, rewardForBreak, streakStatus } from "@/lib/rules";
+import { armScreenLock } from "@/lib/screenLock";
 import { clearFreezeNotice, clearNotice, getState, logPhoneTime, startBreak, useGoReal } from "@/lib/store";
 import shared from "../tabs.module.css";
 import styles from "./home.module.css";
@@ -58,6 +60,7 @@ export default function Home() {
   const measured = s.phoneTracking && canMeasure();
 
   const begin = () => {
+    if (isPhoneBrowser() && !canMeasure()) armScreenLock();
     startBreak(minutes);
     setOverlay({ doneBefore: streak.todayDone });
   };

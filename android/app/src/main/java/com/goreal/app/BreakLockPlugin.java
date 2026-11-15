@@ -69,6 +69,7 @@ public class BreakLockPlugin extends Plugin {
 
         String title = call.getString("title", "Break");
         String subtitle = call.getString("subtitle", "");
+        String body = call.getString("body", subtitle);
         int color = parseColor(call.getString("color", "#fc4c02"));
 
         ensureChannel();
@@ -76,7 +77,7 @@ public class BreakLockPlugin extends Plugin {
         RemoteViews views = new RemoteViews(getContext().getPackageName(), R.layout.break_lock);
         views.setImageViewBitmap(R.id.rilo, rilo(color));
         views.setTextViewText(R.id.title, title);
-        views.setTextViewText(R.id.subtitle, subtitle);
+        views.setTextViewText(R.id.subtitle, body.isEmpty() ? subtitle : body);
         long base = SystemClock.elapsedRealtime() + remaining;
         views.setChronometer(R.id.countdown, base, null, true);
         views.setChronometerCountDown(R.id.countdown, true);
@@ -92,7 +93,7 @@ public class BreakLockPlugin extends Plugin {
             .setSmallIcon(R.drawable.ic_stat_rilo)
             .setLargeIcon(rilo(color))
             .setContentTitle(title)
-            .setContentText(subtitle)
+            .setContentText(body)
             .setCustomContentView(views)
             .setCustomBigContentView(views)
             .setStyle(new NotificationCompat.DecoratedCustomViewStyle())

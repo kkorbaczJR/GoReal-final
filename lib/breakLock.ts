@@ -8,17 +8,26 @@
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { BASE_PATH } from "./base";
 import { permission, registerServiceWorker } from "./notifications/delivery";
+import { stopScreenLock } from "./screenLock";
 
 const TAG = "goreal-break-lock";
 
 type BreakLockPlugin = {
-  show(options: { endAt: number; title: string; subtitle: string; color: string }): Promise<void>;
+  show(options: { endAt: number; title: string; subtitle: string; body: string; color: string }): Promise<void>;
   hide(): Promise<void>;
 };
 
 const Native = registerPlugin<BreakLockPlugin>("BreakLock");
 
-export async function showBreakLock(options: { endAt: number; title: string; subtitle: string; color: string }) {
+export async function showBreakLock(options: {
+  endAt: number;
+  title: string;
+  /** Sits next to the ticking countdown on Android. */
+  subtitle: string;
+  /** Minutes left, as a sentence. The website shows this instead of a clock time. */
+  body: string;
+  color: string;
+}) {
   if (typeof window === "undefined") return;
   if (Capacitor.getPlatform() === "android") {
     try {
@@ -29,11 +38,10 @@ export async function showBreakLock(options: { endAt: number; title: string; sub
     return;
   }
   if (permission() !== "granted") return;
-  const back = new Date(options.endAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
   try {
     const registration = await registerServiceWorker();
     const note = {
-      body: `${options.subtitle} · ${back}`,
+      body: options.body,
       tag: TAG,
       icon: `${BASE_PATH}/icons/icon-192.png`,
       silent: true,
@@ -46,6 +54,7 @@ export async function showBreakLock(options: { endAt: number; title: string; sub
 }
 
 export async function hideBreakLock() {
+  stopScreenLock();
   if (typeof window === "undefined") return;
   if (Capacitor.getPlatform() === "android") {
     try {
