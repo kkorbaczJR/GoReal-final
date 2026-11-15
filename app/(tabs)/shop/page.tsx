@@ -10,7 +10,7 @@ import PixelScene from "@/components/PixelScene";
 import RiloStage from "@/components/RiloStage";
 import { formatMinutes } from "@/lib/date";
 import { MAX_FREEZES } from "@/lib/rules";
-import { ACCENT_COLORS, SHOP_ITEMS, isOwned, titleName, type Category, type ShopItem } from "@/lib/shop";
+import { ACCENT_COLORS, SHOP_ITEMS, isOwned, itemName, titleName, type Category, type ShopItem } from "@/lib/shop";
 import { buyFreeze, buyOrEquip, useGoReal, type GoRealState } from "@/lib/store";
 import shared from "../tabs.module.css";
 import styles from "./shop.module.css";
@@ -55,21 +55,24 @@ export default function Shop() {
   const s = useGoReal()!;
   const [category, setCategory] = useState<Category>("hat");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  /** The item currently being tried on in the big preview. Take off clears this, so Rilo updates at once. */
+  const [tryingId, setTryingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   const selected =
     category === "streak"
       ? (SHOP_ITEMS.find((i) => i.kind === "freeze") ?? null)
       : (SHOP_ITEMS.find((i) => i.id === selectedId) ?? null);
+  const trying = selected && tryingId === selected.id ? selected : null;
   const preview = {
-    outfit: selected?.kind === "hat" ? selected.look : s.outfit,
-    face: selected?.kind === "face" ? selected.look : s.face,
-    neck: selected?.kind === "neck" ? selected.look : s.neck,
-    back: selected?.kind === "back" ? selected.look : s.back,
-    aura: selected?.kind === "aura" ? selected.look : s.aura,
-    buddy: selected?.kind === "buddy" ? selected.look : s.buddy,
-    background: selected?.kind === "background" ? selected.look : s.background,
-    title: selected?.kind === "title" ? selected.id : s.title,
+    outfit: trying?.kind === "hat" ? trying.look : s.outfit,
+    face: trying?.kind === "face" ? trying.look : s.face,
+    neck: trying?.kind === "neck" ? trying.look : s.neck,
+    back: trying?.kind === "back" ? trying.look : s.back,
+    aura: trying?.kind === "aura" ? trying.look : s.aura,
+    buddy: trying?.kind === "buddy" ? trying.look : s.buddy,
+    background: trying?.kind === "background" ? trying.look : s.background,
+    title: trying?.kind === "title" ? trying.id : s.title,
   };
 
   const previewAccent = selected?.kind === "color" ? selected.look : null;
@@ -104,12 +107,15 @@ export default function Shop() {
     }
     const wasOwned = owned(selected);
     const wasWearing = wearing(selected);
+    const removed = wasOwned && wasWearing && selected.kind !== "title" && selected.kind !== "color";
+    if (removed) setTryingId(null);
     if (!buyOrEquip(selected.id)) {
+      if (removed) setTryingId(selected.id);
       flash(`You need ${selected.price - s.coins} more coins`);
       return;
     }
-    if (!wasOwned) flash(`${selected.name} is yours!`);
-    else if (selected.kind !== "title" && selected.kind !== "color" && wasWearing) flash("Taken off");
+    if (!wasOwned) flash(`${itemName(selected, s.accent)} is yours!`);
+    else if (removed) flash("Taken off");
   };
 
   let action = "";
@@ -195,6 +201,7 @@ export default function Shop() {
             onClick={() => {
               setCategory(c.id);
               setSelectedId(null);
+              setTryingId(null);
             }}
           >
             {category === c.id && (
@@ -229,9 +236,12 @@ export default function Shop() {
                   key={item.id}
                   whileTap={{ scale: 0.98 }}
                   className={`${styles.row} ${selectedId === item.id ? styles.rowOn : ""}`}
-                  onClick={() => setSelectedId(item.id)}
+                  onClick={() => {
+                    setSelectedId(item.id);
+                    setTryingId(item.id);
+                  }}
                 >
-                  <span className={styles.rowName}>{item.name}</span>
+                  <span className={styles.rowName}>{itemName(item, s.accent)}</span>
                   <PriceTag item={item} owned={owned(item)} wearing={wearing(item)} />
                 </motion.button>
               ))}
@@ -246,7 +256,10 @@ export default function Shop() {
                   transition={{ delay: i * 0.025, type: "spring", stiffness: 420, damping: 24 }}
                   whileTap={{ scale: 0.94 }}
                   className={`${styles.item} ${selectedId === item.id ? styles.itemOn : ""}`}
-                  onClick={() => setSelectedId(item.id)}
+                  onClick={() => {
+                    setSelectedId(item.id);
+                    setTryingId(item.id);
+                  }}
                 >
                   <span className={styles.thumb}>
                     {item.kind === "color" ? (
@@ -266,7 +279,7 @@ export default function Shop() {
                       />
                     )}
                   </span>
-                  <span className={styles.itemName}>{item.name}</span>
+                  <span className={styles.itemName}>{itemName(item, previewAccent ?? s.accent)}</span>
                   <PriceTag item={item} owned={owned(item)} wearing={wearing(item)} />
                 </motion.button>
               ))}

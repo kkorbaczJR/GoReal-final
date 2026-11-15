@@ -8,7 +8,9 @@
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { useSyncExternalStore } from "react";
 import { APP_PACKAGES, GAMES, packagesFor } from "./apps";
+import { LEAVE_GRACE_SECONDS } from "./rules";
 import { dailyMinutes, usageSnapshot, type UsageInterval, type UsageSnapshot } from "./usage";
+import type { BreakLook } from "./breakLeave";
 
 type PhoneUsagePlugin = {
   status(): Promise<{ granted: boolean }>;
@@ -20,6 +22,8 @@ type PhoneUsagePlugin = {
     packages: Record<string, string>;
     gamesLabel?: string;
   }): Promise<{ intervals: UsageInterval[] }>;
+  /** Whether another app was in front for longer than the grace period since `since`. */
+  leftBreak(options: { since: number; graceMs: number }): Promise<BreakLook>;
 };
 
 const PhoneUsage = registerPlugin<PhoneUsagePlugin>("PhoneUsage");
@@ -102,6 +106,19 @@ export async function readPhone(apps: string[], from: number): Promise<PhoneRead
     return reading;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Android only. `known` is false when usage access is off: then `screenOff` says the screen turned off
+ * since `since` (a lock), which is not the same as opening another app.
+ */
+export async function leftDuringBreak(since: number): Promise<BreakLook> {
+  if (!canMeasure()) return { known: false, left: false, screenOff: false };
+  try {
+    return await withTimeout(PhoneUsage.leftBreak({ since, graceMs: LEAVE_GRACE_SECONDS * 1000 }));
+  } catch {
+    return { known: false, left: false, screenOff: false };
   }
 }
 

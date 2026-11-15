@@ -121,9 +121,9 @@ In the Android app GoReal can measure your phone time instead of you typing it i
 ### 2. Break (home screen)
 - A big ring shows how long the break will be. Pick 5, 10, 15, 25, 45 or 60 minutes and tap **Start break**.
 - The screen turns black ("break mode"). Rilo sleeps, a countdown runs, and your off-limits apps are listed.
-- **If you leave GoReal for more than 10 seconds, the break ends early** and gives no coins. To give up on purpose, you have to press and hold the button, so it never happens by accident.
-- Opening GoReal in a second browser tab while a break is running does not end it or leave a blank screen. The second tab joins the same break.
-- The app asks the phone to keep the screen on during a break, so the phone does not lock itself.
+- **You can turn the phone off.** The break is timed from the moment it starts, so locking the phone does not pause it and does not end it, and the screen is not kept on (that was using the battery and counting as phone time). Turn the phone back on and the time left is still there. If the time ran out while it was off, the break counts.
+- **In the Android app, opening another app for more than 10 seconds still ends the break** and gives no coins. A phone's browser cannot tell locking from opening another app, so there the break keeps going either way. On a computer, leaving the tab for more than 10 seconds ends it. To give up on purpose, press and hold the button.
+- Opening GoReal in a second browser tab while a break is running does not end it. The second tab joins the same break.
 - When a finished break makes the day count, a full-screen "day streak!" moment shows a pixel flame, your streak number and the last 7 days.
 - At the top you always see your streak (flame) and coins. Tap the flame, or the **Streak** row in the Today card, to open the full streak screen: a big pixel flame, your streak number, the last 7 days, your best streak and your goal.
 - The **Today** card shows your two ways to keep the streak: break minutes so far, and your phone time. On the website, tap the phone-time row to type in today's total from your phone's Screen Time (iPhone) or Digital Wellbeing (Android). In the Android app with measured phone time it fills itself in, and the row opens the Phone time screen.
@@ -134,7 +134,7 @@ Everything is pixel art, in eight groups:
 - **Extras** (12): freckles, band-aid, mustache, shades, red bandana (neck), round glasses, eyepatch, star sticker, bow tie, monocle, scarf, golden monocle. 80 to 4500 coins. Neck items can be worn with a hat.
 - **Back** (7): mini backpack, sword, angel wings, demon wings, jetpack, royal cape, golden wings. 720 to 9000 coins. Worn behind Rilo, together with a hat.
 - **Aura** (3): flaming aura, galaxy ring (orbits Rilo), UFO companion (a tiny saucer that flies around him). 7000 to 12 000 coins. Worn with a hat and a back item.
-- **Scenes** (12): pixel backgrounds behind Rilo, from graph paper and a picnic blanket to a beach, a pine forest, city lights, a starry night, outer space and "orange pop". 200 to 3000 coins.
+- **Scenes** (12): pixel backgrounds behind Rilo, from graph paper and a picnic blanket to a beach, a pine forest, city lights, a starry night, outer space and pop. Pop is painted in the current colour, so its name follows: Orange pop, Green pop, and the rest. 200 to 3000 coins.
 - **Titles** (21): a name shown under Rilo. Fifteen cost 150 to 3000 coins. Rookie is free, and five more unlock for free at 1 hour, 5 hours, about 16 hours, about 41 hours and 100 hours of total breaks.
 - **Colors** (7): the orange of the app can be changed to any color of the rainbow: red, orange (free, the one you start with), yellow, green, blue, indigo and violet. Each of the other six costs 100 coins, and once you own a color you can switch between your colors for free. It changes Rilo and the accent (buttons, switches, the timer ring, progress bars, the streak flame, coins and highlights). The black and white and the app icon stay as they are. Tapping a color in the shop shows it on the whole app first, and it goes back if you do not buy it. Yellow uses dark text on its buttons so they stay readable.
 - **Streak**: the streak freeze (see below), 250 coins each, at most 2 at a time.
@@ -317,7 +317,7 @@ FIREBASE_API_KEY=<apiKey> FIREBASE_PROJECT_ID=<projectId> npm run accounts:teste
 ## What this version cannot do yet
 
 - **It cannot really block other apps.** A web app is not allowed to do that on iPhone or Android. Only a native app can, using Apple's Screen Time tools or Android's accessibility and usage-access permissions, and Apple has to approve it. For now, break mode only lists the off-limits apps, and leaving GoReal ends the break.
-- **Locking the phone also counts as leaving.** A website cannot tell the difference between locking the phone and opening another app. That is why GoReal keeps the screen on during a break. Lay the phone face down and leave GoReal open.
+- **A phone's browser cannot tell locking the phone from opening another app.** Locking has to be allowed, so on the website both of those keep the break going. The Android app can tell them apart: locking keeps the break, opening another app for more than 10 seconds ends it. A countdown on the lock screen is not built yet.
 - **On the website, phone time is typed in by hand.** A website cannot read Screen Time, so you enter your total yourself. You can log it at any time of day, and the last number you enter counts. The Android app can measure it (see above).
 - **Notifications only arrive while GoReal is open or in the background.** On the website they can only react to the phone time you log. In the Android app they use measured phone time, but only while GoReal is open. Closed-app delivery and off-limits-app alerts during a break come next.
 

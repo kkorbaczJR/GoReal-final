@@ -78,20 +78,13 @@ export type GoRealState = {
   /** Notification settings, the inbox and what was already sent. */
   notif: NotifState;
 
-  /** A break that is running right now. Saved so closing the app mid-break counts as quitting. */
+  /** A break that is running right now. Turning the phone off does not clear it. */
   activeBreak: { startedAt: number; minutes: number } | null;
-  /** Message to show once, e.g. after the app was closed during a break. */
+  /** Message to show once, e.g. after an older version ended a break because the app was closed. */
   notice: "left-during-break" | null;
 };
 
 const STORAGE_KEY = "goreal:v1";
-/**
- * While a break is on screen, its window writes the time here every second. Another GoReal window that opens
- * meanwhile (a second tab, the installed app next to the browser) sees it and leaves the break running
- * instead of counting it as left.
- */
-const BREAK_SHOWN_KEY = "goreal:break-shown";
-const BREAK_SHOWN_FRESH_MS = 4000;
 
 export function initialState(): GoRealState {
   return {
@@ -173,15 +166,6 @@ function settleDay(s: GoRealState, now = new Date()): GoRealState {
   return next;
 }
 
-/** Runs once when the app opens: a break that was left open counts as quitting. */
-function settleOnOpen(s: GoRealState): GoRealState {
-  let next = s;
-  if (next.activeBreak && !breakShownElsewhere()) {
-    next = { ...next, activeBreak: null, quitBreaks: next.quitBreaks + 1, notice: "left-during-break" };
-  }
-  return settleDay(next);
-}
-
 /** Older saves kept the shades as a hat and had league data. */
 function migrate(raw: Record<string, unknown>): Partial<GoRealState> {
   const copy = { ...raw };
@@ -211,36 +195,18 @@ function readSaved(): GoRealState | null {
   }
 }
 
-/** When the app opens: a break left running means the app was closed during it. */
+/** When the app opens. A break left running is still running: the phone may have been off. */
 function load(): GoRealState {
   const loaded = readSaved() ?? initialState();
   if (state === null) waitingForPhone = loaded.phoneTracking && canMeasure();
-  const settled = settleOnOpen(loaded);
+  const settled = settleDay(loaded);
   if (settled !== loaded) persist(settled);
   return settled;
 }
 
-/**
- * What another GoReal window just saved. Never counts as opening the app: that would end this window's own
- * break (and leave its break screen empty).
- */
+/** What another GoReal window just saved. A break in that save is still running, so this window joins it. */
 function reloadFromOtherWindow(): GoRealState {
   return settleDay(readSaved() ?? initialState());
-}
-
-function breakShownElsewhere(): boolean {
-  try {
-    return Date.now() - Number(localStorage.getItem(BREAK_SHOWN_KEY) ?? 0) < BREAK_SHOWN_FRESH_MS;
-  } catch {
-    return false;
-  }
-}
-
-/** The break screen calls this every second while it is visible. */
-export function markBreakShown() {
-  try {
-    localStorage.setItem(BREAK_SHOWN_KEY, String(Date.now()));
-  } catch {}
 }
 
 function persist(s: GoRealState) {
@@ -346,16 +312,16 @@ export function refreshDay() {
 }
 
 export function startBreak(minutes: number) {
-  markBreakShown();
   update((s) => ({ ...s, activeBreak: { startedAt: Date.now(), minutes } }));
 }
 
 export function finishBreak() {
   const s = getSnapshot();
   if (!s.activeBreak) return { coins: 0 };
-  const { minutes } = s.activeBreak;
+  const { minutes, startedAt } = s.activeBreak;
   const reward = rewardForBreak(minutes, true);
-  const key = dayKey();
+  // The day the break ends, even if the phone stays off until a later day.
+  const key = dayKey(new Date(startedAt + minutes * 60_000));
   update((prev) => {
     if (!prev.activeBreak) return prev;
     return {
