@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { APP_URL, SHARE_LINES, pickShareLine, streakLabel } from "./lib/shareCopy.ts";
+import { days, minutesWord, pluralForm } from "./lib/lang.ts";
 import { shareDetails, streakMessage } from "./lib/shareStreak.ts";
 
 test("the share link is the GitHub Pages app, and the captions name nobody", () => {
@@ -38,4 +39,25 @@ test("the share card repeats the streak screen, and names nobody", () => {
   assert.equal(card.limitLabel, "15m / 2h");
   assert.equal(card.freezeLabel, "0 of 2");
   assert.equal(/\b(name|username|@)\b/i.test(card.line), false);
+});
+
+test("polish uses its own plural forms and share-card words", () => {
+  assert.equal(pluralForm("pl", 1), "one");
+  assert.equal(pluralForm("pl", 21), "one");
+  assert.equal(pluralForm("pl", 11), "many");
+  assert.equal(days("pl", 1), "1 dzień");
+  assert.equal(days("pl", 2), "2 dni");
+  assert.equal(days("pl", 5), "5 dni");
+  assert.equal(days("en", 1), "1 day");
+  assert.equal(minutesWord("pl", 1), "1 minuta");
+  assert.equal(minutesWord("pl", 2), "2 minuty");
+  assert.equal(minutesWord("pl", 5), "5 minut");
+  assert.equal(minutesWord("pl", 12), "12 minut");
+  assert.equal(minutesWord("pl", 22), "22 minuty");
+  const card = shareDetails({ days: {}, phoneLimit: 120, breakGoal: 15, freezes: 0 }, false, new Date(2026, 10, 11), "pl");
+  assert.equal(card.bestLabel, "0 dni");
+  assert.equal(card.limitLabel, "15 min / 2 godz.");
+  assert.equal(card.freezeLabel, "0 z 2");
+  assert.equal(card.streakWord, "dni z rzędu");
+  assert.equal(streakMessage(1, true, false, true, "pl"), "Dzień pierwszy. Każda seria tu się zaczyna.");
 });

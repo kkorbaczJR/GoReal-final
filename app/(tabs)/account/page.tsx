@@ -7,16 +7,12 @@ import Mascot from "@/components/Mascot";
 import { PixelIcon } from "@/components/PixelIcon";
 import Sheet from "@/components/Sheet";
 import { deleteAccount, logOut, reloadUser, resendVerification, useAccount } from "@/lib/account";
+import { useCopy } from "@/lib/i18n";
 import shared from "../tabs.module.css";
 import styles from "./account.module.css";
 
-const SAVING_TEXT = {
-  saved: "Saved to your account",
-  saving: "Saving...",
-  offline: "Offline. It saves when you're back online.",
-};
-
 export default function AccountPage() {
+  const { c } = useCopy();
   const router = useRouter();
   const account = useAccount();
   const [sheet, setSheet] = useState<"logout" | "delete" | null>(null);
@@ -47,7 +43,7 @@ export default function AccountPage() {
     setError(null);
     const result = await action();
     setBusy(false);
-    if (result !== null) return setError(result || "Something went wrong. Try again.");
+    if (result !== null) return setError(result || c.somethingWrong);
     setSheet(null);
     router.replace("/onboarding");
   };
@@ -61,28 +57,26 @@ export default function AccountPage() {
   return (
     <main className={shared.page}>
       <div className={shared.top}>
-        <button className={styles.back} onClick={() => router.back()} aria-label="Back">
+        <button className={styles.back} onClick={() => router.back()} aria-label={c.back}>
           <PixelIcon name="chevronLeft" size={18} />
-          <span>Back</span>
+          <span>{c.back}</span>
         </button>
       </div>
 
-      <h1 className={shared.heading}>Account</h1>
+      <h1 className={shared.heading}>{c.account}</h1>
 
-      {account.status === "loading" && <p className={shared.muted}>Checking your account...</p>}
+      {account.status === "loading" && <p className={shared.muted}>{c.checking}</p>}
 
       {account.status === "signedOut" && (
         <section className={`${shared.card} ${styles.invite}`}>
           <Mascot mood="happy" size={96} />
-          <h2 className={styles.inviteTitle}>Save your progress</h2>
-          <p className={styles.inviteText}>
-            With an account your streak, coins and everything Rilo owns come back on any phone or computer.
-          </p>
+          <h2 className={styles.inviteTitle}>{c.saveProgress}</h2>
+          <p className={styles.inviteText}>{c.saveProgressBody}</p>
           <Button full onClick={() => router.push("/signup")}>
-            Create account
+            {c.createAccount}
           </Button>
           <Button full variant="secondary" onClick={() => router.push("/login")}>
-            Log in
+            {c.logIn}
           </Button>
         </section>
       )}
@@ -94,39 +88,39 @@ export default function AccountPage() {
               <PixelIcon name="face" size={24} />
               <span className={styles.rowText}>
                 <span className={styles.rowLabel}>{account.email}</span>
-                <span className={styles.rowHint}>{account.google ? "Signed in with Google" : "Signed in with email"}</span>
+                <span className={styles.rowHint}>{account.google ? c.signedGoogle : c.signedEmail}</span>
               </span>
             </div>
             <div className={shared.groupRow}>
               <PixelIcon name={account.saving === "saved" ? "check" : "clock"} size={24} />
               <span className={styles.rowText}>
-                <span className={styles.rowLabel}>{SAVING_TEXT[account.saving]}</span>
-                <span className={styles.rowHint}>Your streak, coins, goals and Rilo&apos;s things</span>
+                <span className={styles.rowLabel}>
+                  {account.saving === "saved" ? c.savingSaved : account.saving === "saving" ? c.saving : c.savingOffline}
+                </span>
+                <span className={styles.rowHint}>{c.savingHint}</span>
               </span>
             </div>
           </div>
 
           {!account.verified && !account.google && (
             <section className={`${shared.card} ${styles.verify}`}>
-              <span className={styles.rowLabel}>Verify your email</span>
-              <p className={styles.rowHint}>
-                We sent a link to {account.email}. It lets you reset your password if you ever forget it.
-              </p>
+              <span className={styles.rowLabel}>{c.verify}</span>
+              <p className={styles.rowHint}>{c.verifyBody(account.email)}</p>
               {resent ? (
-                <span className={styles.rowHint}>Sent again. Check your spam folder too.</span>
+                <span className={styles.rowHint}>{c.sentAgain}</span>
               ) : (
                 <Button size="small" variant="secondary" onClick={resend}>
-                  Send it again
+                  {c.sendAgain}
                 </Button>
               )}
             </section>
           )}
 
           <Button full variant="secondary" onClick={() => setSheet("logout")}>
-            Log out
+            {c.logOut}
           </Button>
           <Button variant="ghost" size="medium" onClick={() => setSheet("delete")}>
-            Delete account
+            {c.deleteAccount}
           </Button>
         </>
       )}
@@ -134,19 +128,17 @@ export default function AccountPage() {
       <Sheet open={sheet === "logout"} onClose={close}>
         <div className={styles.sheetBody}>
           <Mascot mood="wave" size={96} />
-          <h2>Log out?</h2>
-          <p className={shared.muted}>
-            Your progress stays in your account. This phone goes back to the start until you log in again.
-          </p>
+          <h2>{c.logOutAsk}</h2>
+          <p className={shared.muted}>{c.logOutBody}</p>
           {account.status === "signedIn" && account.saving === "offline" && (
-            <p className={styles.warn}>You&apos;re offline, so your latest progress isn&apos;t saved yet. Connect first.</p>
+            <p className={styles.warn}>{c.offlineWarn}</p>
           )}
           {error && <p className={styles.warn}>{error}</p>}
           <Button full disabled={busy} onClick={() => run(logOut)}>
-            {busy ? "Logging out..." : "Log out"}
+            {busy ? c.loggingOut : c.logOut}
           </Button>
           <Button full variant="secondary" disabled={busy} onClick={close}>
-            Stay logged in
+            {c.stay}
           </Button>
         </div>
       </Sheet>
@@ -154,16 +146,14 @@ export default function AccountPage() {
       <Sheet open={sheet === "delete"} onClose={close}>
         <div className={styles.sheetBody}>
           <Mascot mood="sad" size={96} />
-          <h2>Delete your account?</h2>
-          <p className={shared.muted}>
-            Your account, streak, coins and shop items are deleted for good, on every phone. This can&apos;t be undone.
-          </p>
+          <h2>{c.deleteAsk}</h2>
+          <p className={shared.muted}>{c.deleteBody}</p>
           {error && <p className={styles.warn}>{error}</p>}
           <Button full disabled={busy} onClick={() => run(deleteAccount)}>
-            {busy ? "Deleting..." : "Yes, delete everything"}
+            {busy ? c.deleting : c.yesDelete}
           </Button>
           <Button full variant="secondary" disabled={busy} onClick={close}>
-            Keep my account
+            {c.keepAccount}
           </Button>
         </div>
       </Sheet>

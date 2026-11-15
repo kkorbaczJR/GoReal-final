@@ -27,11 +27,12 @@ export function weekStart(date: Date = new Date()): Date {
   return d;
 }
 
-export function formatMinutes(minutes: number): string {
+export function formatMinutes(minutes: number, lang: "en" | "pl" = "en"): string {
   if (minutes < 60) return `${minutes} min`;
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return m === 0 ? `${h} h` : `${h} h ${m} min`;
+  const hour = lang === "pl" ? "godz." : "h";
+  return m === 0 ? `${h} ${hour}` : `${h} ${hour} ${m} min`;
 }
 
 export function formatClock(totalSeconds: number): string {

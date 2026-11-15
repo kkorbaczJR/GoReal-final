@@ -235,8 +235,10 @@ export function itemById(id: string | null | undefined): ShopItem | undefined {
   return SHOP_ITEMS.find((i) => i.id === id);
 }
 
-export function titleName(id: string): string {
-  return itemById(id)?.name ?? "Rookie";
+export function titleName(id: string, lang: "en" | "pl" = "en"): string {
+  const item = itemById(id);
+  if (!item) return lang === "pl" ? "Debiutant" : "Rookie";
+  return itemName(item, DEFAULT_ACCENT, lang);
 }
 
 const COLOR_NAME: Record<Accent, string> = {
@@ -249,12 +251,118 @@ const COLOR_NAME: Record<Accent, string> = {
   violet: "Violet",
 };
 
+const COLOR_NAME_PL: Record<Accent, string> = {
+  red: "Czerwony",
+  orange: "Pomarańczowy",
+  yellow: "Żółty",
+  green: "Zielony",
+  blue: "Niebieski",
+  indigo: "Indygo",
+  violet: "Fioletowy",
+};
+
+/** Polish shop names. The English name stays on the item; this is only what the screen says. */
+const PL_NAME: Record<string, string> = {
+  "outfit-beanie": "Ciepła czapka",
+  "hat-bow": "Duża kokarda",
+  "hat-headband": "Opaska",
+  "hat-cat": "Kocie uszy",
+  "outfit-flower": "Mały kwiatek",
+  "hat-party": "Czapka urodzinowa",
+  "hat-antennae": "Czułki",
+  "hat-bunny": "Zajęcze uszy",
+  "outfit-cap": "Czapka z daszkiem",
+  "hat-flower-crown": "Wianek",
+  "hat-bandana": "Piracka bandana",
+  "hat-bucket": "Kapelusz bucket",
+  "hat-graduation": "Biret",
+  "hat-chef": "Czapka kucharza",
+  "outfit-headphones": "Słuchawki",
+  "hat-santa": "Czapka Mikołaja",
+  "hat-tophat": "Cylinder",
+  "hat-captain": "Czapka kapitana",
+  "hat-einstein": "Einstein",
+  "hat-cowboy": "Kowbojski kapelusz",
+  "hat-viking": "Hełm wikinga",
+  "hat-wizard": "Kapelusz czarodzieja",
+  "hat-halo": "Mała aureola",
+  "hat-astronaut": "Hełm astronauty",
+  "outfit-crown": "Królewska korona",
+  "hat-golden-halo": "Złota aureola",
+  "hat-flame-crown": "Korona z płomieni",
+  "face-freckles": "Piegi",
+  "face-bandaid": "Plaster",
+  "face-mustache": "Wąsy",
+  "outfit-shades": "Ciemne okulary",
+  "neck-bandana": "Czerwona bandana",
+  "face-glasses": "Okrągłe okulary",
+  "face-eyepatch": "Opaska na oko",
+  "face-star": "Naklejka z gwiazdką",
+  "face-bowtie": "Muszka",
+  "face-monocle": "Monokl",
+  "face-scarf": "Ciepły szalik",
+  "face-golden-monocle": "Złoty monokl",
+  "back-backpack": "Mini plecak",
+  "back-sword": "Miecz",
+  "back-angel": "Anielskie skrzydła",
+  "back-demon": "Demoniczne skrzydła",
+  "back-jetpack": "Plecak odrzutowy",
+  "back-cape": "Królewska peleryna",
+  "back-golden-wings": "Złote skrzydła",
+  "aura-flaming": "Ognista aura",
+  "aura-galaxy": "Galaktyczny pierścień",
+  "buddy-ufo": "Towarzysz z UFO",
+  "bg-grid": "Papier milimetrowy",
+  "bg-checker": "Piknik",
+  "bg-sunny": "Słoneczny dzień",
+  "bg-beach": "Plaża",
+  "bg-hills": "Wzgórza",
+  "bg-forest": "Las sosnowy",
+  "bg-snow": "Śnieżny dzień",
+  "bg-city": "Światła miasta",
+  "bg-sunset": "Zachód słońca",
+  "bg-night": "Gwiaździsta noc",
+  "bg-space": "Kosmos",
+  "title-rookie": "Debiutant",
+  "title-grass": "Dotyka trawy",
+  "title-unplugged": "Odłączony",
+  "title-legend": "Legenda offline",
+  "title-mythic": "Jaki telefon?",
+  "title-monk": "Mnich bez telefonu",
+  "title-battery": "Oszczędzanie baterii",
+  "title-zen": "Tryb zen",
+  "title-pixel": "Pikselowy kumpel",
+  "title-sunset": "Łowca zachodów",
+  "title-airplane": "Tryb samolotowy",
+  "title-sky": "Patrzy w chmury",
+  "title-dnd": "Nie przeszkadzać",
+  "title-ninja": "Ninja powiadomień",
+  "title-analog": "Analogowe dziecko",
+  "title-boss": "Szef skupienia",
+  "title-detox": "Detoks dopaminy",
+  "title-lowbat": "Mało baterii, dużo życia",
+  "title-doom": "Ocalały ze scrolla",
+  "title-main": "Główny bohater",
+  "title-friend": "Najlepszy kumpel Rilo",
+  "color-red": "Czerwony",
+  "color-orange": "Pomarańczowy",
+  "color-yellow": "Żółty",
+  "color-green": "Zielony",
+  "color-blue": "Niebieski",
+  "color-indigo": "Indygo",
+  "color-violet": "Fioletowy",
+  "streak-freeze": "Zamrożenie serii",
+};
+
 /**
  * The name shown in the shop. The pop scene is painted in the current accent, so "Orange pop"
- * becomes "Green pop" (and the rest) when that colour is in use.
+ * becomes "Green pop" (and the rest) when that colour is in use. Polish follows the same way.
  */
-export function itemName(item: ShopItem, accent: Accent = DEFAULT_ACCENT): string {
-  if (item.kind === "background" && item.look === "pop") return `${COLOR_NAME[accent]} pop`;
+export function itemName(item: ShopItem, accent: Accent = DEFAULT_ACCENT, lang: "en" | "pl" = "en"): string {
+  if (item.kind === "background" && item.look === "pop") {
+    return lang === "pl" ? `${COLOR_NAME_PL[accent]} pop` : `${COLOR_NAME[accent]} pop`;
+  }
+  if (lang === "pl") return PL_NAME[item.id] ?? item.name;
   return item.name;
 }
 

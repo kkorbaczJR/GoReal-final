@@ -8,6 +8,7 @@ import Mascot from "@/components/Mascot";
 import { refreshPhone } from "@/components/PhoneTracker";
 import { PixelIcon } from "@/components/PixelIcon";
 import { addDays, dayKey, formatMinutes } from "@/lib/date";
+import { useCopy } from "@/lib/i18n";
 import { canMeasure, installedApps, openUsageSettings, usePhone } from "@/lib/phone";
 import { goalsFor } from "@/lib/rules";
 import { useGoReal } from "@/lib/store";
@@ -15,17 +16,18 @@ import { minutesByApp } from "@/lib/usage";
 import shared from "../tabs.module.css";
 import styles from "./phone.module.css";
 
-function listApps(apps: string[]) {
+function listApps(apps: string[], and: string) {
   if (apps.length <= 1) return apps.join("");
-  return `${apps.slice(0, -1).join(", ")} and ${apps[apps.length - 1]}`;
+  return `${apps.slice(0, -1).join(", ")} ${and} ${apps[apps.length - 1]}`;
 }
 
-function clock(ms: number) {
-  return new Date(ms).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+function clock(ms: number, locale: string) {
+  return new Date(ms).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 }
 
 export default function PhoneTime() {
   const s = useGoReal()!;
+  const { c } = useCopy();
   const router = useRouter();
   const { access, reading } = usePhone();
   const [android] = useState(canMeasure);
@@ -45,19 +47,16 @@ export default function PhoneTime() {
   return (
     <main className={shared.page}>
       <div className={shared.top}>
-        <button className={styles.back} onClick={() => router.back()} aria-label="Back">
+        <button className={styles.back} onClick={() => router.back()} aria-label={c.back}>
           <PixelIcon name="chevronLeft" size={18} />
-          <span>Back</span>
+          <span>{c.back}</span>
         </button>
       </div>
 
       {!android && (
         <div>
-          <h1 className={shared.heading}>Phone time</h1>
-          <p className={shared.lede}>
-            A browser cannot see other apps, so on the website you log your phone time yourself on Today. The
-            Android app measures it for you.
-          </p>
+          <h1 className={shared.heading}>{c.phoneTime}</h1>
+          <p className={shared.lede}>{c.phoneWeb}</p>
         </div>
       )}
 
@@ -82,51 +81,47 @@ function startOfToday() {
 }
 
 function Setup({ apps }: { apps: string[] }) {
+  const { c } = useCopy();
   return (
     <>
       <div className={styles.hero}>
         <Mascot mood="wave" size={104} />
-        <h1 className={shared.heading}>Let GoReal measure your phone time</h1>
-        <p className={shared.lede}>
-          Then you never type it in, and Rilo can tell you when a scroll gets long or you get close to your limit.
-        </p>
+        <h1 className={shared.heading}>{c.measureTitle}</h1>
+        <p className={shared.lede}>{c.measureLede}</p>
       </div>
 
       <ul className={styles.facts}>
         <li>
           <PixelIcon name="check" size={18} />
-          <span>
-            It counts only the apps you picked: <b>{listApps(apps)}</b>.
-          </span>
+          <span>{c.measurePicked(listApps(apps, c.and))}</span>
         </li>
         <li>
           <PixelIcon name="check" size={18} />
-          <span>It sees when they were open and for how long. Never what is inside them: no messages, videos or posts.</span>
+          <span>{c.measureInside}</span>
         </li>
         <li>
           <PixelIcon name="check" size={18} />
-          <span>Everything stays on this phone.</span>
+          <span>{c.measureStays}</span>
         </li>
         <li>
           <PixelIcon name="check" size={18} />
-          <span>You can turn it off again in the same place, any time.</span>
+          <span>{c.measureOff}</span>
         </li>
       </ul>
 
       <section className={shared.card}>
-        <h2 className={shared.sectionTitle}>How to turn it on</h2>
+        <h2 className={shared.sectionTitle}>{c.howOn}</h2>
         <ol className={styles.steps}>
-          <li>Tap Open settings below.</li>
-          <li>Find GoReal in the list.</li>
-          <li>Turn on &quot;Permit usage access&quot; (some phones call it &quot;Allow usage access&quot;).</li>
-          <li>Come back to GoReal. It notices on its own.</li>
+          {c.howSteps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
         </ol>
       </section>
 
       <Button full variant="accent" onClick={openUsageSettings}>
-        Open settings
+        {c.openSettings}
       </Button>
-      <p className={styles.note}>Not now? You can keep logging your phone time yourself on Today.</p>
+      <p className={styles.note}>{c.notNowLog}</p>
     </>
   );
 }
@@ -144,6 +139,7 @@ function Measured({
   updated: number | null;
   installed: Set<string> | null;
 }) {
+  const { lang, c } = useCopy();
   const todayKey = dayKey();
   const today = s.days[todayKey];
   const used = today?.phoneMinutes ?? 0;
@@ -155,7 +151,7 @@ function Measured({
     const date = addDays(new Date(), -back);
     const day = s.days[dayKey(date)];
     return {
-      label: back === 1 ? "Yesterday" : date.toLocaleDateString("en-GB", { weekday: "long" }),
+      label: back === 1 ? c.yesterday : date.toLocaleDateString(c.dateLocale, { weekday: "long" }),
       minutes: day?.phoneMinutes,
       limit: goalsFor(day, s).phoneLimit,
     };
@@ -164,14 +160,14 @@ function Measured({
   return (
     <>
       <div>
-        <h1 className={shared.heading}>Phone time</h1>
-        <p className={shared.lede}>Measured on this phone, in the apps you picked.</p>
+        <h1 className={shared.heading}>{c.phoneTime}</h1>
+        <p className={shared.lede}>{c.measuredLede}</p>
       </div>
 
       <section className={shared.card}>
         <div className={styles.big}>
-          <span className={styles.bigNum}>{formatMinutes(used)}</span>
-          <span className={styles.bigOf}>of {formatMinutes(limit)} today</span>
+          <span className={styles.bigNum}>{formatMinutes(used, lang)}</span>
+          <span className={styles.bigOf}>{c.ofToday(formatMinutes(limit, lang))}</span>
         </div>
         <div className={styles.bar}>
           <motion.div
@@ -183,16 +179,16 @@ function Measured({
         </div>
         <p className={styles.status}>
           {over
-            ? `Over your limit by ${formatMinutes(used - limit)}. A break can still make today count.`
-            : `${formatMinutes(limit - used)} left. Stay under until midnight and today counts.`}
+            ? c.overBy(formatMinutes(used - limit, lang))
+            : c.leftUntil(formatMinutes(limit - used, lang))}
         </p>
       </section>
 
       <div className={shared.group}>
         <div className={shared.groupRow}>
-          <span className={styles.rowLabel}>Current session</span>
+          <span className={styles.rowLabel}>{c.currentSession}</span>
           <span className={styles.rowValue}>
-            {session && session.minutes > 0 ? `${formatMinutes(session.minutes)} without a pause` : "None right now"}
+            {session && session.minutes > 0 ? c.noPause(formatMinutes(session.minutes, lang)) : c.noneNow}
           </span>
         </div>
         {s.blockedApps.map((app) => {
@@ -200,22 +196,22 @@ function Measured({
           return (
             <div key={app} className={shared.groupRow}>
               <span className={styles.rowLabel}>{app}</span>
-              <span className={styles.rowValue}>{missing ? "Not on this phone" : formatMinutes(minutesFor(app))}</span>
+              <span className={styles.rowValue}>{missing ? c.notOnPhone : formatMinutes(minutesFor(app), lang)}</span>
             </div>
           );
         })}
       </div>
 
       <section>
-        <h2 className={shared.sectionTitle}>Last days</h2>
+        <h2 className={shared.sectionTitle}>{c.lastDays}</h2>
         <div className={shared.group}>
           {past.map((p) => (
             <div key={p.label} className={shared.groupRow}>
               <span className={styles.rowLabel}>{p.label}</span>
               <span className={styles.rowValue}>
                 {p.minutes === undefined
-                  ? "Not measured"
-                  : `${formatMinutes(p.minutes)}, ${p.minutes <= p.limit ? "under" : "over"} ${formatMinutes(p.limit)}`}
+                  ? c.notMeasured
+                  : `${formatMinutes(p.minutes, lang)}, ${p.minutes <= p.limit ? c.under : c.over} ${formatMinutes(p.limit, lang)}`}
               </span>
             </div>
           ))}
@@ -223,12 +219,11 @@ function Measured({
       </section>
 
       <p className={styles.note}>
-        {updated !== null && <>Updated at {clock(updated)}. </>}
-        GoReal only counts {listApps(s.blockedApps)}, and never sees what is inside them. To stop, turn off usage
-        access for GoReal.
+        {updated !== null && <>{c.updatedAt(clock(updated, c.timeLocale))} </>}
+        {c.onlyCounts(listApps(s.blockedApps, c.and))}
       </p>
       <Button full variant="secondary" onClick={openUsageSettings}>
-        Usage access settings
+        {c.usageSettings}
       </Button>
     </>
   );

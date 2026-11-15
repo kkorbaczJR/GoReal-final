@@ -164,17 +164,97 @@ const COPY: Record<NotifKind, Variant[]> = {
 export const MILESTONES = [3, 7, 14, 30, 50, 100];
 
 
+function pluralWord(n: number, one: string, few: string, many: string): string {
+  const abs = Math.abs(Math.trunc(n));
+  const mod10 = abs % 10;
+  const mod100 = abs % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+  return many;
+}
+
 function fill(text: string, ctx: CopyCtx): string {
-  return text.replace(/\{(\w+)\}/g, (_, key: string) => {
+  return text.replace(/\{(\w+)(?:\|([^}]+))?\}/g, (_, key: string, forms: string | undefined) => {
     const value = (ctx as Record<string, unknown>)[key];
-    return value === undefined ? "" : String(value);
+    if (value === undefined) return "";
+    if (forms && typeof value === "number") {
+      const [one, few, many] = forms.split("|");
+      return `${value} ${pluralWord(value, one ?? "", few ?? one ?? "", many ?? few ?? "")}`;
+    }
+    return String(value);
   });
 }
 
+/** Polish lines, in the same order as the English variants, so the same day picks the matching one. */
+const PL: Record<NotifKind, { title: string; body: string }[]> = {
+  longSession: [
+    { title: "{session|minuta|minuty|minut} bez przerwy", body: "To długo. Odłóż telefon na chwilę, Rilo popilnuje." },
+    { title: "Rilo ziewa", body: "Jesteś na telefonie od {session|minuty|minut|minut}. Czas dać odpocząć oczom?" },
+    { title: "{session|minuta|minuty|minut} na telefonie", body: "Przerwa na {remaining|minutę|minuty|minut} teraz utrzyma serię {streak|dnia|dni|dni}." },
+    { title: "{session|minuta|minuty|minut}, {name}", body: "Przerwa na {remaining|minutę|minuty|minut} i dzisiaj liczy się do serii." },
+    { title: "Dzisiaj już się liczy", body: "Dobrze. Ale {session|minuta|minuty|minut} z rzędu to sporo. Krótka przerwa?" },
+    { title: "Nadal?", body: "Już {session|minuta|minuty|minut}. Nawet 5 minut przerwy pomaga." },
+    { title: "Rilo zasnął, czekając", body: "{session|minuta|minuty|minut} bez pauzy. Telefon będzie tu później." },
+  ],
+  limit80: [
+    { title: "Prawie przy limicie", body: "Dzisiaj masz już {used} z {limit}." },
+    { title: "Uwaga", body: "Zostało {left} do limitu telefonu." },
+    { title: "Zostało {left}", body: "Zostań poniżej {limit}, a seria {streak|dnia|dni|dni} jest bezpieczna." },
+  ],
+  limit100: [
+    { title: "To już limit", body: "Nic nie szkodzi. Przerwa na {remaining|minutę|minuty|minut} nadal zalicza dzisiaj." },
+    { title: "Ponad limit {limit}", body: "Serię {streak|dnia|dni|dni} da się jeszcze uratować: zrób przerwę na {remaining|minutę|minuty|minut}." },
+    { title: "To Twoje {limit} na dzisiaj", body: "Dzisiaj już się liczy, więc seria jest bezpieczna. Może na tym koniec?" },
+  ],
+  streakRisk: [
+    { title: "Nadal nie śpisz, {name}?", body: "Seria {streak|dnia|dni|dni} nie jest jeszcze bezpieczna. Przerwa na {remaining|minutę|minuty|minut} ją ratuje." },
+    { title: "{streak|dzień|dni|dni} na szali", body: "Jesteś na telefonie, a dzisiaj jeszcze się nie liczy. {remaining} min przerwy to naprawia." },
+    { title: "Seria Cię potrzebuje", body: "Zamrożenie pokryłoby noc, ale przerwa na {remaining|minutę|minuty|minut} zostawia je na później." },
+  ],
+  breakEnd: [
+    { title: "Koniec przerwy", body: "Masz {reward|monetę|monety|monet}. Wróć, żeby je odebrać." },
+    { title: "Rilo się obudził", body: "{breakMinutes|minuta|minuty|minut} bez telefonu. Dobra robota, {name}." },
+  ],
+  shopTip: [
+    { title: "Stać Cię na coś nowego", body: "Wystarczy {coins|moneta|monety|monet} na: {item}." },
+    { title: "Nowy wygląd Rilo?", body: "{item} kosztuje {price}, a masz {coins}." },
+  ],
+  freezeTip: [
+    { title: "Chroń serię", body: "{streak|dzień|dni|dni} warto trzymać. Zamrożenie kosztuje {price} monet, a masz {coins}." },
+    { title: "Nie masz zamrożeń", body: "Jedno kosztuje {price} monet. Pokrywa opuszczony dzień." },
+  ],
+  freezeUsed: [
+    { title: "Zamrożenie uratowało serię", body: "Zabrakło: {daysWord}, więc seria {streak|dnia|dni|dni} nadal trwa. {leftText}" },
+  ],
+  streakLost: [
+    { title: "Seria {streak|dnia|dni|dni} się skończyła", body: "Zdarza się. Jedna przerwa dzisiaj zaczyna nową. Rekord to {best}." },
+  ],
+  milestone: [
+    { title: "3 dni z rzędu", body: "To już seria. Tak trzymaj." },
+    { title: "Cały tydzień", body: "7 dni z rzędu. Rilo jest dumny." },
+    { title: "Dwa tygodnie", body: "14 dni. To już prawdziwy nawyk." },
+    { title: "Seria 30 dni", body: "Cały miesiąc. Jesteś legendą, {name}." },
+    { title: "50 dni", body: "W połowie drogi do 100." },
+    { title: "100 dni", body: "Trzy cyfry. Nierealne." },
+  ],
+  blockedApp: [
+    { title: "{app} jest teraz niedostępne", body: "Trwa przerwa. Wróć do GoReal, żeby ją dokończyć." },
+    { title: "Rilo nie śpi", body: "Otwarcie {app} kończy przerwę. Wróć w ciągu 10 sekund." },
+  ],
+};
+
+function lines(kind: NotifKind, lang: "en" | "pl"): Variant[] {
+  const en = COPY[kind];
+  if (lang !== "pl") return en;
+  const pl = PL[kind];
+  return en.map((variant, i) => ({ ...variant, title: pl[i]?.title ?? variant.title, body: pl[i]?.body ?? variant.body }));
+}
+
 /** Write one notification. `seed` (e.g. the day number) rotates the variants. */
-export function writeCopy(kind: NotifKind, ctx: CopyCtx, seed: number): { title: string; body: string } {
-  const eligible = COPY[kind].filter((v) => !v.when || v.when(ctx));
-  const pool = eligible.length > 0 ? eligible : COPY[kind];
+export function writeCopy(kind: NotifKind, ctx: CopyCtx, seed: number, lang: "en" | "pl" = "en"): { title: string; body: string } {
+  const all = lines(kind, lang);
+  const eligible = all.filter((v) => !v.when || v.when(ctx));
+  const pool = eligible.length > 0 ? eligible : all;
   const variant = pool[Math.abs(seed) % pool.length];
   return { title: fill(variant.title, ctx), body: fill(variant.body, ctx) };
 }

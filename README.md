@@ -122,6 +122,7 @@ In the Android app GoReal can measure your phone time instead of you typing it i
 - A big ring shows how long the break will be. Pick 5, 10, 15, 25, 45 or 60 minutes and tap **Start break**.
 - The screen turns black ("break mode"). Rilo sleeps, a countdown runs, and your off-limits apps are listed.
 - **You can turn the phone off.** The break is timed from the moment it starts, so locking the phone does not pause it and does not end it, and the screen is not kept on (that was using the battery and counting as phone time). Turn the phone back on and the time left is still there. If the time ran out while it was off, the break counts.
+- **The lock screen shows the time left.** In the Android app a quiet card stays on the lock screen: a small Rilo in the current colour, the minutes counting down, and "left". The countdown belongs to Android, so it keeps moving with the screen off, and the card disappears when the break ends. It does not keep the screen awake. On the website, if notifications are already allowed, the same moment shows a notification with the time to come back. It does not tick.
 - **In the Android app, opening another app for more than 10 seconds still ends the break** and gives no coins. A phone's browser cannot tell locking from opening another app, so there the break keeps going either way. On a computer, leaving the tab for more than 10 seconds ends it. To give up on purpose, press and hold the button.
 - Opening GoReal in a second browser tab while a break is running does not end it. The second tab joins the same break.
 - When a finished break makes the day count, a full-screen "day streak!" moment shows a pixel flame, your streak number and the last 7 days.
@@ -147,6 +148,7 @@ A short visual spec for making other pages in this look (type, colour, pixels, c
 
 ### 4. You (profile)
 - Your Rilo in front of his scene, with your name and title.
+- **Language**: two buttons, the UK flag with `en` and the Polish flag with `pl`. The whole app follows, including the shop names (Green pop becomes Zielony pop) and the share card. The choice stays on this phone and comes back with the account. Start over keeps it, so the next onboarding is already in that language. The first launch is English until you switch.
 - **This week**: seven circles, one per day. A flame means that day counted for your streak, a snowflake means a freeze covered it. Tap the card to open the streak screen.
 - Stats: total time off-screen, current streak, longest streak, breaks finished, longest break, and how many shop items you own.
 - **My goal**: change your phone limit and your daily break goal at any time. Past days always keep their goals. Today follows a change right away while it has no progress yet (no break, no phone time logged), and a stricter goal (a longer break goal, a lower phone limit) also applies while today does not count yet. An easier goal after you already made progress waits until tomorrow, and the screen says so.

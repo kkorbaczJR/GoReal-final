@@ -16,19 +16,15 @@ import {
   signUpWithEmail,
   useAccount,
 } from "@/lib/account";
+import { useCopy } from "@/lib/i18n";
 import { getState, useGoReal } from "@/lib/store";
 import { MIN_PASSWORD } from "@/lib/sync-rules";
 import styles from "./AuthScreen.module.css";
 
 type Mode = "login" | "signup" | "reset";
 
-const TITLE: Record<Mode, string> = {
-  login: "Welcome back",
-  signup: "Save your progress",
-  reset: "Reset your password",
-};
-
 export default function AuthScreen({ mode: initialMode }: { mode: "login" | "signup" }) {
+  const { c } = useCopy();
   const router = useRouter();
   const account = useAccount();
   const s = useGoReal();
@@ -69,7 +65,7 @@ export default function AuthScreen({ mode: initialMode }: { mode: "login" | "sig
     clearRedirectError();
     setError(null);
     if (mode === "signup" && password.length < MIN_PASSWORD) {
-      setError(`Use at least ${MIN_PASSWORD} characters for your password.`);
+      setError(c.passwordShort(MIN_PASSWORD));
       return;
     }
     setBusy("email");
@@ -104,8 +100,8 @@ export default function AuthScreen({ mode: initialMode }: { mode: "login" | "sig
         <Header onBack={back} />
         <div className={styles.center}>
           <Mascot mood="sleeping" size={110} />
-          <h1 className={styles.title}>Accounts are coming soon</h1>
-          <p className={styles.lede}>For now your progress is saved on this phone.</p>
+          <h1 className={styles.title}>{c.accountsSoon}</h1>
+          <p className={styles.lede}>{c.accountsSoonBody}</p>
         </div>
       </main>
     );
@@ -130,22 +126,22 @@ export default function AuthScreen({ mode: initialMode }: { mode: "login" | "sig
           <div className={styles.hero}>
             <Mascot mood={mode === "reset" ? "happy" : "wave"} size={96} />
           </div>
-          <h1 className={styles.title}>{TITLE[mode]}</h1>
+          <h1 className={styles.title}>{mode === "signup" ? c.saveProgress : mode === "login" ? c.welcomeBack : c.resetPassword}</h1>
           <p className={styles.lede}>
             {mode === "signup"
-              ? "Your streak, coins and everything Rilo owns stay safe, even on a new phone."
+              ? c.signupLede
               : mode === "login"
                 ? hasProgress
-                  ? "Log in to get your progress back. Your account's progress replaces what's on this phone."
-                  : "Log in to get your progress back."
-                : "Type the email you signed up with and we'll send you a link to pick a new password."}
+                  ? c.loginLedeReplace
+                  : c.loginLede
+                : c.resetLede}
           </p>
 
           {mode !== "reset" && (
             <>
               <GoogleButton onClick={google} busy={busy === "google"} disabled={busy !== null} />
               <div className={styles.or}>
-                <span>or with email</span>
+                <span>{c.orEmail}</span>
               </div>
             </>
           )}
@@ -154,8 +150,7 @@ export default function AuthScreen({ mode: initialMode }: { mode: "login" | "sig
             <div className={styles.sent} role="status">
               <PixelIcon name="check" size={20} />
               <span>
-                If there&apos;s an account for <b>{email.trim()}</b>, a reset link is on its way. Check your spam folder
-                too.
+                {c.resetSent(email.trim())}
               </span>
             </div>
           ) : (
@@ -167,10 +162,10 @@ export default function AuthScreen({ mode: initialMode }: { mode: "login" | "sig
                 autoComplete="email"
                 autoCapitalize="none"
                 spellCheck={false}
-                placeholder="Email"
+                placeholder={c.email}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                aria-label="Email"
+                aria-label={c.email}
               />
               {mode !== "reset" && (
                 <div className={styles.passwordRow}>
@@ -178,18 +173,18 @@ export default function AuthScreen({ mode: initialMode }: { mode: "login" | "sig
                     className={styles.input}
                     type={showPassword ? "text" : "password"}
                     autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                    placeholder={mode === "signup" ? `Password (${MIN_PASSWORD}+ characters)` : "Password"}
+                    placeholder={mode === "signup" ? c.passwordNew(MIN_PASSWORD) : c.password}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    aria-label="Password"
+                    aria-label={c.password}
                   />
                   <button
                     type="button"
                     className={styles.show}
                     onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={showPassword ? c.hidePassword : c.showPassword}
                   >
-                    {showPassword ? "Hide" : "Show"}
+                    {showPassword ? c.hide : c.show}
                   </button>
                 </div>
               )}
@@ -211,15 +206,15 @@ export default function AuthScreen({ mode: initialMode }: { mode: "login" | "sig
               <Button full type="submit" disabled={!canSubmit || busy !== null}>
                 {busy === "email"
                   ? mode === "reset"
-                    ? "Sending..."
+                    ? c.sending
                     : mode === "signup"
-                      ? "Creating your account..."
-                      : "Logging in..."
+                      ? c.creating
+                      : c.loggingIn
                   : mode === "reset"
-                    ? "Send reset link"
+                    ? c.sendReset
                     : mode === "signup"
-                      ? "Create account"
-                      : "Log in"}
+                      ? c.createAccount
+                      : c.logIn}
               </Button>
             </form>
           )}
@@ -228,27 +223,27 @@ export default function AuthScreen({ mode: initialMode }: { mode: "login" | "sig
             {mode === "login" && (
               <>
                 <button type="button" className={styles.link} onClick={() => switchMode("reset")}>
-                  Forgot password?
+                  {c.forgot}
                 </button>
                 <span className={styles.switch}>
-                  New here?{" "}
+                  {c.newHere}{" "}
                   <button type="button" className={styles.linkStrong} onClick={() => switchMode("signup")}>
-                    Create an account
+                    {c.createAccount}
                   </button>
                 </span>
               </>
             )}
             {mode === "signup" && (
               <span className={styles.switch}>
-                Already have an account?{" "}
+                {c.already}{" "}
                 <button type="button" className={styles.linkStrong} onClick={() => switchMode("login")}>
-                  Log in
+                  {c.logIn}
                 </button>
               </span>
             )}
             {mode === "reset" && resetSent && (
               <Button full variant="secondary" onClick={() => switchMode("login")}>
-                Back to log in
+                {c.backToLogin}
               </Button>
             )}
           </div>
@@ -259,21 +254,23 @@ export default function AuthScreen({ mode: initialMode }: { mode: "login" | "sig
 }
 
 function Header({ onBack }: { onBack: () => void }) {
+  const { c } = useCopy();
   return (
     <header className={styles.header}>
-      <button className={styles.back} onClick={onBack} aria-label="Back">
+      <button className={styles.back} onClick={onBack} aria-label={c.back}>
         <PixelIcon name="chevronLeft" size={18} />
-        <span>Back</span>
+        <span>{c.back}</span>
       </button>
     </header>
   );
 }
 
 export function GoogleButton({ onClick, busy, disabled }: { onClick: () => void; busy: boolean; disabled: boolean }) {
+  const { c } = useCopy();
   return (
     <button type="button" className={styles.google} onClick={onClick} disabled={disabled}>
       <GoogleMark />
-      <span>{busy ? "Opening Google..." : "Continue with Google"}</span>
+      <span>{busy ? c.openingGoogle : c.continueGoogle}</span>
     </button>
   );
 }

@@ -11,21 +11,17 @@ import Splash from "@/components/Splash";
 import { continueWithGoogle, logOut, onGooglePopupLeft, preloadAccounts, useAccount } from "@/lib/account";
 import { APP_CHOICES } from "@/lib/apps";
 import { formatMinutes } from "@/lib/date";
+import { useCopy } from "@/lib/i18n";
 import { accountsEnabled } from "@/lib/firebase-config";
 import { PHONE_LIMIT_OPTIONS } from "@/lib/rules";
 import { completeOnboarding, getState, useGoReal } from "@/lib/store";
 import styles from "./onboarding.module.css";
 
-const LIMIT_COPY: Record<number, string> = {
-  30: "Mostly offline",
-  60: "A good balance",
-  120: "A gentle start",
-};
-
 const ACCOUNT_STEP = 4;
 
 export default function Onboarding() {
   const s = useGoReal();
+  const { lang, c } = useCopy();
   const account = useAccount();
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -144,21 +140,21 @@ export default function Onboarding() {
                 <div className={styles.hero}>
                   <Mascot mood="wave" size={140} />
                 </div>
-                <h1 className={styles.title}>Hi, I&apos;m Rilo. What&apos;s your name?</h1>
+                <h1 className={styles.title}>{c.hiName}</h1>
                 <input
                   className={styles.input}
                   value={name}
                   onChange={(e) => setName(e.target.value.slice(0, 20))}
-                  placeholder="Your name"
+                  placeholder={c.yourName}
                   autoComplete="given-name"
                   autoFocus
                   onKeyDown={(e) => e.key === "Enter" && canContinue && go(1)}
                 />
                 {account.status === "signedIn" ? (
                   <p className={styles.signedInAs}>
-                    Logged in as <b>{account.email}</b>
+                    {c.loggedInAs} <b>{account.email}</b>
                     <button className={styles.haveAccount} disabled={switching} onClick={switchAccount}>
-                      {switching ? "Logging out..." : "Use another account"}
+                      {switching ? c.loggingOut : c.useAnother}
                     </button>
                   </p>
                 ) : (
@@ -168,7 +164,7 @@ export default function Onboarding() {
                       disabled={account.status === "loading"}
                       onClick={() => router.push("/login")}
                     >
-                      I already have an account
+                      {c.haveAccount}
                     </button>
                   )
                 )}
@@ -177,8 +173,8 @@ export default function Onboarding() {
 
             {step === 1 && (
               <>
-                <h1 className={styles.title}>How much phone time is okay for you each day?</h1>
-                <p className={styles.hint}>Stay under it, or finish your daily breaks, and your streak grows.</p>
+                <h1 className={styles.title}>{c.phoneOk}</h1>
+                <p className={styles.hint}>{c.phoneOkHint}</p>
                 <div className={styles.choices} role="radiogroup">
                   {PHONE_LIMIT_OPTIONS.map((m) => {
                     const on = limit === m;
@@ -192,8 +188,8 @@ export default function Onboarding() {
                         onClick={() => setLimit(m)}
                       >
                         <span className={styles.choiceText}>
-                          <span className={styles.choiceLabel}>{formatMinutes(m)}</span>
-                          <span className={styles.choiceNote}>{LIMIT_COPY[m]}</span>
+                          <span className={styles.choiceLabel}>{formatMinutes(m, lang)}</span>
+                          <span className={styles.choiceNote}>{c.limits[m]}</span>
                         </span>
                         <span className={styles.radio}>
                           <AnimatePresence>
@@ -217,8 +213,8 @@ export default function Onboarding() {
 
             {step === 2 && (
               <>
-                <h1 className={styles.title}>Which apps pull you in the most?</h1>
-                <p className={styles.hint}>During a break these are off limits.</p>
+                <h1 className={styles.title}>{c.whichApps}</h1>
+                <p className={styles.hint}>{c.whichAppsHint}</p>
                 <div className={styles.apps}>
                   {APP_CHOICES.map((app) => {
                     const on = apps.includes(app);
@@ -243,12 +239,11 @@ export default function Onboarding() {
                 <div className={styles.hero}>
                   <Mascot mood="sleeping" size={170} />
                 </div>
-                <h1 className={styles.title}>Rilo naps when you put the phone down</h1>
+                <h1 className={styles.title}>{c.naps}</h1>
                 <ul className={styles.facts}>
-                  <li>Here are 100 coins to get you started</li>
-                  <li>1 minute of break earns 1 coin</li>
-                  <li>Leave the app early and the break ends</li>
-                  <li>Spend coins on hats, extras and scenes for Rilo</li>
+                  {c.facts.map((fact) => (
+                    <li key={fact}>{fact}</li>
+                  ))}
                 </ul>
               </>
             )}
@@ -258,11 +253,8 @@ export default function Onboarding() {
                 <div className={styles.hero}>
                   <Mascot mood="proud" size={140} />
                 </div>
-                <h1 className={styles.title}>Keep your progress safe</h1>
-                <p className={styles.hint}>
-                  With an account your streak, coins and everything Rilo owns come back on a new phone. You can also do
-                  this later in your profile.
-                </p>
+                <h1 className={styles.title}>{c.keepSafe}</h1>
+                <p className={styles.hint}>{c.keepSafeHint}</p>
                 {googleError && (
                   <p className={styles.error} role="alert">
                     {googleError}
@@ -279,19 +271,19 @@ export default function Onboarding() {
           <div className={styles.accountButtons}>
             <GoogleButton onClick={signUpWithGoogle} busy={googleBusy} disabled={googleBusy} />
             <Button full disabled={googleBusy} onClick={signUpWithEmail}>
-              Sign up with email
+              {c.signUpEmail}
             </Button>
             <Button full variant="ghost" size="medium" disabled={googleBusy} onClick={finish}>
-              Not now
+              {c.notNow}
             </Button>
           </div>
         ) : step < steps - 1 ? (
           <Button full disabled={!canContinue} onClick={() => go(1)}>
-            Continue
+            {c.continue}
           </Button>
         ) : (
           <Button full variant="accent" onClick={finish}>
-            Get started
+            {c.getStarted}
           </Button>
         )}
       </footer>

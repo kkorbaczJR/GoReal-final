@@ -3,20 +3,23 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import { useCopy } from "@/lib/i18n";
 import { PixelIcon, type PixelIconName } from "./PixelIcon";
 import styles from "./TabBar.module.css";
 
-const TABS: { href: string; label: string; icon: PixelIconName }[] = [
-  { href: "/home", label: "Today", icon: "timer" },
-  { href: "/shop", label: "Shop", icon: "bag" },
-  { href: "/profile", label: "You", icon: "face" },
+const TABS: { href: string; key: "today" | "shop" | "you"; icon: PixelIconName }[] = [
+  { href: "/home", key: "today", icon: "timer" },
+  { href: "/shop", key: "shop", icon: "bag" },
+  { href: "/profile", key: "you", icon: "face" },
 ];
 
 export default function TabBar() {
   const pathname = usePathname();
+  const { c } = useCopy();
+  const label = { today: c.today, shop: c.shop, you: c.you };
   return (
-    <nav className={styles.bar} aria-label="Main">
-      {TABS.map(({ href, label, icon }) => {
+    <nav className={styles.bar} aria-label={c.nav}>
+      {TABS.map(({ href, key, icon }) => {
         const active = pathname.startsWith(href);
         return (
           <Link key={href} href={href} className={`${styles.tab} ${active ? styles.active : ""}`}>
@@ -34,7 +37,7 @@ export default function TabBar() {
             >
               <PixelIcon name={icon} size={24} />
             </motion.span>
-            <span className={styles.label}>{label}</span>
+            <span className={styles.label}>{label[key]}</span>
           </Link>
         );
       })}

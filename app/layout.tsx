@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Newsreader } from "next/font/google";
 import AccentTheme, { accentScript } from "@/components/AccentTheme";
+import HtmlLang from "@/components/HtmlLang";
 import AccountSync from "@/components/AccountSync";
 import AndroidBack from "@/components/AndroidBack";
 import PwaHost from "@/components/PwaHost";
@@ -10,14 +11,14 @@ import "./globals.css";
 
 const newsreader = Newsreader({
   variable: "--font-newsreader",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   weight: ["400", "500"],
   style: ["normal", "italic"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
 });
 
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="app-shell">{children}</div>
         <AndroidBack />
         <AccentTheme />
+        <HtmlLang />
         <AccountSync />
         <PwaHost />
       </body>

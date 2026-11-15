@@ -64,7 +64,8 @@ export function fromCloud<T extends Record<DeviceField, unknown>>(cloud: Record<
 export const MIN_PASSWORD = 8;
 
 /** Friendly text for a Firebase Auth error code. Empty when there is nothing to say (the user closed the popup). */
-export function authErrorText(code: string): string {
+export function authErrorText(code: string, lang: "en" | "pl" = "en"): string {
+  if (lang === "pl") return authErrorPolish(code);
   switch (code) {
     case "auth/invalid-email":
     case "auth/missing-email":
@@ -99,5 +100,43 @@ export function authErrorText(code: string): string {
       return "";
     default:
       return "Something went wrong. Try again.";
+  }
+}
+
+function authErrorPolish(code: string): string {
+  switch (code) {
+    case "auth/invalid-email":
+    case "auth/missing-email":
+      return "Ten e-mail wygląda niepoprawnie.";
+    case "auth/missing-password":
+    case "auth/weak-password":
+      return `Hasło musi mieć co najmniej ${MIN_PASSWORD} znaków.`;
+    case "auth/email-already-in-use":
+      return "Konto z tym e-mailem już istnieje. Zaloguj się.";
+    case "auth/invalid-credential":
+    case "auth/invalid-login-credentials":
+    case "auth/wrong-password":
+    case "auth/user-not-found":
+      return "Zły e-mail albo hasło.";
+    case "auth/user-disabled":
+      return "To konto jest wyłączone.";
+    case "auth/too-many-requests":
+      return "Za dużo prób. Odczekaj minutę i spróbuj jeszcze raz.";
+    case "auth/network-request-failed":
+      return "Brak internetu. Spróbuj, gdy połączenie wróci.";
+    case "auth/account-exists-with-different-credential":
+      return "Ten e-mail ma już konto z hasłem. Zaloguj się e-mailem i hasłem.";
+    case "auth/requires-recent-login":
+      return "Dla bezpieczeństwa wyloguj się, zaloguj ponownie i dopiero usuń konto.";
+    case "auth/unauthorized-domain":
+      return "Logowanie Google nie jest jeszcze ustawione dla tej strony.";
+    case "auth/operation-not-allowed":
+      return "Ten sposób logowania nie jest jeszcze włączony.";
+    case "auth/popup-closed-by-user":
+    case "auth/cancelled-popup-request":
+    case "auth/user-cancelled":
+      return "";
+    default:
+      return "Coś poszło nie tak. Spróbuj jeszcze raz.";
   }
 }
