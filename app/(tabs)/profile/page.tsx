@@ -25,6 +25,7 @@ import {
   longestStreak,
   streakStatus,
 } from "@/lib/rules";
+import { shareDetails } from "@/lib/shareStreak";
 import { titleName } from "@/lib/shop";
 import { resetEverything, setGoals, useGoReal } from "@/lib/store";
 import shared from "../tabs.module.css";
@@ -119,8 +120,8 @@ export default function Profile() {
       <ShareSheet
         open={share}
         onClose={() => setShare(false)}
-        streak={streak.count}
-        outfit={{ outfit: s.outfit, face: s.face, neck: s.neck, back: s.back }}
+        details={shareDetails(s)}
+        outfit={{ outfit: s.outfit, face: s.face, neck: s.neck, back: s.back, aura: s.aura, buddy: s.buddy }}
       />
 
       <section className={styles.stats}>

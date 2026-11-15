@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Process;
 import android.provider.Settings;
@@ -35,11 +37,117 @@ public class PhoneUsagePlugin extends Plugin {
     // UsageEvents.Event constants, by value so they also compile against the older names on API 24 to 28.
     private static final int RESUMED = 1;
     private static final int PAUSED = 2;
+    private static final int SCREEN_ON = 15;
     private static final int SCREEN_OFF = 16;
     private static final int STOPPED = 23;
     private static final int SHUTDOWN = 26;
 
     private final Map<String, Boolean> gameCache = new HashMap<>();
+    private final Map<String, Boolean> launchable = new HashMap<>();
+    /** Wall-clock time of the last screen-off, so a lock still counts when usage access is off. */
+    private long lastScreenOff = 0;
+    private BroadcastReceiver screenReceiver;
+
+    @Override
+    public void load() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        screenReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                lastScreenOff = System.currentTimeMillis();
+            }
+        };
+        Context app = getContext().getApplicationContext();
+        if (Build.VERSION.SDK_INT >= 33) {
+            app.registerReceiver(screenReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            app.registerReceiver(screenReceiver, filter);
+        }
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        if (screenReceiver == null) return;
+        try {
+            getContext().getApplicationContext().unregisterReceiver(screenReceiver);
+        } catch (IllegalArgumentException ignored) {
+            // Already gone.
+        }
+        screenReceiver = null;
+    }
+
+    /**
+     * During a break: did another app stay in front longer than `graceMs` since `since`?
+     * Time while the screen is off does not count. Without usage access, only `screenOff` is known.
+     */
+    @PluginMethod
+    public void leftBreak(PluginCall call) {
+        long since = call.getLong("since", 0L);
+        long graceMs = call.getLong("graceMs", 10_000L);
+        JSObject result = new JSObject();
+        // The screen often turns off a moment before the page is told it is hidden.
+        result.put("screenOff", lastScreenOff >= since - 3_000L);
+        if (!hasAccess()) {
+            result.put("known", false);
+            result.put("left", false);
+            call.resolve(result);
+            return;
+        }
+        result.put("known", true);
+        result.put("left", anotherAppLongerThan(since, graceMs));
+        call.resolve(result);
+    }
+
+    /** Longest stretch a launchable app other than GoReal was in front, ignoring time with the screen off. */
+    private boolean anotherAppLongerThan(long since, long graceMs) {
+        UsageStatsManager usm = (UsageStatsManager) getContext().getSystemService(Context.USAGE_STATS_SERVICE);
+        if (usm == null) return false;
+        UsageEvents events = usm.queryEvents(since, System.currentTimeMillis());
+        if (events == null) return false;
+        UsageEvents.Event event = new UsageEvents.Event();
+        String self = getContext().getPackageName();
+        boolean screenOff = false;
+        long otherStart = -1;
+        long longest = 0;
+        long now = System.currentTimeMillis();
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event);
+            int type = event.getEventType();
+            long time = event.getTimeStamp();
+            if (type == SCREEN_OFF || type == SHUTDOWN) {
+                if (otherStart >= 0) longest = Math.max(longest, time - otherStart);
+                otherStart = -1;
+                screenOff = true;
+                continue;
+            }
+            if (type == SCREEN_ON) {
+                screenOff = false;
+                continue;
+            }
+            if (type != RESUMED || screenOff) continue;
+            if (otherStart >= 0) longest = Math.max(longest, time - otherStart);
+            String pkg = event.getPackageName();
+            otherStart = pkg != null && isLaunchableApp(pkg, self) ? time : -1;
+        }
+        if (otherStart >= 0) longest = Math.max(longest, now - otherStart);
+        return longest > graceMs;
+    }
+
+    /** Apps a person can open. The lock screen and the shade are not among them. */
+    private boolean isLaunchableApp(String pkg, String self) {
+        if (pkg.equals(self) || pkg.equals("android") || pkg.equals("com.android.systemui")) return false;
+        Boolean cached = launchable.get(pkg);
+        if (cached != null) return cached;
+        boolean canLaunch = false;
+        try {
+            canLaunch = getContext().getPackageManager().getLaunchIntentForPackage(pkg) != null;
+        } catch (RuntimeException ignored) {
+            canLaunch = false;
+        }
+        launchable.put(pkg, canLaunch);
+        return canLaunch;
+    }
 
     @PluginMethod
     public void status(PluginCall call) {

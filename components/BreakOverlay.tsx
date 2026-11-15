@@ -1,11 +1,14 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { onBack } from "@/lib/back";
+import { awayOutcome, isPhoneBrowser } from "@/lib/breakLeave";
 import { formatClock } from "@/lib/date";
-import { LEAVE_GRACE_SECONDS, rewardForBreak, streakStatus } from "@/lib/rules";
-import { finishBreak, markBreakShown, quitBreak, type GoRealState } from "@/lib/store";
+import { canMeasure, leftDuringBreak } from "@/lib/phone";
+import { LEAVE_GRACE_SECONDS, rewardForBreak } from "@/lib/rules";
+import { shareDetails } from "@/lib/shareStreak";
+import { finishBreak, quitBreak, type GoRealState } from "@/lib/store";
 import CountUp from "./CountUp";
 import Button from "./Button";
 import Mascot from "./Mascot";
@@ -52,6 +55,8 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
   const [share, setShare] = useState(false);
   const hiddenAt = useRef<number | null>(null);
   const ended = useRef(false);
+  // On Android, don't award the break until we know another app wasn't opened. The web already knows.
+  const [ready, setReady] = useState(!canMeasure());
 
   const end = (next: Outcome) => {
     if (ended.current) return;
@@ -66,73 +71,89 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
   const totalMs = brk ? brk.minutes * 60_000 : 1;
   const leftMs = Math.max(0, endsAt - now);
 
+  const complete = useCallback(() => {
+    if (!brk || ended.current) return;
+    const minutes = brk.minutes;
+    const coins = rewardForBreak(minutes, true).coins;
+    ended.current = true;
+    finishBreak();
+    setDayJustCounted(!streakDoneBefore && streakDoneAfter());
+    setOutcome({ kind: "done", minutes, coins });
+  }, [brk, streakDoneBefore, streakDoneAfter]);
+
+  const failLeft = useCallback(() => {
+    if (ended.current) return;
+    ended.current = true;
+    quitBreak();
+    setOutcome({ kind: "quit", reason: "left" });
+  }, []);
+
   // Tick the clock and finish when time is up. Coins are computed here so a second tick, or the store
-  // already having cleared the break, cannot show "+0".
+  // already having cleared the break, cannot show "+0". While the phone is off the clock sleeps, and
+  // this catches up as soon as the screen is back.
   useEffect(() => {
-    if (outcome.kind !== "running" || !brk) return;
+    if (outcome.kind !== "running" || !brk || !ready) return;
     const id = setInterval(() => {
       const t = Date.now();
       setNow(t);
-      if (t >= endsAt && hiddenAt.current === null && !ended.current) {
-        const minutes = brk.minutes;
-        const coins = rewardForBreak(minutes, true).coins;
-        ended.current = true;
-        finishBreak();
-        setDayJustCounted(!streakDoneBefore && streakDoneAfter());
-        setOutcome({ kind: "done", minutes, coins });
-      }
+      if (t >= endsAt && hiddenAt.current === null) complete();
     }, 250);
     return () => clearInterval(id);
-  }, [outcome.kind, brk, endsAt, streakDoneBefore, streakDoneAfter]);
+  }, [outcome.kind, brk, endsAt, ready, complete]);
 
-  // Leaving the app breaks the session (a web app cannot block other apps, so this is how we "lock").
+  // Opening the app again after the phone was off: finish a break whose time already ran out,
+  // unless another app was used (Android, when usage access is on).
   useEffect(() => {
-    if (outcome.kind !== "running") return;
+    if (outcome.kind !== "running" || !brk || !canMeasure()) return;
+    let cancel = false;
+    leftDuringBreak(brk.startedAt).then((native) => {
+      if (cancel || ended.current) return;
+      const away = (Date.now() - brk.startedAt) / 1000;
+      if (awayOutcome({ awaySeconds: away, graceSeconds: LEAVE_GRACE_SECONDS, native, cameBack: false, phoneBrowser: false }) === "left") {
+        failLeft();
+        return;
+      }
+      setReady(true);
+      if (Date.now() >= endsAt) complete();
+    });
+    return () => {
+      cancel = true;
+    };
+  }, [outcome.kind, brk, endsAt, complete, failLeft]);
+
+  // The screen may turn off. That is not leaving. On a computer, hiding the tab still is.
+  // In the Android app, another app in front (screen still on) still ends the break.
+  useEffect(() => {
+    if (outcome.kind !== "running" || !brk) return;
     const onVisibility = () => {
       if (document.visibilityState === "hidden") {
         hiddenAt.current = Date.now();
-      } else if (hiddenAt.current !== null) {
-        const away = (Date.now() - hiddenAt.current) / 1000;
-        hiddenAt.current = null;
-        if (away > LEAVE_GRACE_SECONDS) {
-          ended.current = true;
-          quitBreak();
-          setOutcome({ kind: "quit", reason: "left" });
-        }
+        return;
       }
+      const since = hiddenAt.current;
+      hiddenAt.current = null;
+      if (since === null) return;
+      const away = (Date.now() - since) / 1000;
+      const phoneBrowser = isPhoneBrowser() && !canMeasure();
+      void (async () => {
+        const native = canMeasure() ? await leftDuringBreak(since) : null;
+        if (ended.current) return;
+        if (awayOutcome({ awaySeconds: away, graceSeconds: LEAVE_GRACE_SECONDS, native, cameBack: true, phoneBrowser }) === "left") {
+          failLeft();
+          return;
+        }
+        if (Date.now() >= endsAt) complete();
+      })();
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, [outcome.kind]);
-
-  // Tell other GoReal windows this break is on screen, so opening one does not end it.
-  useEffect(() => {
-    if (outcome.kind !== "running" || !brk) return;
-    const beat = () => {
-      if (document.visibilityState === "visible") markBreakShown();
-    };
-    beat();
-    const id = setInterval(beat, 1000);
-    return () => clearInterval(id);
-  }, [outcome.kind, brk]);
+  }, [outcome.kind, brk, endsAt, complete, failLeft]);
 
   // Another window ended it. Skip if this window just finished it (finishBreak clears the store first).
   useEffect(() => {
     if (ended.current || outcome.kind !== "running") return;
     if (!state.activeBreak) end({ kind: "quit", reason: "elsewhere" });
   }, [state.activeBreak, outcome.kind]);
-
-  // Keep the screen awake so the phone does not auto-lock (which would look like leaving).
-  const awake = outcome.kind === "running";
-  useEffect(() => {
-    if (!awake) return;
-    let lock: { release: () => Promise<void> } | null = null;
-    const nav = navigator as Navigator & { wakeLock?: { request: (t: "screen") => Promise<{ release: () => Promise<void> }> } };
-    nav.wakeLock?.request("screen").then((l) => (lock = l)).catch(() => {});
-    return () => {
-      lock?.release().catch(() => {});
-    };
-  }, [awake]);
 
   useEffect(() => {
     const id = setInterval(() => setTip((t) => (t + 1) % TIPS.length), 12_000);
@@ -203,7 +224,13 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
                   </span>
                 ))}
               </div>
-              <p className={styles.warning}>Keep GoReal open. Leaving the app ends the break.</p>
+              <p className={styles.warning}>
+                {canMeasure()
+                  ? "You can turn the phone off. Opening another app ends the break."
+                  : isPhoneBrowser()
+                    ? "You can turn the phone off. The break keeps going."
+                    : "Keep this tab open. Leaving it ends the break."}
+              </p>
             </div>
 
             <button
@@ -288,8 +315,8 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
       <ShareSheet
         open={share}
         onClose={() => setShare(false)}
-        streak={streakStatus(state.days, state).count}
-        outfit={{ outfit: state.outfit, face: state.face, neck: state.neck, back: state.back }}
+        details={shareDetails(state)}
+        outfit={{ outfit: state.outfit, face: state.face, neck: state.neck, back: state.back, aura: state.aura, buddy: state.buddy }}
       />
     </motion.div>
   );
