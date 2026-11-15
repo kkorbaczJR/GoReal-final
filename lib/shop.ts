@@ -239,6 +239,25 @@ export function titleName(id: string): string {
   return itemById(id)?.name ?? "Rookie";
 }
 
+const COLOR_NAME: Record<Accent, string> = {
+  red: "Red",
+  orange: "Orange",
+  yellow: "Yellow",
+  green: "Green",
+  blue: "Blue",
+  indigo: "Indigo",
+  violet: "Violet",
+};
+
+/**
+ * The name shown in the shop. The pop scene is painted in the current accent, so "Orange pop"
+ * becomes "Green pop" (and the rest) when that colour is in use.
+ */
+export function itemName(item: ShopItem, accent: Accent = DEFAULT_ACCENT): string {
+  if (item.kind === "background" && item.look === "pop") return `${COLOR_NAME[accent]} pop`;
+  return item.name;
+}
+
 /** Owned = bought, free, or unlocked by total break minutes. Freezes are used up, never owned. */
 export function isOwned(item: ShopItem, owned: string[], totalBreakMinutes: number): boolean {
   if (item.kind === "freeze") return false;

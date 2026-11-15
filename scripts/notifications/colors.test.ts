@@ -8,6 +8,7 @@ import {
   isAccent,
   isOwned,
   itemById,
+  itemName,
   type Accent,
 } from "./lib/shop.ts";
 
@@ -121,4 +122,15 @@ test("new hats, the neck bandana and back items are in the shop", () => {
   assert.equal(itemById("hat-gasmask"), undefined);
   assert.equal(SHOP_ITEMS.filter((i) => i.kind === "hat").length, 27);
   assert.equal(SHOP_ITEMS.filter((i) => i.kind === "back").length, 7);
+});
+
+test("the pop scene is named after the colour in use", () => {
+  const pop = itemById("bg-pop");
+  assert.ok(pop);
+  assert.equal(itemName(pop, "orange"), "Orange pop");
+  assert.equal(itemName(pop, "green"), "Green pop");
+  assert.equal(itemName(pop, "violet"), "Violet pop");
+  const beach = itemById("bg-beach");
+  assert.ok(beach);
+  assert.equal(itemName(beach, "green"), beach.name);
 });
