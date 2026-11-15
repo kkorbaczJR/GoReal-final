@@ -8,6 +8,7 @@ import NotificationCard from "@/components/NotificationCard";
 import { PixelIcon } from "@/components/PixelIcon";
 import Switch from "@/components/Switch";
 import { addDays, dayKey, formatMinutes } from "@/lib/date";
+import { useCopy } from "@/lib/i18n";
 import { writeCopy } from "@/lib/notifications/copy";
 import { permission, requestPermission, showSystem, type NotifPermission } from "@/lib/notifications/delivery";
 import {
@@ -36,6 +37,7 @@ import {
   type QuietHours,
 } from "@/lib/notifications/types";
 import { canMeasure } from "@/lib/phone";
+import { itemById, itemName } from "@/lib/shop";
 import { pushNotif, setNotifPrefs, useGoReal, type GoRealState } from "@/lib/store";
 import type { UsageInterval } from "@/lib/usage";
 import shared from "../tabs.module.css";
@@ -77,6 +79,7 @@ function exampleState(s: GoRealState, day: Date): GoRealState {
 
 export default function Reminders() {
   const s = useGoReal()!;
+  const { lang, c } = useCopy();
   const router = useRouter();
   const [now] = useState(() => Date.now());
   const [perm, setPerm] = useState<NotifPermission>(() => permission());
@@ -97,15 +100,19 @@ export default function Reminders() {
           : kind === "breakEnd"
             ? { breakMinutes: 15, reward: 18 }
             : kind === "shopTip"
-              ? { item: "Cat ears", price: 250, coins: Math.max(ctx.coins, 250) }
+              ? {
+                  item: itemName(itemById("hat-cat")!, s.accent, lang),
+                  price: 250,
+                  coins: Math.max(ctx.coins, 250),
+                }
               : kind === "limit80"
                 ? {
-                    used: formatMinutes(Math.round(limit * LIMIT_WARNING_SHARE)),
-                    limit: formatMinutes(limit),
-                    left: formatMinutes(Math.round(limit * (1 - LIMIT_WARNING_SHARE))),
+                    used: formatMinutes(Math.round(limit * LIMIT_WARNING_SHARE), lang),
+                    limit: formatMinutes(limit, lang),
+                    left: formatMinutes(Math.round(limit * (1 - LIMIT_WARNING_SHARE)), lang),
                   }
                 : {};
-    return writeCopy(kind, { ...ctx, ...extra }, seed);
+    return writeCopy(kind, { ...ctx, ...extra }, seed, lang);
   };
 
   const sendTest = () => {
@@ -122,46 +129,43 @@ export default function Reminders() {
   return (
     <main className={shared.page}>
       <div className={shared.top}>
-        <button className={styles.back} onClick={() => router.back()} aria-label="Back">
+        <button className={styles.back} onClick={() => router.back()} aria-label={c.back}>
           <PixelIcon name="chevronLeft" size={18} />
-          <span>Back</span>
+          <span>{c.back}</span>
         </button>
       </div>
 
       <div>
-        <h1 className={shared.heading}>Reminders</h1>
-        <p className={shared.lede}>
-          No alarms at set times. Rilo only speaks up when something happens, like a long scroll or getting close to
-          your limit.
-        </p>
+        <h1 className={shared.heading}>{c.reminders}</h1>
+        <p className={shared.lede}>{c.remindersLede}</p>
       </div>
 
-      <section className={styles.phone} aria-label="How it looks">
-        <span className={styles.phoneLabel}>How it looks</span>
-        <NotificationCard kind="longSession" title={preview.title} body={preview.body} time="now" />
+      <section className={styles.phone} aria-label={c.howItLooks}>
+        <span className={styles.phoneLabel}>{c.howItLooks}</span>
+        <NotificationCard kind="longSession" title={preview.title} body={preview.body} time={c.now} />
       </section>
 
       <div className={shared.group}>
         <div className={shared.groupRow}>
           <div className={styles.rowText}>
-            <span className={styles.rowTitle}>Notifications</span>
-            <span className={styles.rowHint}>{on ? "On" : "Off. Rilo stays quiet."}</span>
+            <span className={styles.rowTitle}>{c.notifications}</span>
+            <span className={styles.rowHint}>{on ? c.on : c.notifOff}</span>
           </div>
-          <Switch label="Notifications" checked={on} onChange={(enabled) => setNotifPrefs({ enabled })} />
+          <Switch label={c.notifications} checked={on} onChange={(enabled) => setNotifPrefs({ enabled })} />
         </div>
         <div className={shared.groupRow}>
           <div className={styles.rowText}>
-            <span className={styles.rowTitle}>On your phone</span>
+            <span className={styles.rowTitle}>{c.onYourPhone}</span>
             <span className={styles.rowHint}>
-              {perm === "granted" && "Allowed. You get them when GoReal is in the background."}
-              {perm === "default" && "Allow notifications to see them when GoReal is not on screen."}
-              {perm === "denied" && "Blocked in your browser settings. Turn them on there to allow."}
-              {perm === "unsupported" && "This browser cannot show them. You still get banners inside GoReal."}
+              {perm === "granted" && c.permGranted}
+              {perm === "default" && c.permDefault}
+              {perm === "denied" && c.permDenied}
+              {perm === "unsupported" && c.permUnsupported}
             </span>
           </div>
           {perm === "default" && (
             <Button size="small" variant="accent" onClick={ask}>
-              Allow
+              {c.allow}
             </Button>
           )}
           {perm === "granted" && <PixelIcon name="check" size={22} />}
@@ -169,8 +173,8 @@ export default function Reminders() {
       </div>
       <p className={styles.note}>
         {s.phoneTracking && canMeasure()
-          ? "GoReal measures your phone time, so long sessions and your limit are checked whenever you open it. Nudges while GoReal is closed come in a later update."
-          : "Live phone use (long sessions, getting close to your limit) needs the Android app with phone time measured. Here GoReal reacts to your breaks and to the phone time you log."}
+          ? c.measureNote
+          : c.webNote}
       </p>
 
       <ExampleDay s={s} on={on} />
@@ -178,7 +182,7 @@ export default function Reminders() {
       <Simulator s={s} on={on} />
 
       <section className={on ? undefined : styles.off}>
-        <h2 className={shared.sectionTitle}>What you get</h2>
+        <h2 className={shared.sectionTitle}>{c.whatYouGet}</h2>
         <div className={styles.cats}>
           {CATEGORY_ORDER.map((cat) => {
             const info = CATEGORY_INFO[cat];
@@ -190,20 +194,20 @@ export default function Reminders() {
                 <div className={styles.catHead}>
                   <div className={styles.rowText}>
                     <span className={styles.rowTitle}>
-                      {info.label}
-                      {needsAndroid && <span className={styles.soon}>Android app</span>}
+                      {c.cats[cat]?.[0] ?? info.label}
+                      {needsAndroid && <span className={styles.soon}>{c.androidApp}</span>}
                     </span>
-                    <span className={styles.rowHint}>{info.hint}</span>
+                    <span className={styles.rowHint}>{c.cats[cat]?.[1] ?? info.hint}</span>
                   </div>
                   <Switch
-                    label={info.label}
+                    label={c.cats[cat]?.[0] ?? info.label}
                     checked={prefs.categories[cat]}
                     disabled={!on}
                     onChange={(value) => setNotifPrefs({ categories: { [cat]: value } })}
                   />
                 </div>
                 <div className={prefs.categories[cat] ? undefined : styles.dim}>
-                  <NotificationCard kind={kind} title={text.title} body={text.body} time="example" />
+                  <NotificationCard kind={kind} title={text.title} body={text.body} time={c.example} />
                 </div>
               </div>
             );
@@ -212,11 +216,11 @@ export default function Reminders() {
       </section>
 
       <section className={on ? undefined : styles.off}>
-        <h2 className={shared.sectionTitle}>Long session</h2>
+        <h2 className={shared.sectionTitle}>{c.longSession}</h2>
         <p className={styles.rowHint} style={{ marginBottom: 10 }}>
-          Rilo speaks up after this long on your phone without a pause, and again at twice and three times as long.
+          {c.longSessionHint}
         </p>
-        <div className={styles.chips} role="radiogroup" aria-label="Long session">
+        <div className={styles.chips} role="radiogroup" aria-label={c.longSession}>
           {SESSION_OPTIONS.map((m) => (
             <Chip key={m} active={prefs.sessionMinutes === m} onClick={() => setNotifPrefs({ sessionMinutes: m })}>
               {m} min
@@ -225,15 +229,13 @@ export default function Reminders() {
         </div>
 
         <h2 className={shared.sectionTitle} style={{ marginTop: 22 }}>
-          Quiet hours
+          {c.quietHours}
         </h2>
-        <p className={styles.rowHint} style={{ marginBottom: 10 }}>
-          Nothing buzzes then, except if you open an off-limits app during a break.
-        </p>
-        <div className={styles.chips} role="radiogroup" aria-label="Quiet hours">
+        <p className={styles.rowHint} style={{ marginBottom: 10 }}>{c.quietHint}</p>
+        <div className={styles.chips} role="radiogroup" aria-label={c.quietHours}>
           {QUIET_OPTIONS.map((q) => (
-            <Chip key={quietLabel(q)} active={sameQuiet(prefs.quiet, q)} onClick={() => setNotifPrefs({ quiet: q })}>
-              {quietLabel(q)}
+            <Chip key={quietLabel(q, lang)} active={sameQuiet(prefs.quiet, q)} onClick={() => setNotifPrefs({ quiet: q })}>
+              {quietLabel(q, lang)}
             </Chip>
           ))}
         </div>
@@ -241,12 +243,9 @@ export default function Reminders() {
 
       <div className={styles.test}>
         <Button full variant="secondary" onClick={sendTest} disabled={!on}>
-          Send a test notification
+          {c.sendTest}
         </Button>
-        <p className={styles.rowHint}>
-          Shows a banner here{perm === "granted" ? " and a notification on your phone" : ""}. The last {MAX_INBOX} are
-          kept in the bell on Today.
-        </p>
+        <p className={styles.rowHint}>{c.testHint(perm === "granted", MAX_INBOX)}</p>
       </div>
     </main>
   );
@@ -254,6 +253,7 @@ export default function Reminders() {
 
 /** A made-up day of phone use, played through the real rules, with every notification that would go out. */
 function ExampleDay({ s, on }: { s: GoRealState; on: boolean }) {
+  const { lang, c } = useCopy();
   const [day] = useState(() => new Date());
   const { intervals, fired, total } = useMemo(() => {
     const base = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime();
@@ -292,11 +292,10 @@ function ExampleDay({ s, on }: { s: GoRealState; on: boolean }) {
 
   return (
     <section className={on ? undefined : styles.off}>
-      <h2 className={shared.sectionTitle}>A day with Rilo</h2>
+      <h2 className={shared.sectionTitle}>{c.dayWithRilo}</h2>
       <div className={shared.card}>
         <p className={styles.rowHint}>
-          An example: {formatMinutes(total)} on your phone, a {EXAMPLE_STREAK}-day streak and no break yet. With your
-          limit of {formatMinutes(s.phoneLimit)}, this is what Rilo would send.
+          {c.exampleDay(formatMinutes(total, lang), EXAMPLE_STREAK, formatMinutes(s.phoneLimit, lang))}
         </p>
 
         <div className={styles.chart}>
@@ -342,17 +341,17 @@ function ExampleDay({ s, on }: { s: GoRealState; on: boolean }) {
             ))}
           </div>
           <p className={styles.legend}>
-            <span className={styles.swatchUse} /> Phone in use
+            <span className={styles.swatchUse} /> {c.phoneInUse}
             {quiet && (
               <>
-                <span className={styles.swatch} /> Quiet hours
+                <span className={styles.swatch} /> {c.quietLegend}
               </>
             )}
           </p>
         </div>
 
         {fired.length === 0 ? (
-          <p className={styles.empty}>Rilo would stay quiet all day.</p>
+          <p className={styles.empty}>{c.quietAllDay}</p>
         ) : (
           <ol className={styles.fired}>
             {fired.map((n, i) => (
@@ -366,8 +365,7 @@ function ExampleDay({ s, on }: { s: GoRealState; on: boolean }) {
           </ol>
         )}
         <p className={styles.rowHint}>
-          At most {DAILY_CAP} nudges a day and at least {MIN_GAP_MINUTES} minutes apart, so a long evening is not a
-          stream of pings.
+          {c.capNote(DAILY_CAP, MIN_GAP_MINUTES)}
         </p>
       </div>
     </section>
@@ -376,6 +374,7 @@ function ExampleDay({ s, on }: { s: GoRealState; on: boolean }) {
 
 /** Move the sliders and see what Rilo would say right now. */
 function Simulator({ s, on }: { s: GoRealState; on: boolean }) {
+  const { lang, c } = useCopy();
   const limit = s.phoneLimit;
   const [used, setUsed] = useState(Math.round(limit * 0.5));
   const [session, setSession] = useState(20);
@@ -398,40 +397,40 @@ function Simulator({ s, on }: { s: GoRealState; on: boolean }) {
 
   const reasons: string[] = [];
   if (!result) {
-    if (used < Math.ceil(limit * LIMIT_WARNING_SHARE)) reasons.push(`under ${Math.round(LIMIT_WARNING_SHARE * 100)}% of your limit`);
-    if (session < s.notif.prefs.sessionMinutes) reasons.push(`a session shorter than ${s.notif.prefs.sessionMinutes} min`);
-    if (!evening || session < RISK_SESSION_MINUTES) reasons.push(`not on your phone after ${RISK_FROM_HOUR}:00`);
+    if (used < Math.ceil(limit * LIMIT_WARNING_SHARE)) reasons.push(c.reasonLimit(Math.round(LIMIT_WARNING_SHARE * 100)));
+    if (session < s.notif.prefs.sessionMinutes) reasons.push(c.reasonSession(s.notif.prefs.sessionMinutes));
+    if (!evening || session < RISK_SESSION_MINUTES) reasons.push(c.reasonEvening(RISK_FROM_HOUR));
   }
 
   return (
     <section className={on ? undefined : styles.off}>
-      <h2 className={shared.sectionTitle}>Try it</h2>
+      <h2 className={shared.sectionTitle}>{c.tryIt}</h2>
       <div className={shared.card}>
         <Slider
-          label="Phone time today"
+          label={c.phoneToday}
           value={used}
           max={Math.round(limit * 1.5)}
           step={5}
           onChange={setUsed}
-          text={`${formatMinutes(used)} of ${formatMinutes(limit)}`}
+          text={c.ofAmount(formatMinutes(used, lang), formatMinutes(limit, lang))}
         />
         <Slider
-          label="On your phone right now"
+          label={c.onPhoneNow}
           value={session}
           max={120}
           step={5}
           onChange={setSession}
-          text={session === 0 ? "Not using it" : `${formatMinutes(session)} without a pause`}
+          text={session === 0 ? c.notUsing : c.noPause(formatMinutes(session, lang))}
         />
         <div className={styles.simTime}>
-          <span className={styles.rowTitle}>It is evening</span>
-          <Switch label="It is evening" checked={evening} onChange={setEvening} />
+          <span className={styles.rowTitle}>{c.itIsEvening}</span>
+          <Switch label={c.itIsEvening} checked={evening} onChange={setEvening} />
         </div>
         <div className={styles.simOut}>
           {result ? (
-            <NotificationCard kind={result.kind} title={result.title} body={result.body} time="now" />
+            <NotificationCard kind={result.kind} title={result.title} body={result.body} time={c.now} />
           ) : (
-            <p className={styles.empty}>Rilo stays quiet: {reasons.join(", ")}.</p>
+            <p className={styles.empty}>{c.staysQuiet(reasons.join(", "))}</p>
           )}
         </div>
       </div>

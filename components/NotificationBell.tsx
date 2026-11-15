@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useCopy } from "@/lib/i18n";
 import { formatWhen } from "@/lib/notifications/types";
 import { clearInbox, markInboxRead, useGoReal } from "@/lib/store";
 import Button from "./Button";
@@ -14,6 +15,7 @@ import Sheet from "./Sheet";
 /** Bell with an orange dot when something is unread. Opens the inbox. */
 export default function NotificationBell() {
   const s = useGoReal()!;
+  const { lang, c } = useCopy();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [now, setNow] = useState(0);
@@ -25,7 +27,7 @@ export default function NotificationBell() {
     <>
       <button
         className={styles.bell}
-        aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
+        aria-label={unread > 0 ? c.unread(unread) : c.notifications}
         onClick={() => {
           setNow(Date.now());
           setOpen(true);
@@ -37,14 +39,14 @@ export default function NotificationBell() {
 
       <Sheet open={open} onClose={() => setOpen(false)}>
         <div className={styles.head}>
-          <h2>Notifications</h2>
+          <h2>{c.notifications}</h2>
           {inbox.length > 0 && (
             <div className={styles.actions}>
               <Button variant="ghost" size="small" onClick={markInboxRead} disabled={unread === 0}>
-                Mark all read
+                {c.markRead}
               </Button>
               <Button variant="ghost" size="small" onClick={clearInbox}>
-                Clear
+                {c.clear}
               </Button>
             </div>
           )}
@@ -53,8 +55,8 @@ export default function NotificationBell() {
         {inbox.length === 0 ? (
           <div className={styles.empty}>
             <Mascot mood="sleeping" size={110} />
-            <strong>Nothing yet</strong>
-            <p>Rilo will tell you here about your streak, finished breaks and the shop.</p>
+            <strong>{c.nothingYet}</strong>
+            <p>{c.nothingYetBody}</p>
           </div>
         ) : (
           <ul className={styles.list}>
@@ -64,7 +66,7 @@ export default function NotificationBell() {
                   kind={i.kind}
                   title={i.title}
                   body={i.body}
-                  time={formatWhen(i.at, now)}
+                  time={formatWhen(i.at, now, lang)}
                   unread={!i.read}
                 />
               </li>
@@ -79,7 +81,7 @@ export default function NotificationBell() {
             router.push("/reminders");
           }}
         >
-          <span>Reminder settings</span>
+          <span>{c.reminderSettings}</span>
           <PixelIcon name="chevronRight" size={12} />
         </button>
       </Sheet>

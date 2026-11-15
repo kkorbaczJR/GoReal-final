@@ -9,21 +9,22 @@ import { PixelIcon, type PixelIconName } from "@/components/PixelIcon";
 import PixelScene from "@/components/PixelScene";
 import RiloStage from "@/components/RiloStage";
 import { formatMinutes } from "@/lib/date";
+import { useCopy } from "@/lib/i18n";
 import { MAX_FREEZES } from "@/lib/rules";
 import { ACCENT_COLORS, SHOP_ITEMS, isOwned, itemName, titleName, type Category, type ShopItem } from "@/lib/shop";
 import { buyFreeze, buyOrEquip, useGoReal, type GoRealState } from "@/lib/store";
 import shared from "../tabs.module.css";
 import styles from "./shop.module.css";
 
-const CATEGORIES: { id: Category; label: string; icon: PixelIconName }[] = [
-  { id: "hat", label: "Hats", icon: "hat" },
-  { id: "face", label: "Extras", icon: "glasses" },
-  { id: "back", label: "Back", icon: "wings" },
-  { id: "aura", label: "Aura", icon: "sparkle" },
-  { id: "background", label: "Scenes", icon: "picture" },
-  { id: "title", label: "Titles", icon: "badge" },
-  { id: "color", label: "Colors", icon: "palette" },
-  { id: "streak", label: "Streak", icon: "snowflake" },
+const CATEGORIES: { id: Category; icon: PixelIconName }[] = [
+  { id: "hat", icon: "hat" },
+  { id: "face", icon: "glasses" },
+  { id: "back", icon: "wings" },
+  { id: "aura", icon: "sparkle" },
+  { id: "background", icon: "picture" },
+  { id: "title", icon: "badge" },
+  { id: "color", icon: "palette" },
+  { id: "streak", icon: "snowflake" },
 ];
 
 function isWearing(item: ShopItem, s: GoRealState) {
@@ -53,6 +54,17 @@ function isWearing(item: ShopItem, s: GoRealState) {
 
 export default function Shop() {
   const s = useGoReal()!;
+  const { lang, c } = useCopy();
+  const catLabel: Record<Category, string> = {
+    hat: c.hats,
+    face: c.extras,
+    back: c.backCat,
+    aura: c.aura,
+    background: c.scenes,
+    title: c.titles,
+    color: c.colors,
+    streak: c.streak,
+  };
   const [category, setCategory] = useState<Category>("hat");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   /** The item currently being tried on in the big preview. Take off clears this, so Rilo updates at once. */
@@ -100,9 +112,9 @@ export default function Shop() {
     if (!selected) return;
     if (selected.kind === "freeze") {
       const result = buyFreeze();
-      if (result === "ok") flash("Freeze added. It will save a missed day.");
-      else if (result === "full") flash(`You already hold ${MAX_FREEZES}`);
-      else flash(`You need ${selected.price - s.coins} more coins`);
+      if (result === "ok") flash(c.freezeAdded);
+      else if (result === "full") flash(c.freezeFull(MAX_FREEZES));
+      else flash(c.needCoins(selected.price - s.coins));
       return;
     }
     const wasOwned = owned(selected);
@@ -111,56 +123,56 @@ export default function Shop() {
     if (removed) setTryingId(null);
     if (!buyOrEquip(selected.id)) {
       if (removed) setTryingId(selected.id);
-      flash(`You need ${selected.price - s.coins} more coins`);
+      flash(c.needCoins(selected.price - s.coins));
       return;
     }
-    if (!wasOwned) flash(`${itemName(selected, s.accent)} is yours!`);
-    else if (removed) flash("Taken off");
+    if (!wasOwned) flash(c.yours(itemName(selected, s.accent, lang)));
+    else if (removed) flash(c.takenOff);
   };
 
   let action = "";
   let disabled = false;
   if (selected?.kind === "freeze") {
     if (s.freezes >= MAX_FREEZES) {
-      action = `You hold the maximum (${MAX_FREEZES})`;
+      action = c.holdMax(MAX_FREEZES);
       disabled = true;
     } else {
-      action = `Buy a freeze for ${selected.price}`;
+      action = c.buyFreeze(selected.price);
     }
   } else if (selected) {
     if (!owned(selected)) {
       if (selected.kind === "title" && selected.unlockAtMinutes !== undefined) {
-        action = `Unlocks at ${formatMinutes(selected.unlockAtMinutes)} of breaks`;
+        action = c.unlocksAt(formatMinutes(selected.unlockAtMinutes, lang));
         disabled = true;
       } else {
-        action = `Buy for ${selected.price}`;
+        action = c.buyFor(selected.price);
       }
     } else if (wearing(selected)) {
       action =
         selected.kind === "title"
-          ? "Using this title"
+          ? c.usingTitle
           : selected.kind === "color"
-            ? "Using this colour"
+            ? c.usingColor
             : selected.kind === "background"
-              ? "Remove"
-              : "Take off";
+              ? c.remove
+              : c.takeOff;
       disabled = selected.kind === "title" || selected.kind === "color";
     } else {
       action =
         selected.kind === "title"
-          ? "Use this title"
+          ? c.useTitle
           : selected.kind === "color"
-            ? "Use this colour"
+            ? c.useColor
             : selected.kind === "background"
-              ? "Use it"
-              : "Wear it";
+              ? c.useIt
+              : c.wearIt;
     }
   }
 
   return (
     <main className={shared.page}>
       <div className={shared.top}>
-        <h1 className={shared.heading}>Shop</h1>
+        <h1 className={shared.heading}>{c.shop}</h1>
         <div className={styles.coins}>
           <PixelIcon name="coin" size={24} /> {s.coins}
         </div>
@@ -186,25 +198,25 @@ export default function Shop() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
           >
-            {titleName(preview.title)}
+            {titleName(preview.title, lang)}
           </motion.span>
         </AnimatePresence>
       </section>
 
       <div className={styles.tabs} role="tablist">
-        {CATEGORIES.map((c) => (
+        {CATEGORIES.map((tab) => (
           <button
-            key={c.id}
+            key={tab.id}
             role="tab"
-            aria-selected={category === c.id}
-            className={`${styles.tab} ${category === c.id ? styles.tabOn : ""}`}
+            aria-selected={category === tab.id}
+            className={`${styles.tab} ${category === tab.id ? styles.tabOn : ""}`}
             onClick={() => {
-              setCategory(c.id);
+              setCategory(tab.id);
               setSelectedId(null);
               setTryingId(null);
             }}
           >
-            {category === c.id && (
+            {category === tab.id && (
               <motion.span
                 layoutId="shop-tab"
                 className={styles.tabPill}
@@ -212,8 +224,8 @@ export default function Shop() {
               />
             )}
             <span className={styles.tabInner}>
-              <PixelIcon name={c.icon} size={24} />
-              {c.label}
+              <PixelIcon name={tab.icon} size={24} />
+              {catLabel[tab.id]}
             </span>
           </button>
         ))}
@@ -241,7 +253,7 @@ export default function Shop() {
                     setTryingId(item.id);
                   }}
                 >
-                  <span className={styles.rowName}>{itemName(item, s.accent)}</span>
+                  <span className={styles.rowName}>{itemName(item, s.accent, lang)}</span>
                   <PriceTag item={item} owned={owned(item)} wearing={wearing(item)} />
                 </motion.button>
               ))}
@@ -279,7 +291,7 @@ export default function Shop() {
                       />
                     )}
                   </span>
-                  <span className={styles.itemName}>{itemName(item, previewAccent ?? s.accent)}</span>
+                  <span className={styles.itemName}>{itemName(item, previewAccent ?? s.accent, lang)}</span>
                   <PriceTag item={item} owned={owned(item)} wearing={wearing(item)} />
                 </motion.button>
               ))}
@@ -321,38 +333,37 @@ export default function Shop() {
 }
 
 function FreezeCard({ freezes, price }: { freezes: number; price: number }) {
+  const { c } = useCopy();
   return (
     <div className={styles.freezeCard}>
-      <div className={styles.freezeSlots} aria-label={`${freezes} of ${MAX_FREEZES} freezes`}>
+      <div className={styles.freezeSlots} aria-label={c.freezesAria(freezes, MAX_FREEZES)}>
         {Array.from({ length: MAX_FREEZES }, (_, i) => (
           <span key={i} className={`${styles.freezeSlot} ${i < freezes ? styles.freezeSlotOn : ""}`}>
             <PixelIcon name="snowflake" size={48} dim={i >= freezes} />
           </span>
         ))}
       </div>
-      <h2 className={styles.freezeTitle}>Streak freeze</h2>
-      <p className={styles.freezeText}>
-        Miss a whole day and a freeze covers it, so your streak keeps going. It is used on its own the next time you
-        open the app. You can hold {MAX_FREEZES}.
-      </p>
+      <h2 className={styles.freezeTitle}>{c.streakFreezes}</h2>
+      <p className={styles.freezeText}>{c.freezeAbout(MAX_FREEZES)}</p>
       <span className={styles.freezePrice}>
-        <PixelIcon name="coin" size={12} /> {price} each, {freezes} of {MAX_FREEZES} in stock
+        <PixelIcon name="coin" size={12} /> {c.freezeEach(price, freezes, MAX_FREEZES)}
       </span>
     </div>
   );
 }
 
 function PriceTag({ item, owned, wearing }: { item: ShopItem; owned: boolean; wearing: boolean }) {
+  const { lang, c } = useCopy();
   if (item.kind === "freeze") return null;
   if (wearing) {
-    const label = item.kind === "title" || item.kind === "background" || item.kind === "color" ? "In use" : "Wearing";
+    const label = item.kind === "title" || item.kind === "background" || item.kind === "color" ? c.inUse : c.wearing;
     return <span className={`${styles.tag} ${styles.tagOn}`}>{label}</span>;
   }
-  if (owned) return <span className={styles.tag}>Owned</span>;
+  if (owned) return <span className={styles.tag}>{c.owned}</span>;
   if (item.kind === "title" && item.unlockAtMinutes !== undefined) {
     return (
       <span className={styles.tag}>
-        <PixelIcon name="lock" size={12} /> {formatMinutes(item.unlockAtMinutes)}
+        <PixelIcon name="lock" size={12} /> {formatMinutes(item.unlockAtMinutes, lang)}
       </span>
     );
   }

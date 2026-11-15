@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { onBack } from "@/lib/back";
+import { useCopy } from "@/lib/i18n";
 import { shareDetails } from "@/lib/shareStreak";
 import { getState } from "@/lib/store";
 import Button from "./Button";
@@ -19,9 +20,10 @@ const ENERGETIC = [0.34, 1.56, 0.64, 1] as const;
  */
 export default function StreakScreen({ onClose, celebrate = false }: { onClose: () => void; celebrate?: boolean }) {
   useEffect(() => onBack(onClose), [onClose]);
+  const { lang, c } = useCopy();
   const s = getState();
   const [share, setShare] = useState(false);
-  const card = shareDetails(s, celebrate);
+  const card = shareDetails(s, celebrate, new Date(), lang);
   const { count, line, week } = card;
 
   return (
@@ -52,7 +54,7 @@ export default function StreakScreen({ onClose, celebrate = false }: { onClose: 
             <CountUp from={celebrate ? Math.max(0, count - 1) : 0} to={count} duration={celebrate ? 600 : 800} delay={350} />
           </div>
           <div className={`${styles.label} ${count === 0 ? styles.labelOff : ""}`}>
-            {count === 0 ? "day streak" : "day streak!"}
+            {card.streakWord}
           </div>
 
           <motion.div
@@ -92,25 +94,25 @@ export default function StreakScreen({ onClose, celebrate = false }: { onClose: 
             <div className={styles.facts}>
               <div>
                 <span className={styles.factValue}>{card.bestLabel}</span>
-                <span className={styles.factLabel}>Best streak</span>
+                <span className={styles.factLabel}>{card.factLabels[0].join(" ")}</span>
               </div>
               <div>
                 <span className={styles.factValue}>{card.limitLabel}</span>
-                <span className={styles.factLabel}>Breaks or phone limit</span>
+                <span className={styles.factLabel}>{card.factLabels[1].join(" ")}</span>
               </div>
               <div>
                 <span className={styles.factValue}>{card.freezeLabel}</span>
-                <span className={styles.factLabel}>Streak freezes</span>
+                <span className={styles.factLabel}>{card.factLabels[2].join(" ")}</span>
               </div>
             </div>
           </motion.div>
         </div>
         <div className={styles.actions}>
-          <Button variant="secondary" full onClick={() => setShare(true)} aria-label="Share your streak">
-            Share
+          <Button variant="secondary" full onClick={() => setShare(true)} aria-label={c.shareStreakLabel}>
+            {c.share}
           </Button>
           <Button full onClick={onClose}>
-            Continue
+            {c.continue}
           </Button>
         </div>
       </div>

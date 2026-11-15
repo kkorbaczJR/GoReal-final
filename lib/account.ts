@@ -165,7 +165,7 @@ function load(): Promise<Firebase> {
     } catch {}
     if (redirecting) {
       await a.getRedirectResult(auth).catch((e: { code?: string }) => {
-        redirectError = authErrorText(e.code ?? "") || null;
+        redirectError = authErrorText(e.code ?? "", getState().lang) || null;
       });
     }
     a.onAuthStateChanged(auth, (user) => void onUser(user));
@@ -309,7 +309,7 @@ async function runPush() {
  */
 
 function failure(e: unknown): string {
-  return authErrorText((e as { code?: string })?.code ?? "");
+  return authErrorText((e as { code?: string })?.code ?? "", getState().lang);
 }
 
 async function afterSignIn() {

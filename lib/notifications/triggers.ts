@@ -8,7 +8,7 @@
  */
 import { dayKey, formatMinutes, parseDayKey } from "../date";
 import { goalsFor, longestStreak, rewardForBreak, streakStatus } from "../rules";
-import { FREEZE_PRICE, SHOP_ITEMS, isOwned } from "../shop";
+import { FREEZE_PRICE, SHOP_ITEMS, isOwned, itemName } from "../shop";
 import type { GoRealState } from "../store";
 import { usageSnapshot, type UsageInterval, type UsageSnapshot } from "../usage";
 import { MILESTONES, writeCopy, type CopyCtx } from "./copy";
@@ -109,17 +109,17 @@ export function eventNotif(
   now: Date = new Date(),
   key: string = dayKey(now),
 ): Notif {
-  const { title, body } = writeCopy(kind, buildCtx(state, now, extra), dayNumber(now));
+  const { title, body } = writeCopy(kind, buildCtx(state, now, extra), dayNumber(now), state.lang === "pl" ? "pl" : "en");
   return { id: `${kind}:${key}`, kind, title, body, at: now.getTime(), action: ACTIONS[kind] };
 }
 
 /** The most expensive paid item you can afford and do not own. */
-export function bestAffordable(state: Pick<GoRealState, "coins" | "owned" | "totalBreakMinutes">) {
+export function bestAffordable(state: Pick<GoRealState, "coins" | "owned" | "totalBreakMinutes" | "accent" | "lang">) {
   let best: { name: string; price: number } | null = null;
   for (const item of SHOP_ITEMS) {
     if (item.kind === "freeze" || item.price <= 0 || item.price > state.coins) continue;
     if (isOwned(item, state.owned, state.totalBreakMinutes)) continue;
-    if (!best || item.price > best.price) best = { name: item.name, price: item.price };
+    if (!best || item.price > best.price) best = { name: itemName(item, state.accent, state.lang), price: item.price };
   }
   return best;
 }
@@ -246,7 +246,7 @@ export function breakEndNotif(state: GoRealState, now: Date): Notif | null {
   if (!brk || !state.onboarded || !allowed(state.notif.prefs, "breakEnd")) return null;
   const at = brk.startedAt + brk.minutes * MINUTE;
   const ctx = buildCtx(state, now, { breakMinutes: brk.minutes, reward: rewardForBreak(brk.minutes, true).coins });
-  const { title, body } = writeCopy("breakEnd", ctx, dayNumber(now));
+  const { title, body } = writeCopy("breakEnd", ctx, dayNumber(now), state.lang === "pl" ? "pl" : "en");
   return { id: `breakEnd:${brk.startedAt}`, kind: "breakEnd", title, body, at, action: ACTIONS.breakEnd };
 }
 

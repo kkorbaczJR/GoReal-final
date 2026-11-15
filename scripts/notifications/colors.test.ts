@@ -130,6 +130,9 @@ test("the pop scene is named after the colour in use", () => {
   assert.equal(itemName(pop, "orange"), "Orange pop");
   assert.equal(itemName(pop, "green"), "Green pop");
   assert.equal(itemName(pop, "violet"), "Violet pop");
+  assert.equal(itemName(pop, "green", "pl"), "Zielony pop");
+  assert.equal(itemName(pop, "orange", "pl"), "Pomarańczowy pop");
+  assert.equal(itemName(itemById("hat-cat")!, "orange", "pl"), "Kocie uszy");
   const beach = itemById("bg-beach");
   assert.ok(beach);
   assert.equal(itemName(beach, "green"), beach.name);
