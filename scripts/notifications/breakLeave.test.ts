@@ -54,3 +54,18 @@ test("on a computer, leaving the tab ends the break", () => {
     "left",
   );
 });
+
+test("a phone browser ends the break when the screen stayed on, and keeps it when the screen locked", () => {
+  assert.equal(
+    awayOutcome({ awaySeconds: 30, graceSeconds: grace, native: null, cameBack: true, phoneBrowser: true, canSeeScreen: true, unlockedSeconds: 30 }),
+    "left",
+  );
+  assert.equal(
+    awayOutcome({ awaySeconds: 30, graceSeconds: grace, native: null, cameBack: true, phoneBrowser: true, canSeeScreen: true, unlockedSeconds: 0 }),
+    "continue",
+  );
+  assert.equal(
+    awayOutcome({ awaySeconds: 30, graceSeconds: grace, native: null, cameBack: true, phoneBrowser: true, canSeeScreen: true, unlockedSeconds: 10 }),
+    "continue",
+  );
+});

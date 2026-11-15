@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { APP_URL, SHARE_LINES, pickShareLine, streakLabel } from "./lib/shareCopy.ts";
-import { days, minutesWord, pluralForm } from "./lib/lang.ts";
+import { days, minutesLeft, minutesWord, pluralForm } from "./lib/lang.ts";
 import { shareDetails, streakMessage } from "./lib/shareStreak.ts";
 
 test("the share link is the GitHub Pages app, and the captions name nobody", () => {
@@ -54,6 +54,12 @@ test("polish uses its own plural forms and share-card words", () => {
   assert.equal(minutesWord("pl", 5), "5 minut");
   assert.equal(minutesWord("pl", 12), "12 minut");
   assert.equal(minutesWord("pl", 22), "22 minuty");
+  assert.equal(minutesLeft("en", 1), "1 minute left");
+  assert.equal(minutesLeft("en", 12), "12 minutes left");
+  assert.equal(minutesLeft("pl", 1), "została 1 minuta");
+  assert.equal(minutesLeft("pl", 2), "zostały 2 minuty");
+  assert.equal(minutesLeft("pl", 5), "zostało 5 minut");
+  assert.equal(minutesLeft("pl", 12), "zostało 12 minut");
   const card = shareDetails({ days: {}, phoneLimit: 120, breakGoal: 15, freezes: 0 }, false, new Date(2026, 10, 11), "pl");
   assert.equal(card.bestLabel, "0 dni");
   assert.equal(card.limitLabel, "15 min / 2 godz.");

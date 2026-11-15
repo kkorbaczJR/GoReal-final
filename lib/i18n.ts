@@ -229,7 +229,7 @@ function english() {
     facts: [
       "Here are 100 coins to get you started",
       "1 minute of break earns 1 coin",
-      "You can turn the phone off. The break keeps going.",
+      "You can turn the phone off. Opening another app ends the break.",
       "Spend coins on hats, extras and scenes for Rilo",
     ],
     keepSafe: "Keep your progress safe",
@@ -611,7 +611,7 @@ function polish() {
     facts: [
       "Masz 100 monet na start",
       "1 minuta przerwy to 1 moneta",
-      "Możesz wyłączyć telefon. Przerwa trwa dalej.",
+      "Możesz wyłączyć telefon. Otwarcie innej aplikacji kończy przerwę.",
       "Monety wydajesz na czapki, dodatki i sceny dla Rilo",
     ],
     keepSafe: "Zabezpiecz swój postęp",

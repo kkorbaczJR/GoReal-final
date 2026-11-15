@@ -7,8 +7,10 @@ import { awayOutcome, isPhoneBrowser } from "@/lib/breakLeave";
 import { hideBreakLock, showBreakLock } from "@/lib/breakLock";
 import { formatClock } from "@/lib/date";
 import { useCopy } from "@/lib/i18n";
+import { minutesLeft } from "@/lib/lang";
 import { canMeasure, leftDuringBreak } from "@/lib/phone";
 import { LEAVE_GRACE_SECONDS, rewardForBreak } from "@/lib/rules";
+import { isWatchingScreen, noteScreenHidden, subscribeScreen, unlockedHiddenSeconds } from "@/lib/screenLock";
 import { ACCENT_COLORS } from "@/lib/shop";
 import { shareDetails } from "@/lib/shareStreak";
 import { finishBreak, quitBreak, type GoRealState } from "@/lib/store";
@@ -52,6 +54,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
   // On Android, don't award the break until we know another app wasn't opened. The web already knows.
   const [ready, setReady] = useState(!canMeasure());
   const { lang, c } = useCopy();
+  const [seesScreen, setSeesScreen] = useState(isWatchingScreen);
 
   const end = (next: Outcome) => {
     if (ended.current) return;
@@ -119,33 +122,75 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
     };
   }, [outcome.kind, brk, endsAt, complete, failLeft]);
 
-  // The screen may turn off. That is not leaving. On a computer, hiding the tab still is.
-  // In the Android app, another app in front (screen still on) still ends the break.
+  // The screen may turn off. That is not leaving. Opening another app is.
+  // On a computer, hiding the tab still is. The Android app asks the phone which app was in front.
   useEffect(() => {
     if (outcome.kind !== "running" || !brk) return;
-    const onVisibility = () => {
-      if (document.visibilityState === "hidden") {
-        hiddenAt.current = Date.now();
-        return;
-      }
-      const since = hiddenAt.current;
-      hiddenAt.current = null;
-      if (since === null) return;
+    let graceTimer = 0;
+    const decide = (since: number) => {
       const away = (Date.now() - since) / 1000;
       const phoneBrowser = isPhoneBrowser() && !canMeasure();
       void (async () => {
         const native = canMeasure() ? await leftDuringBreak(since) : null;
         if (ended.current) return;
-        if (awayOutcome({ awaySeconds: away, graceSeconds: LEAVE_GRACE_SECONDS, native, cameBack: true, phoneBrowser }) === "left") {
+        const look = () =>
+          awayOutcome({
+            awaySeconds: (Date.now() - since) / 1000,
+            graceSeconds: LEAVE_GRACE_SECONDS,
+            native,
+            cameBack: true,
+            phoneBrowser,
+            canSeeScreen: phoneBrowser && isWatchingScreen(),
+            unlockedSeconds: phoneBrowser ? unlockedHiddenSeconds() : 0,
+          });
+        if (look() === "left") {
           failLeft();
           return;
         }
-        if (Date.now() >= endsAt) complete();
+        // Usage events can arrive a moment after the app switch. Ask once more before paying the coins.
+        if (native?.known && !native.left && away > LEAVE_GRACE_SECONDS) {
+          await new Promise((resolve) => setTimeout(resolve, 1200));
+          if (ended.current) return;
+          const again = await leftDuringBreak(since);
+          if (again.known && again.left) {
+            failLeft();
+            return;
+          }
+        }
+        if (document.visibilityState === "visible" && Date.now() >= endsAt) complete();
       })();
     };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        hiddenAt.current = Date.now();
+        noteScreenHidden();
+        const left = Math.max(1, Math.ceil((endsAt - Date.now()) / 60_000));
+        void showBreakLock({
+          endAt: endsAt,
+          title: c.lockTitle,
+          subtitle: c.lockLeft,
+          body: minutesLeft(lang, left),
+          color: ACCENT_COLORS[state.accent].accent,
+        });
+        window.clearTimeout(graceTimer);
+        graceTimer = window.setTimeout(() => {
+          if (hiddenAt.current === null) return;
+          decide(hiddenAt.current);
+        }, LEAVE_GRACE_SECONDS * 1000);
+        return;
+      }
+      const since = hiddenAt.current;
+      hiddenAt.current = null;
+      window.clearTimeout(graceTimer);
+      if (since === null) return;
+      decide(since);
+    };
     document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, [outcome.kind, brk, endsAt, complete, failLeft]);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.clearTimeout(graceTimer);
+    };
+  }, [outcome.kind, brk, endsAt, complete, failLeft, c.lockTitle, c.lockLeft, lang, state.accent]);
 
   // Another window ended it. Skip if this window just finished it (finishBreak clears the store first).
   useEffect(() => {
@@ -158,16 +203,27 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
     return () => clearInterval(id);
   }, [c.tips.length]);
 
+  useEffect(() => subscribeScreen(() => setSeesScreen(isWatchingScreen())), []);
+
   // Lock-screen card: Rilo and the minutes left. The screen itself is allowed to turn off.
+  // The words are the minutes remaining, never the clock time the break ends.
   useEffect(() => {
     if (outcome.kind !== "running" || !brk) return;
-    void showBreakLock({
-      endAt: brk.startedAt + brk.minutes * 60_000,
-      title: c.lockTitle,
-      subtitle: c.lockLeft,
-      color: ACCENT_COLORS[state.accent].accent,
-    });
-  }, [outcome.kind, brk, c.lockTitle, c.lockLeft, state.accent]);
+    const endAt = brk.startedAt + brk.minutes * 60_000;
+    const push = () => {
+      const left = Math.max(1, Math.ceil((endAt - Date.now()) / 60_000));
+      void showBreakLock({
+        endAt,
+        title: c.lockTitle,
+        subtitle: c.lockLeft,
+        body: minutesLeft(lang, left),
+        color: ACCENT_COLORS[state.accent].accent,
+      });
+    };
+    push();
+    const id = window.setInterval(push, 30_000);
+    return () => window.clearInterval(id);
+  }, [outcome.kind, brk, c.lockTitle, c.lockLeft, lang, state.accent]);
 
   // Hold-to-give-up so it never happens by accident.
   useEffect(() => {
@@ -235,7 +291,7 @@ export default function BreakOverlay({ state, onClose, streakDoneBefore, streakD
                 ))}
               </div>
               <p className={styles.warning}>
-                {canMeasure() ? c.warnAndroid : isPhoneBrowser() ? c.warnPhone : c.warnDesktop}
+                {canMeasure() || (isPhoneBrowser() && seesScreen) ? c.warnAndroid : isPhoneBrowser() ? c.warnPhone : c.warnDesktop}
               </p>
             </div>
 
